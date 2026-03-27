@@ -1,0 +1,77 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      validity: true
+      level: warning
+    - suggestion: .hasDataType('person_age', 'Integral')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_age' column is excluded from the analysis because it is not
+        directly relevant to the categorization of employment length. The code implicitly
+        assumes that 'person_age' does not need to be used or transformed for this
+        specific task. It is assumed to be complete and valid as per the dataset description,
+        but it is intentionally excluded from the query to maintain focus on employment
+        analysis.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+      - start_line: 17
+        end_line: 19
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_emp_length'' column should not contain null values because
+        the code categorizes employment length into ''Junior'', ''Mid-level'', ''Senior'',
+        and ''Unknown'' categories, with ''Unknown'' being used to handle potential
+        NULL or missing values. The completeness of the column is 1.0, which indicates
+        no null values are expected. We could represent this assumption as a deequ
+        constraint like this: .isComplete(''person_emp_length'', ''No Null Values
+        in person_emp_length'')'
+      sources:
+      - start_line: 4
+        end_line: 10
+        file: ''
+    - text: 'The ''person_emp_length'' column should contain numeric values that can
+        be compared with integers in the code. This is because the code performs numerical
+        comparisons (e.g., < 2, BETWEEN 2 AND 5, > 5) to categorize the employment
+        length. We could represent this assumption as a deequ constraint like this:
+        .isNumeric(''person_emp_length'', ''Numeric Values in person_emp_length'')'
+      sources:
+      - start_line: 4
+        end_line: 9
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 4
+    end_line: 10
+    file: ''
+  person_age:
+  - start_line: 3
+    end_line: 3
+    file: ''

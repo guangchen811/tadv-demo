@@ -1,0 +1,43 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isContainedIn(''cb_person_default_on_file'', [''N'',''Y''], lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("cb_person_default_on_file = ''N''", ''At least one
+        N'', lambda x: x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("cb_person_default_on_file = ''Y''", ''At least one
+        Y'', lambda x: x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  person_home_ownership:
+    code:
+    - suggestion: '.hasCompleteness(''person_home_ownership'', lambda v: v == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT','MORTGAGE','OWN','OTHER'])
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''(person_home_ownership = upper(trim(person_home_ownership)))
+        AND length(trim(person_home_ownership)) > 0'', ''Normalized homeownership'',
+        lambda r: r == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership <> ''OTHER'' THEN 1
+        ELSE 0 END", ''Non-OTHER share'', lambda r: r >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning

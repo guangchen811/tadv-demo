@@ -1,0 +1,199 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain any null values, as the AVG(loan_amnt)
+        aggregation in the SQL query implicitly assumes all values are present for
+        accurate computation. Since the completeness is 1.0, this expectation is supported
+        by the data profile.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'loan_amnt' column should contain only integral (integer) values,
+        as its data type is specified as Integral and the AVG aggregation assumes
+        numeric input.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'loan_amnt' column should not contain extreme outliers or negative
+        values, as AVG(loan_amnt) is used to compute average loan amounts per employment
+        length, and negative or implausible values would distort the result. The column
+        should represent valid, realistic loan amounts.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', ConstrainableDataTypes.Fractional)
+      validity: false
+      level: error
+    - suggestion: .satisfies('loan_int_rate > 0 AND loan_int_rate <= 100', 'Interest
+        Rate Range')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_int_rate'' column should not contain any null values, since
+        the code computes AVG(loan_int_rate) without any null-handling. Null values
+        would cause the AVG aggregation to ignore those records, potentially skewing
+        results or reducing group completeness. The column completeness is 1.0 in
+        the provided metadata, which matches this expectation. We could represent
+        this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_int_rate` IS NOT NULL THEN 1 ELSE 0 END", "No
+        Null Interest Rates", lambda x: x == 1.0)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_int_rate'' column should contain only numeric (fractional)
+        values, as the code uses AVG(loan_int_rate), which requires numeric input.
+        The metadata confirms the dataType is Fractional. We could represent this
+        assumption as a deequ constraint like this:
+
+        .hasDataType("loan_int_rate", ConstrainableDataTypes.Fractional)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_int_rate'' column should have a reasonable range for interest
+        rates, such as values greater than 0 and less than or equal to 100, to ensure
+        that average interest rates are meaningful and not distorted by outliers or
+        erroneous data. This is implied by the use of AVG(loan_int_rate) for business
+        analytics. We could represent this assumption as a deequ constraint like this:
+
+        .isNonNegative("loan_int_rate").satisfies("CASE WHEN `loan_int_rate` > 0 AND
+        `loan_int_rate` <= 100 THEN 1 ELSE 0 END", "Interest Rate Range", lambda x:
+        x == 1.0)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column must have no null values, as it is used directly
+        in conditional aggregation (SUM and CASE WHEN) and in mathematical calculations
+        without any null handling. This ensures that the computations for ''total_defaults''
+        and ''default_rate'' will not result in errors or incorrect results due to
+        missing values. We could represent this assumption as a deequ constraint like
+        this: .isComplete(''loan_status'')'
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+    - text: 'The ''loan_status'' column should contain only two distinct integer values,
+        specifically 0 and 1, representing non-default and default loans, respectively.
+        This is assumed because the code calculates defaults as ''loan_status = 1''
+        and otherwise as 0, and the dataset statistics show only values ''0'' and
+        ''1''. We could represent this assumption as a deequ constraint like this:
+        .hasDistinctValues(''loan_status'', [0, 1])'
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_emp_length'', lambda x: x >=
+        2 and x <= 100)'
+      validity: false
+      level: warning
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_emp_length'' column must have no null values in the input
+        data, since the code groups by this column and expects every row to have a
+        valid group key. If there are nulls, those rows will either be omitted or
+        cause errors, leading to incomplete or misleading statistics. We could represent
+        this assumption as a deequ constraint like this: .isComplete(''person_emp_length'')'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''person_emp_length'' column should have a reasonable number of distinct
+        values appropriate for a grouping key. With approximately 33 distinct fractional
+        values, the code assumes that the employment length is not excessively granular
+        (e.g., not a continuous variable with thousands of unique values), making
+        group-level statistics meaningful and interpretable. We could represent this
+        assumption as a deequ constraint like this: .hasNumberOfDistinctValuesBetween(''person_emp_length'',
+        lowerBound=2, upperBound=100)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''person_emp_length'' column should contain valid numeric values
+        (fractional type), as the code expects to group by and display these values
+        directly. Non-numeric or malformed values would break the grouping or result
+        display. We could represent this assumption as a deequ constraint like this:
+        .isFractional(''person_emp_length'')'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 9
+    end_line: 9
+    file: ''
+  loan_status:
+  - start_line: 4
+    end_line: 5
+    file: ''
+  loan_amnt:
+  - start_line: 6
+    end_line: 6
+    file: ''
+  loan_int_rate:
+  - start_line: 7
+    end_line: 7
+    file: ''

@@ -1,0 +1,303 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasStandardDeviation(''cb_person_cred_hist_length'', lambda std:
+        std > 0.0001)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasStandardDeviation(''loan_int_rate'', lambda std: std > 1e-4)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasStandardDeviation(''loan_percent_income'', lambda std: std
+        ** 2 >= 1e-4)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasStandardDeviation(''person_emp_length'', lambda std: std >
+        0.01)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership IN (''RENT'', ''MORTGAGE'',
+        ''OWN'', ''OTHER'') THEN 1 ELSE 0 END", "Valid Home Ownership Categories",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = ''OTHER'' THEN 1
+        ELSE 0 END", "Rare OTHER Home Ownership", lambda x: x <= 0.01)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('loan_grade IN ("A", "B", "C", "D", "E", "F", "G")',
+        'loan_grade only allowed values')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasStandardDeviation(''loan_amnt'', lambda std: std >= 1e-4)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      status: false
+      reason_if_failed: 'Constraint ''.isComplete(''loan_status'')'' failed on data
+        sample: Input data does not include column loan_status!'
+      level: error
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasMin(''person_age'', lambda x: x >= 18)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasMax(''person_age'', lambda x: x <= 120)'
+      status: false
+      reason_if_failed: 'Constraint ''.hasMax(''person_age'', lambda x: x <= 120)''
+        failed on data sample: Value: 123.0 does not meet the constraint requirement!'
+      level: warning
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_income:
+    code:
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CAST(person_income AS BIGINT) = person_income'', ''person_income_is_integral'',
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_cred_hist_length","person_age"]':
+    code:
+    - suggestion: '.haveCompleteness([''cb_person_cred_hist_length'', ''person_age''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('CAST(`cb_person_cred_hist_length` AS DOUBLE) IS NOT
+        NULL AND CAST(`person_age` AS DOUBLE) IS NOT NULL', 'Both cb_person_cred_hist_length
+        and person_age are numeric')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasCorrelation(''cb_person_cred_hist_length'', ''person_age'',
+        lambda x: abs(x) <= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_default_on_file","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_status'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_status'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'' failed on data sample: Input data does not include column
+        loan_status!'
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["id","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''id'', ''loan_status''], lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''id'', ''loan_status''],
+        lambda x: x == 1.0)'' failed on data sample: Input data does not include column
+        loan_status!'
+      level: error
+    - suggestion: '.hasUniqueness([''id''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["income_to_loan","loan_amnt","person_income"]':
+    code:
+    - suggestion: .satisfies('`person_income` IS NOT NULL AND `loan_amnt` IS NOT NULL
+        AND `loan_amnt` != 0', 'Income and Loan Amount Present and Loan Amount Nonzero')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''person_income'', ''loan_amnt''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasDistinctness([''person_income'', ''loan_amnt''], lambda x:
+        x > 0.01)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: .satisfies('CAST(`person_income` AS DOUBLE) IS NOT NULL AND CAST(`loan_amnt`
+        AS DOUBLE) IS NOT NULL AND CAST(`person_income` AS DOUBLE) != 0 AND CAST(`loan_amnt`
+        AS DOUBLE) != 0', 'Income and Loan Amount Numeric and Nonzero')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate''], lambda x:
+        x >= 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('loan_amnt > 0', 'Loan amount must be positive')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('CAST(loan_amnt AS DOUBLE) IS NOT NULL AND CAST(loan_int_rate
+        AS DOUBLE) IS NOT NULL', 'Loan amount and interest rate must be numeric')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","loan_percent_income","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''loan_amnt'', ''loan_percent_income''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('`person_income` > 0 AND `loan_amnt` >= 0 AND `loan_percent_income`
+        >= 0', 'Non-negative income and loan, income > 0')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('CAST(`person_income` AS DOUBLE) IS NOT NULL AND CAST(`loan_amnt`
+        AS DOUBLE) IS NOT NULL AND CAST(`loan_percent_income` AS DOUBLE) IS NOT NULL',
+        'Numeric types for key columns')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasCorrelation(''person_income'', ''loan_amnt'', lambda c: abs(c)
+        <= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasCorrelation(''person_income'', ''loan_percent_income'', lambda
+        c: abs(c) <= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasCorrelation(''loan_amnt'', ''loan_percent_income'', lambda
+        c: abs(c) <= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["loan_amnt","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''person_income''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('`loan_amnt` >= 0 AND `person_income` >= 0', 'Non-negative
+        loan amount and person income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["person_age","person_emp_length"]':
+    code:
+    - suggestion: '.haveCompleteness(["person_age", "person_emp_length"], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasCorrelation("person_age", "person_emp_length", lambda c: abs(c)
+        < 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["person_home_ownership","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''person_home_ownership''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('(`person_home_ownership` IN ("RENT", "MORTGAGE", "OWN",
+        "OTHER"))', 'Home Ownership Category Valid')
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: .satisfies('(`person_income` IS NOT NULL AND `loan_amnt` IS NOT
+        NULL AND `loan_amnt` >= 0)', 'Valid Income to Loan Calculation')
+      status: true
+      reason_if_failed: ''
+      level: error

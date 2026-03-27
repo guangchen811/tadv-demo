@@ -1,0 +1,163 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: '.hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.isPositive(''loan_amnt'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column must not contain any null values. Since AVG(loan_amnt)
+        is calculated in the query without handling nulls, the presence of null values
+        in the input data could lead to inaccurate averages or unexpected results.
+        The dataset description also indicates completeness is 1.0, so this is expected
+        to hold for test data as well.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral (whole number)
+        values, as it is used in an AVG aggregation and the column''s dataType is
+        Integral. Non-integer or malformed values would cause SQL errors or data inconsistencies.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_amnt = CAST(loan_amnt AS BIGINT)'', ''Loan Amount Integral'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+    - text: 'The ''loan_amnt'' column should have a reasonable numeric range, reflecting
+        actual loan amounts. While the exact expected min/max is not specified here,
+        extreme outliers (e.g., negative values, zeros, or implausibly high amounts)
+        could distort the average and make the analysis misleading. At a minimum,
+        loan amounts should be positive integers greater than zero.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_amnt > 0'', ''Positive Loan Amounts'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_int_rate'', lambda x: x > 1)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column must be complete (i.e., contain no null values),
+        because the code computes AVG(loan_int_rate) per income band without handling
+        missing values. Nulls in 'loan_int_rate' would cause the average to be computed
+        over fewer rows or possibly lead to incorrect results, so input data is assumed
+        to always provide a value for this column.
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The 'loan_int_rate' column must contain only valid fractional (numeric)
+        values, since AVG(loan_int_rate) is used in aggregation. Non-numeric or malformed
+        entries would cause errors or be silently ignored, so the input data is assumed
+        to have only valid numeric values for 'loan_int_rate'.
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The distribution of values in 'loan_int_rate' should be meaningful for
+        averaging within income bands. If most values are identical or have extreme
+        outliers, the resulting averages may not provide useful insights. Therefore,
+        it is assumed that 'loan_int_rate' varies appropriately across the dataset
+        and does not consist entirely of a single repeated value or unreasonable outliers.
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 2
+        end_line: 22
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column must not contain any null values, as it
+        is directly used in CASE statements to assign income bands without any null
+        checks or fillna logic. If null values exist, the row would not be correctly
+        assigned to an income band, potentially leading to errors or misclassification.
+        This can be represented by a constraint such as: .isComplete(''person_income'')'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: 'The ''person_income'' column must only contain integer (whole number)
+        values, as it is used in numeric comparisons (<, BETWEEN) and is described
+        as having the ''Integral'' data type. This can be represented by a constraint
+        such as: .isInteger(''person_income'')'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: 'The ''person_income'' column should contain values that meaningfully
+        fall into the defined income bands: less than 50,000 (Low Income), between
+        50,000 and 100,000 (Medium Income), and above 100,000 (High Income). While
+        there is no explicit minimum or maximum, the code assumes that the column
+        contains plausible, non-negative income values. Negative or implausibly high
+        values may distort results. This can be represented by a constraint such as:
+        .satisfies(''person_income >= 0'', ''Non-negative Income'', lambda x: x ==
+        1)'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 3
+    end_line: 4
+    file: ''
+  loan_amnt:
+  - start_line: 11
+    end_line: 11
+    file: ''
+  loan_int_rate:
+  - start_line: 14
+    end_line: 14
+    file: ''

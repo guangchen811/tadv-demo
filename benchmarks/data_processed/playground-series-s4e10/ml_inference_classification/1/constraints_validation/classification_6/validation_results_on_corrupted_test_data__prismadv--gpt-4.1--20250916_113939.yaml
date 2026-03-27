@@ -1,0 +1,124 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: false
+      reason_if_failed: 'Constraint ''.isContainedIn(''loan_grade'', [''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', ''G''])'' failed on data sample: Value: 0.9000227350233034
+        does not meet the constraint requirement!'
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('person_age >= 0 AND person_age <= 120', 'person_age
+        in reasonable human age range')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''person_age >= 0 AND person_age
+        <= 120'', ''person_age in reasonable human age range'')'' failed on data sample:
+        Value: 0.9999431624417415 does not meet the constraint requirement!'
+      level: warning
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('person_income > 0', 'Nonzero Income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_default_on_file","loan_grade"]':
+    code:
+    - suggestion: '.haveCompleteness([''cb_person_default_on_file'', ''loan_grade''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: '.hasUniqueness([''id''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","person_income"]':
+    code:
+    - suggestion: '.satisfies(''loan_amnt IS NOT NULL AND person_income IS NOT NULL
+        AND person_income != 0'', ''Loan Amount and Income Non-null and Non-zero'',
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''loan_amnt >= 0 AND person_income >= 0'', ''Loan Amount
+        and Income Non-negative'', lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["person_home_ownership","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''person_home_ownership''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('person_home_ownership IS NULL OR (person_income > 0
+        AND person_income IS NOT NULL)', 'No Null or Non-Positive Income When Home
+        Ownership Present')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('person_home_ownership IN ("OTHER", "OWN", "MORTGAGE",
+        "RENT")', 'Home Ownership Category Matches Training')
+      status: true
+      reason_if_failed: ''
+      level: error

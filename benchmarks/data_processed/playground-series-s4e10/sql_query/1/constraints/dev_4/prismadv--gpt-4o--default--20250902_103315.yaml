@@ -1,0 +1,72 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values because the code
+        calculates the SUM of the 'loan_amnt' column, and null values would affect
+        this calculation. The completeness of the column is already 1.0, indicating
+        no null values are present.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: The 'loan_amnt' column should contain integer values, as it is used in
+        a SUM operation, which requires numerical data. The data type of the column
+        is already specified as Integral, which aligns with this requirement.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain null values because the
+        code calculates the average interest rate, which requires non-null values.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: The 'loan_int_rate' column is expected to contain fractional values as
+        it represents interest rates, which are typically expressed as fractions or
+        percentages.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+column_data_flow_locations:
+  loan_amnt:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  loan_int_rate:
+  - start_line: 3
+    end_line: 3
+    file: ''

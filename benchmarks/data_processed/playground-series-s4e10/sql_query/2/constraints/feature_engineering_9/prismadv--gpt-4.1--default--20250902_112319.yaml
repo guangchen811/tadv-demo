@@ -1,0 +1,52 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column should only contain the categories ''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', or ''G'', as the code explicitly maps these values
+        to numeric grades for modeling. Any value outside this set will result in
+        a NULL value for ''grade_numeric'', which may affect downstream tasks expecting
+        valid numeric grades. We could represent this assumption as a deequ constraint
+        like this: .satisfies("CASE WHEN loan_grade IN (''A'', ''B'', ''C'', ''D'',
+        ''E'', ''F'', ''G'') THEN 1 ELSE 0 END", "Valid loan_grade values", lambda
+        x: x == 1)'
+      sources:
+      - start_line: 4
+        end_line: 11
+        file: ''
+    - text: 'The ''loan_grade'' column should not contain NULL values, as the mapping
+        logic does not explicitly handle NULLs and will produce a NULL in ''grade_numeric''
+        if encountered. This could introduce unintended NULLs in the numeric grade
+        column and cause issues in downstream modeling. We could represent this assumption
+        as a deequ constraint like this: .isComplete(''loan_grade'')'
+      sources:
+      - start_line: 4
+        end_line: 11
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 4
+    end_line: 10
+    file: ''

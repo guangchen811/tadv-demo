@@ -1,0 +1,98 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: false
+      reason_if_failed: 'Constraint ''.isContainedIn(''loan_grade'', [''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', ''G''])'' failed on data sample: Value: 0.9000227350233034
+        does not meet the constraint requirement!'
+      level: error
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .isNonNegative('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      status: false
+      reason_if_failed: 'Constraint ''.isComplete(''loan_status'')'' failed on data
+        sample: Input data does not include column loan_status!'
+      level: undefined
+    - suggestion: .isContainedIn('loan_status', ['0', '1'])
+      status: false
+      reason_if_failed: 'Constraint ''.isContainedIn(''loan_status'', [''0'', ''1''])''
+        failed on data sample: Input data does not include column loan_status!'
+      level: undefined
+  '["cb_person_default_on_file","loan_grade","loan_int_rate","log_loan_amnt"]':
+    code:
+    - suggestion: .satisfies('loan_amnt > 0', 'Non-negative Loan Amount')
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["id","loan_status"]':
+    code:
+    - suggestion: '.hasUniqueness([''id''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('loan_status IN (0, 1)', 'Loan Status Validity')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''loan_status IN (0, 1)'', ''Loan
+        Status Validity'')'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column or function parameter with name
+        `loan_status` cannot be resolved. Did you mean one of the following? [`loan_amnt`,
+        `loan_grade`, `loan_int_rate`, `loan_intent`, `id`].; line 1 pos 0;
+
+        ''Aggregate [sum(cast(''loan_status IN (0,1) as int)) AS sum(CAST((loan_status
+        IN (0, 1)) AS INT))#124676, count(1) AS count(1)#124677L]
+
+        +- LogicalRDD [id#123002L, person_age#123003L, person_income#123004L, person_home_ownership#123005,
+        person_emp_length#123006, loan_intent#123007, loan_grade#123008, loan_amnt#123009L,
+        loan_int_rate#123010, loan_percent_income#123011, cb_person_default_on_file#123012,
+        cb_person_cred_hist_length#123013L, corrupted_loan_intent#123014, person_home_ownership_person_age#123015],
+        false
+
+        '
+      level: error
+  '["loan_amnt","log_loan_amnt"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

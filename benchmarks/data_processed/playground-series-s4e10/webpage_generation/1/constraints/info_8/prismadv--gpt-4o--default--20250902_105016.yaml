@@ -1,0 +1,175 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column should not contain null values,
+        as the code drops rows with null values from the selected features, including
+        'cb_person_cred_hist_length', before proceeding with further processing.
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column should not contain null values because the code
+        drops rows with null values in the selected features, including ''loan_amnt'',
+        before applying PCA. We could represent this assumption as a deequ constraint
+        like this: .satisfies("CASE WHEN `loan_amnt` IS NOT NULL THEN 1 ELSE 0 END",
+        "Non-null loan_amnt", lambda x: x == 1)'
+      sources:
+      - start_line: 15
+        end_line: 20
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain any null values because
+        the code drops rows with null values in any of the selected features before
+        proceeding with further analysis. This indicates that all selected features,
+        including 'loan_int_rate', are expected to be complete with no missing values.
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      level: error
+    - suggestion: .isNonNegative('loan_percent_income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_percent_income'' column should not contain any null values,
+        as the code performs a dropna operation on it before further processing. This
+        implies that the downstream tasks require complete data for this column. We
+        could represent this assumption as a deequ constraint like this: .isComplete(''loan_percent_income'')'
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+    - text: 'The ''loan_percent_income'' column is used as one of the features in
+        a PCA analysis, implying that it should be a numerical column with a reasonable
+        range and variance. Since the dataType is ''Fractional'', the values should
+        be valid floating-point numbers. We could represent this assumption as a deequ
+        constraint like this: .isNonNegative(''loan_percent_income'')'
+      sources:
+      - start_line: 18
+        end_line: 28
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'person_emp_length' column should not contain null values as the code
+        drops any rows with null values before proceeding with further analysis. This
+        means that the column is expected to be complete without any missing values.
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+    - text: The 'person_emp_length' column is expected to be a numerical feature suitable
+        for standardization and PCA analysis, indicating that all values should be
+        numeric (Fractional).
+      sources:
+      - start_line: 18
+        end_line: 28
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''person_income'' column should not contain null values because the
+        code drops rows with null values in any of the selected features before further
+        processing. This implies that ''person_income'' must be complete for the records
+        to be included in the PCA analysis. We could represent this assumption as
+        a deequ constraint like this: .satisfies(''CASE WHEN `person_income` IS NOT
+        NULL THEN 1 ELSE 0 END'', ''Non-null Person Income'', lambda x: x == 1)'
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  - start_line: 43
+    end_line: 46
+    file: ''
+  loan_amnt:
+  - start_line: 15
+    end_line: 20
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  - start_line: 43
+    end_line: 46
+    file: ''
+  person_emp_length:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  loan_int_rate:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  loan_percent_income:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  - start_line: 42
+    end_line: 46
+    file: ''

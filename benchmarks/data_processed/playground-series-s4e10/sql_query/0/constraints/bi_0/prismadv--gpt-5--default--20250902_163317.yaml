@@ -1,0 +1,315 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete("loan_grade")
+      validity: true
+      level: error
+    - suggestion: .isContainedIn("loan_grade", ["A", "B", "C", "D", "E", "F", "G"])
+      validity: true
+      level: error
+    - suggestion: '.hasPattern("loan_grade", "^[A-G]$", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues("loan_grade", lambda x: x <= 7)'
+      validity: false
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues("loan_grade", lambda x: x >= 1)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'loan_grade must be present and non-null for all rows so grouping and
+        ordering by grade are meaningful and do not create a NULL bucket. Example
+        constraint: Deequ .isComplete("loan_grade") or Great Expectations expect_column_values_to_not_be_null.'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: 'loan_grade values should be restricted to the known grade set {''A'',''B'',''C'',''D'',''E'',''F'',''G''}
+        (no unexpected categories), consistent with training data. Example constraint:
+        Deequ .isContainedIn("loan_grade", Array("A","B","C","D","E","F","G")) or
+        Great Expectations expect_column_values_to_be_in_set with the same set.'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: 'loan_grade should be a single uppercase letter with no leading/trailing
+        whitespace (format consistency aids grouping and ordering). Example constraint:
+        Deequ .matchesPattern("loan_grade", "^[A-G]$") or .satisfies("CASE WHEN loan_grade
+        = TRIM(loan_grade) THEN 1 ELSE 0 END", "Trimmed loan_grade", lambda x: x ==
+        1.0).'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: 'The number of distinct loan_grade values should be small and stable (at
+        most 7, at least 1) to prevent unexpected group explosion. Example constraints:
+        Deequ .hasNumberOfDistinctValues("loan_grade", lambda x: x <= 7) and .hasNumberOfDistinctValues("loan_grade",
+        lambda x: x >= 1).'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: '.hasDataType(''loan_int_rate'', ConstrainableDataTypes.Fractional,
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness(''loan_int_rate'', lambda x: x >= 0.95)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''loan_int_rate > 0 AND loan_int_rate < 100'', ''Valid
+        interest rate range'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''(person_emp_length IS NULL OR loan_grade IS NULL)
+        OR loan_int_rate IS NOT NULL'', ''Interest rate present when grouping keys
+        exist'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must exist in the input table ''new_data''
+        and be numeric (fractional/decimal) so AVG() and ROUND() can be applied without
+        type errors. We could represent this assumption as a Deequ constraint like:
+        .hasDataType("loan_int_rate", ConstrainableDataTypes.Fractional) or as a Great
+        Expectations rule: expect_column_values_to_be_of_type("loan_int_rate", "FLOAT")
+        (or DECIMAL/DOUBLE, depending on the warehouse).'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 17
+        end_line: 17
+        file: ''
+    - text: 'The ''loan_int_rate'' column should be largely complete (non-null) so
+        the average interest rate per segment is meaningful; target at least 95% completeness.
+        We could represent this assumption as a Deequ constraint like: .hasCompleteness("loan_int_rate",
+        lambda x: x >= 0.95) or a Great Expectations rule: expect_column_values_to_not_be_null("loan_int_rate",
+        mostly=0.95).'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 17
+        end_line: 17
+        file: ''
+    - text: 'Values in ''loan_int_rate'' should fall within a plausible percentage
+        range for interest rates, e.g., 0 < loan_int_rate < 100, to avoid invalid
+        or sentinel values (e.g., 0, negative rates, or 999). We could represent this
+        as a Deequ constraint: .satisfies("loan_int_rate > 0 AND loan_int_rate < 100",
+        "Valid interest rate range", lambda x: x >= 0.99) or as Great Expectations:
+        expect_column_values_to_be_between("loan_int_rate", min_value=0, max_value=100,
+        strict_min=true, strict_max=true, mostly=0.99).'
+      sources:
+      - start_line: 17
+        end_line: 17
+        file: ''
+    - text: 'Within every (person_emp_length, loan_grade) segment present in the input,
+        there should be at least one non-null ''loan_int_rate'' so AVG(interest_rate)
+        does not yield NULL for that group. We could represent this as a Great Expectations
+        rule with grouping: expect_column_values_to_not_be_null("loan_int_rate", groupby=["person_emp_length",
+        "loan_grade"], mostly=1.0), or as a SQL validation pre-check ensuring no group
+        has SUM(CASE WHEN loan_int_rate IS NOT NULL THEN 1 ELSE 0 END) = 0.'
+      sources:
+      - start_line: 17
+        end_line: 17
+        file: ''
+      - start_line: 22
+        end_line: 22
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: warning
+    - suggestion: '.isContainedIn(''loan_status'', [0, 1], lambda x: x == 1)'
+      validity: false
+      level: warning
+    - suggestion: '.hasDataType(''loan_status'', ConstrainableDataTypes.Integral,
+        lambda x: x == 1)'
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x >= 2)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_status'' column must be complete (no NULLs). If NULLs are
+        present, they would be treated as non-defaults by the CASE ... ELSE 0 logic,
+        biasing default counts and percentages. We could represent this assumption
+        as a deequ constraint like this: .isComplete("loan_status") or as a Great
+        Expectations rule: expect_column_values_to_not_be_null("loan_status").'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 18
+        end_line: 19
+        file: ''
+    - text: 'The ''loan_status'' column must be binary with only 0 (non-default) and
+        1 (default) values. Any other value would be counted as non-default by the
+        CASE expression and distort the metrics. We could represent this assumption
+        as a deequ constraint like this: .isContainedIn("loan_status", [0, 1]) or
+        as a Great Expectations rule: expect_column_values_to_be_in_set("loan_status",
+        [0, 1]).'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 18
+        end_line: 19
+        file: ''
+    - text: 'The ''loan_status'' column should be stored as an integral/numeric type
+        (or be reliably castable to it) so that the comparison status = 1 evaluates
+        consistently across the database engine. We could represent this assumption
+        as a deequ constraint like this: .hasDataType("loan_status", ConstrainableDataTypes.Integral)
+        or as a Great Expectations rule: expect_column_values_to_be_in_type_list("loan_status",
+        ["INTEGER", "BIGINT", "SMALLINT", "TINYINT"]).'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 18
+        end_line: 19
+        file: ''
+    - text: 'To ensure the computed default_percentage is meaningful, the dataset
+        should contain at least one default (1) and at least one non-default (0).
+        We could represent this as deequ constraints like: .satisfies("CASE WHEN loan_status
+        = 1 THEN 1 ELSE 0 END", "HasDefaults", lambda x: x > 0) and .satisfies("CASE
+        WHEN loan_status = 0 THEN 1 ELSE 0 END", "HasNonDefaults", lambda x: x > 0).
+        Alternatively: .hasNumberOfDistinctValues("loan_status", lambda x: x >= 2).'
+      sources:
+      - start_line: 18
+        end_line: 19
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: '.hasCompleteness(''person_emp_length'', lambda v: v >= 0.95)'
+      validity: true
+      level: error
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: warning
+    - suggestion: .hasDataType('person_emp_length', ConstrainableDataTypes.Numeric)
+      validity: false
+      level: warning
+    - suggestion: '.isNonNegative(''person_emp_length'', lambda v: v == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''`person_emp_length` <= 60'', ''Max employment length
+        (years)'', lambda x: x == 1.0)'
+      validity: false
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''person_emp_length'', lambda v: v <=
+        100)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''person_emp_length'' column must exist in the input table ''new_data''
+        and be non-null for the vast majority of rows so that grouping and ordering
+        by employment length produce meaningful segments. Suggested constraint: Deequ
+        completeness(''person_emp_length'') >= 0.95 (ideally == 1.0).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: 'Values in ''person_emp_length'' should be numeric (integer or fractional)
+        representing years of employment, and must be non-negative to ensure meaningful
+        ordering. Suggested constraints: Deequ hasDataType(''person_emp_length'',
+        ConstrainableDataTypes.Numeric) and satisfies(''`person_emp_length` >= 0'',
+        ''Non-negative employment length'', lambda x: x == 1.0); Great Expectations:
+        expect_column_values_to_be_in_type_list([''IntegerType'',''LongType'',''FloatType'',''DoubleType'',''DecimalType''])
+        and expect_column_min_to_be_between(min_value=0).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 23
+        end_line: 23
+        file: ''
+    - text: 'Employment length values should be within a realistic upper bound to
+        avoid outliers creating sparse or misleading groups; cap at 60 years. Suggested
+        constraint: Deequ satisfies(''`person_emp_length` <= 60'', ''Max employment
+        length (years)'', lambda x: x == 1.0); Great Expectations: expect_column_max_to_be_between(max_value=60).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 22
+        end_line: 22
+        file: ''
+    - text: 'The number of distinct ''person_emp_length'' values should be modest
+        to prevent an excessively sparse GROUP BY result set. Suggested constraint:
+        Deequ hasApproxCountDistinct(''person_emp_length'', lambda v: v <= 100).'
+      sources:
+      - start_line: 22
+        end_line: 22
+        file: ''
+      - start_line: 23
+        end_line: 23
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 22
+    end_line: 23
+    file: ''
+  loan_grade:
+  - start_line: 8
+    end_line: 8
+    file: ''
+  - start_line: 15
+    end_line: 15
+    file: ''
+  - start_line: 22
+    end_line: 23
+    file: ''
+  loan_status:
+  - start_line: 9
+    end_line: 9
+    file: ''
+  - start_line: 18
+    end_line: 19
+    file: ''
+  loan_int_rate:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 17
+    end_line: 17
+    file: ''

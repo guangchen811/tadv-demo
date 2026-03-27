@@ -1,0 +1,46 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_home_ownership' column should not contain null values, as
+        the column is used for creating one-hot encoded features without any null
+        handling in the SQL code.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: The 'person_home_ownership' column should only contain the values 'RENT',
+        'MORTGAGE', 'OWN', or 'OTHER', as these are the expected categories used in
+        the one-hot encoding process.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 5
+    file: ''

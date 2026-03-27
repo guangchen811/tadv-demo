@@ -1,0 +1,102 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: false
+      reason_if_failed: 'Constraint ''.isContainedIn(''loan_grade'', [''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', ''G''])'' failed on data sample: Value: 0.9000227350233034
+        does not meet the constraint requirement!'
+      level: warning
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('person_age >= 0 AND person_age <= 120', 'Valid Age Range')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''person_age >= 0 AND person_age
+        <= 120'', ''Valid Age Range'')'' failed on data sample: Value: 0.9999431624417415
+        does not meet the constraint requirement!'
+      level: warning
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isPositive('person_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","loan_to_income_ratio","person_income"]':
+    code:
+    - suggestion: .satisfies('loan_amnt > 0 AND person_income > 0', 'Non-zero Loan
+        Amount and Income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''loan_grade''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''loan_grade IN ("A", "B", "C", "D", "E", "F", "G")'',
+        ''Valid Loan Grade'', lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''loan_grade IN ("A", "B", "C", "D",
+        "E", "F", "G")'', ''Valid Loan Grade'', lambda x: x == 1.0)'' failed on data
+        sample: Value: 0.9000227350233034 does not meet the constraint requirement!'
+      level: error
+    - suggestion: '.hasMutualInformation(''loan_grade'', ''loan_int_rate'', lambda
+        x: x >= 0.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning

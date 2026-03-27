@@ -1,0 +1,90 @@
+constraints:
+  booking_status:
+    code:
+    - suggestion: .isComplete('booking_status')
+      validity: null
+      level: error
+    - suggestion: .isContainedIn('booking_status', ['CANCELED', 'IN_PROGRESS', 'COMPLETED'])
+      validity: null
+      level: error
+    assumptions:
+    - text: 'The ''booking_status'' column should only contain values from the set
+        {''CANCELED'', ''IN_PROGRESS'', ''COMPLETED''}, since the query filters for
+        ''IN_PROGRESS'' and expects meaningful groupings and counts. Any values outside
+        this set would not be included in the analytics and could indicate data quality
+        issues. We could represent this assumption as a deequ constraint like this:
+        .satisfies("CASE WHEN booking_status IN (''CANCELED'', ''IN_PROGRESS'', ''COMPLETED'')
+        THEN 1 ELSE 0 END", "Valid Booking Status", lambda x: x == 1)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: 'The ''booking_status'' column should not contain null values, because
+        the query uses an equality comparison (booking_status = ''IN_PROGRESS'') and
+        nulls would cause those rows to be excluded from the result set, potentially
+        distorting analytics. We could represent this assumption as a deequ constraint
+        like this: .isComplete(''booking_status'')'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  guest_category_idx:
+    code:
+    - suggestion: .isComplete('guest_category_idx')
+      validity: null
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''guest_category_idx'', lambda x: x
+        == 2)'
+      validity: null
+      level: error
+    - suggestion: .satisfies('guest_category_idx IN (0, 1)', 'Valid Guest Category
+        Idx')
+      validity: null
+      level: error
+    assumptions:
+    - text: 'The ''guest_category_idx'' column must not contain any null values, as
+        it is used directly in GROUP BY and ORDER BY clauses without any null handling.
+        The input data should therefore have complete values for this column.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isComplete(''guest_category_idx'')'
+      sources:
+      - start_line: 4
+        end_line: 7
+        file: ''
+    - text: 'The ''guest_category_idx'' column is expected to have only a small, finite
+        set of distinct integer values (in this case, 0 and 1), as evidenced by its
+        use in GROUP BY and ORDER BY, and the dataset''s histogram showing only two
+        distinct values. The input data should not contain unexpected or out-of-range
+        values in this column.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasNumberOfDistinctValuesBetween(''guest_category_idx'', 2, 2)'
+      sources:
+      - start_line: 4
+        end_line: 7
+        file: ''
+    - text: 'The ''guest_category_idx'' column should only contain integer values
+        (specifically 0 and 1), as it is of integral type and used as a category/grouping
+        key in analytics. The input data should not have non-integer or unexpected
+        category values.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN guest_category_idx IN (0, 1) THEN 1 ELSE 0 END", "Valid
+        Guest Category Idx", lambda x: x == 1)'
+      sources:
+      - start_line: 4
+        end_line: 7
+        file: ''
+column_data_flow_locations:
+  guest_category_idx:
+  - start_line: 4
+    end_line: 7
+    file: ''
+  booking_status:
+  - start_line: 5
+    end_line: 5
+    file: ''

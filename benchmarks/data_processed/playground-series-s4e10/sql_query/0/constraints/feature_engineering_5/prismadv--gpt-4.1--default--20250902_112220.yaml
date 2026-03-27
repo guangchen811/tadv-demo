@@ -1,0 +1,86 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''cb_person_cred_hist_length'', ''Integral'', lambda
+        x: x == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column must never contain null values,
+        since the code performs arithmetic operations (subtraction and LAG) without
+        handling missing values. Nulls in this column would cause the computation
+        of 'credit_hist_change' to return null or error for those rows.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: The 'cb_person_cred_hist_length' column must contain only integral (whole
+        number) values, as expected by both the column metadata and the arithmetic
+        operation performed in the code. Non-integer values would result in inconsistent
+        or erroneous calculations.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: The 'cb_person_cred_hist_length' column should not have duplicate values
+        for the same 'id' (the column used in ORDER BY), assuming 'id' uniquely identifies
+        each row. If 'id' is not unique, the LAG window function may produce ambiguous
+        results.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+  id:
+    code:
+    - suggestion: '.hasCompleteness(''id'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isUnique('id')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''id'' column must not contain any null values, as it is used to
+        order the rows with ''ORDER BY id'' in the window function. If any nulls are
+        present, the ordering and thus the lag calculation may be incorrect or error-prone.
+        This can be represented as a deequ constraint like this: .hasCompleteness(''id'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: 'The ''id'' column should contain unique values, as it is used for row
+        ordering in a window function to create lag features. Duplicate ids could
+        lead to ambiguous ordering and unreliable lag results. This can be represented
+        as a deequ constraint like this: .isUnique(''id'')'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+column_data_flow_locations:
+  id:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 3
+    end_line: 3
+    file: ''

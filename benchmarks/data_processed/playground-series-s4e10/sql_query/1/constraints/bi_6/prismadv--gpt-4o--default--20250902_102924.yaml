@@ -1,0 +1,215 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should have no null values because the code calculates
+        the average loan amount, which requires non-null values for computation. Given
+        the completeness of 1.0, this assumption is inherently satisfied.
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: The 'loan_amnt' column should contain numeric values, specifically integral
+        values, as the average is calculated using this column, and its data type
+        is specified as Integral.
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_grade' column should not contain null values, as the code groups
+        by this column and performs SQL operations that require non-null values.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+      - start_line: 17
+        end_line: 18
+        file: ''
+    - text: The 'loan_grade' column should have a limited number of distinct values,
+        specifically A, B, C, D, E, F, and G, as indicated by the histogram data and
+        the context of the analysis.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column should have a completeness of 1.0, meaning it
+        should not contain any null values. This is because the code groups by 'loan_intent',
+        and null values would disrupt the grouping.
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+    - text: The 'loan_intent' column should only contain the values 'EDUCATION', 'HOMEIMPROVEMENT',
+        'PERSONAL', 'DEBTCONSOLIDATION', 'MEDICAL', and 'VENTURE'. This is inferred
+        from the dataset description, which lists these as the only categories, and
+        the code assumes these are the only valid categories for grouping.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_percent_income', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_percent_income'' column should not contain null values, as
+        the code calculates the average using this column without any null handling.
+        This implies that the input data is expected to have no missing values in
+        the ''loan_percent_income'' column. We could represent this assumption as
+        a deequ constraint like this: .satisfies(''loan_percent_income IS NOT NULL'',
+        ''Null Check on loan_percent_income'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: 'The ''loan_percent_income'' column should contain numeric values, as
+        it is used in an AVG function to calculate the average. This implies that
+        all values in this column are expected to be numeric for the aggregation to
+        work correctly. We could represent this assumption as a deequ constraint like
+        this: .isFractional(''loan_percent_income'', ''Numeric Check on loan_percent_income'')'
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_status' column should have only two distinct values, which are
+        0 and 1. These values indicate whether a loan is in default or not. Given
+        the operations performed in the code, any value outside of these two would
+        lead to incorrect calculations.
+      sources:
+      - start_line: 6
+        end_line: 9
+        file: ''
+    - text: The 'loan_status' column should not contain null values as the code performs
+        operations that assume all entries have a valid status (either 0 or 1). Null
+        values would cause calculations of total defaults and default rate percentages
+        to be inaccurate.
+      sources:
+      - start_line: 6
+        end_line: 9
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'person_income' column should not contain null values since the code
+        calculates the average income using this column without handling nulls. The
+        completeness of this column is 1.0, confirming no null values are present.
+      sources:
+      - start_line: 12
+        end_line: 13
+        file: ''
+    - text: The 'person_income' column is expected to contain integral values as indicated
+        by the dataType being 'Integral'. This is crucial to ensure accurate calculations
+        of averages.
+      sources:
+      - start_line: 12
+        end_line: 13
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 21
+    file: ''
+  loan_intent:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 17
+    end_line: 18
+    file: ''
+  - start_line: 22
+    end_line: 22
+    file: ''
+  loan_status:
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 9
+    end_line: 9
+    file: ''
+  loan_amnt:
+  - start_line: 12
+    end_line: 12
+    file: ''
+  person_income:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  loan_percent_income:
+  - start_line: 2
+    end_line: 3
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 16
+    end_line: 18
+    file: ''
+  - start_line: 20
+    end_line: 22
+    file: ''

@@ -1,0 +1,66 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: '.hasCompleteness("cb_person_default_on_file", lambda x: x >= 0.999)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isContainedIn("cb_person_default_on_file", ["Y", "N"], lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: '.satisfies("CASE WHEN loan_int_rate > 15.0 THEN CASE WHEN loan_grade
+        IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "loan_grade non-null for high-rate
+        loans", lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies("CASE WHEN loan_int_rate > 15.0 THEN
+        CASE WHEN loan_grade IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "loan_grade
+        non-null for high-rate loans", lambda x: x == 1.0)'' failed on data sample:
+        Value: 0.9915593827265752 does not meet the constraint requirement!'
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN loan_grade IN (''A'',''B'',''C'',''D'',''E'',''F'',''G'')
+        THEN 1 ELSE 0 END", "Valid loan_grade values", lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies("CASE WHEN loan_grade IN (''A'',''B'',''C'',''D'',''E'',''F'',''G'')
+        THEN 1 ELSE 0 END", "Valid loan_grade values", lambda x: x == 1.0)'' failed
+        on data sample: Value: 0.900034103504135 does not meet the constraint requirement!'
+      level: warning
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete("loan_int_rate")
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("loan_int_rate > 15", "High-rate presence", lambda x:
+        x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isNonNegative("loan_int_rate", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasMax("loan_int_rate", lambda m: m <= 100.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete("person_home_ownership")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN loan_int_rate > 15.0 THEN person_home_ownership
+        IS NOT NULL ELSE TRUE END", "person_home_ownership non-null when rate > 15",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("UPPER(TRIM(person_home_ownership)) IN (''RENT'',''OWN'',''MORTGAGE'',''OTHER'')",
+        "Known home ownership categories", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

@@ -1,0 +1,146 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: '.hasCompleteness(''cb_person_default_on_file'', lambda x: x ==
+        1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_percent_income:
+    code:
+    - suggestion: '.hasCompleteness(''loan_percent_income'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `person_home_ownership` = ''OTHER'' THEN
+        1 ELSE 0 END", "Low fraction of ''OTHER'' in person_home_ownership", lambda
+        x: x <= 0.01)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasMean(''person_income'', lambda mean: mean > 0 and mean < 5e6)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasStandardDeviation(''person_income'', lambda std: std > 0 and
+        std < 5e6)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasMin(''person_income'', lambda min_val: min_val >= 0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_cred_hist_length","cb_person_default_on_file"]':
+    code:
+    - suggestion: '.haveCompleteness([''cb_person_cred_hist_length'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('cb_person_default_on_file IN ("Y", "N")', 'cb_person_default_on_file
+        valid values')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_cred_hist_length","person_age"]':
+    code:
+    - suggestion: '.haveCompleteness([''cb_person_cred_hist_length'', ''person_age''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''cb_person_cred_hist_length IS NOT NULL AND person_age
+        IS NOT NULL AND CAST(cb_person_cred_hist_length AS BIGINT) = cb_person_cred_hist_length
+        AND CAST(person_age AS BIGINT) = person_age'', ''Both columns are present,
+        complete, and integral'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.isLessThanOrEqualTo(''cb_person_cred_hist_length'', ''person_age'',
+        lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.isLessThanOrEqualTo(''cb_person_cred_hist_length'',
+        ''person_age'', lambda x: x == 1.0)'' failed on data sample: Value: 0.9999431624417415
+        does not meet the constraint requirement!'
+      level: error
+  '["loan_amnt","loan_percent_income","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness(["loan_amnt", "person_income", "loan_percent_income"],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies("person_income != 0", "person_income not zero")
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_intent","person_home_ownership"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_home_ownership'', ''loan_intent''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

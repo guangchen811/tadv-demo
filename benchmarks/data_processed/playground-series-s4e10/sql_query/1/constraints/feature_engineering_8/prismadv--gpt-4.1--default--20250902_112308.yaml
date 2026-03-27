@@ -1,0 +1,66 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.satisfies(''person_emp_length >= 0'', ''Non-negative employment
+        length'', lambda x: x > 0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_emp_length' column should not contain any null values. The
+        code performs arithmetic operations and comparisons on 'person_emp_length'
+        without handling nulls, which means the column must be complete (no missing
+        values) for the query to execute correctly. This is also supported by the
+        dataset's completeness metric of 1.0.
+      sources:
+      - start_line: 3
+        end_line: 4
+        file: ''
+    - text: All values in the 'person_emp_length' column should be numeric (specifically,
+        fractional/real numbers), as the code uses arithmetic operations (division,
+        comparisons) that require numeric types.
+      sources:
+      - start_line: 3
+        end_line: 8
+        file: ''
+    - text: The 'person_emp_length' column should contain at least one non-null value
+        greater than or equal to 0, as the code divides by MAX(person_emp_length)
+        and performs range checks. If all values are negative or zero, the normalization
+        or binning logic may be invalid or raise errors.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 4
+        end_line: 10
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 3
+    end_line: 4
+    file: ''
+  - start_line: 6
+    end_line: 8
+    file: ''

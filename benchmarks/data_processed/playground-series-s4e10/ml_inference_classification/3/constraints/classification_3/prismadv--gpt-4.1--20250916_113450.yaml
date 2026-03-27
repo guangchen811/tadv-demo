@@ -1,0 +1,2089 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: The code is written for ML Inference task. After
+      training a model on the training data, the model would be used to make predictions
+      on the test data. you are asked to generate constraints on the upcoming *test*
+      data to ensure that the code can run without any errors and the predictions
+      are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 25f5a2a2-8d41-4412-8ed6-5d22df327cd1
+      source_assumptions:
+      - 806691a9-9cf4-4694-b586-a492bd73369f
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 22bc2158-76a0-41c5-94e1-232bead3bdcc
+      source_assumptions:
+      - 37328c83-67b0-438f-ab4c-a0421f2f2182
+    - suggestion: .hasDataType('cb_person_default_on_file', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''cb_person_default_on_file'',
+        ''String'')'
+      level: error
+      uid: 06ac7659-92ad-43eb-a218-466c3e97b038
+      source_assumptions:
+      - cbe66f4f-204f-44d3-b9ec-eeaa15bdb294
+    assumptions:
+    - text: The 'cb_person_default_on_file' column must be present in both the train.csv
+        and test.csv input files, as it is explicitly renamed and used in downstream
+        processing.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 24
+        end_line: 36
+        file: ''
+      - start_line: 37
+        end_line: 49
+        file: ''
+      uid: 7428b49b-8376-4fa2-9130-a3af70a1c3a6
+    - text: The 'cb_person_default_on_file' column in the test data must be complete,
+        i.e., it should not contain any null or missing values. This is because the
+        code does not perform any fillna or missing value imputation on this column
+        prior to factorization and model input transformation.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 806691a9-9cf4-4694-b586-a492bd73369f
+    - text: The 'cb_person_default_on_file' column in the test data should contain
+        only the values 'Y' and 'N', as those are the only observed values in the
+        histogram and the downstream code expects to factorize these categories for
+        consistent encoding with the training data.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 37328c83-67b0-438f-ab4c-a0421f2f2182
+    - text: The 'cb_person_default_on_file' column in the test data should be of string
+        (object) type, since the code uses pandas factorize and OneHotEncoder, which
+        expect categorical/string input for categorical columns.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      - start_line: 114
+        end_line: 115
+        file: ''
+      uid: cbe66f4f-204f-44d3-b9ec-eeaa15bdb294
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 75379611-5301-42cd-96c6-5468f1750951
+      source_assumptions:
+      - ef5ebb8a-4dbd-4eea-b2a7-c05acef47c0e
+      - 269759b9-a928-43f8-a780-0898f02feef3
+    - suggestion: '.hasDataType(''cb_person_cred_hist_length'', ''Integral'', lambda
+        x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''cb_person_cred_hist_length'',
+        ''Integral'', lambda x: x == 1.0)'
+      level: error
+      uid: cbb33760-4cad-4cb2-ab82-1969104dc70d
+      source_assumptions:
+      - 507cff86-8413-4a5d-af2e-9c7c920b42a0
+    - suggestion: '.hasStandardDeviation(''cb_person_cred_hist_length'', lambda std:
+        std > 0.0001)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 8d085ff1-29ca-4765-b1c5-64a0a5595cd4
+      source_assumptions:
+      - c4e2f0a7-9239-48da-a103-6a137f9db4e8
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column must be present in the input (both
+        train and test) data files, as it is renamed and used as a feature in downstream
+        modeling steps.
+      sources:
+      - start_line: 24
+        end_line: 49
+        file: ''
+      uid: ef5ebb8a-4dbd-4eea-b2a7-c05acef47c0e
+    - text: The 'cb_person_cred_hist_length' column must not contain any null values
+        in either train or test data. The code does not include any missing value
+        imputation for this column, and subsequent steps (such as variance calculation
+        and scaling) require non-null values.
+      sources:
+      - start_line: 20
+        end_line: 124
+        file: ''
+      uid: 269759b9-a928-43f8-a780-0898f02feef3
+    - text: The 'cb_person_cred_hist_length' column must contain only integer (integral)
+        values, as it is treated as a numeric feature and passed to StandardScaler
+        and PyTorch tensors as float32.
+      sources:
+      - start_line: 24
+        end_line: 124
+        file: ''
+      uid: 507cff86-8413-4a5d-af2e-9c7c920b42a0
+    - text: The distribution of values in 'cb_person_cred_hist_length' in the test
+        data should be similar to the training data, i.e., the column should not be
+        constant or have extremely low variance, as columns with very low variance
+        are dropped and may cause mismatches in feature alignment during inference.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: c4e2f0a7-9239-48da-a103-6a137f9db4e8
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 563e37b1-69d4-4f57-98b7-58b19b1a83d9
+      source_assumptions:
+      - 8339062f-fb0b-4462-9292-1527f3ee9da8
+      - 1b5ade7e-af32-4e42-923a-11e78203ac1a
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_int_rate'',
+        ''Fractional'', lambda x: x == 1.0)'
+      level: error
+      uid: fc4b46c9-d386-4a51-abb7-358157b6b147
+      source_assumptions:
+      - a6e2f558-f2eb-4109-89db-29d27ff280b8
+    - suggestion: '.hasStandardDeviation(''loan_int_rate'', lambda std: std > 1e-4)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 96c926ef-11f6-42d5-a54e-23dc843e21ac
+      source_assumptions:
+      - fb1edba5-3be3-4184-b7d4-2d96b035c053
+    - suggestion: .satisfies('loan_int_rate >= 0 AND loan_int_rate < 1', 'interest_rate
+        plausible range')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''loan_int_rate >= 0 AND loan_int_rate
+        < 1'', ''interest_rate plausible range'')'' failed on data sample: Value:
+        0.0 does not meet the constraint requirement!'
+      level: warning
+      uid: ef43d623-e9b5-4854-98e0-bdcc1a88795f
+      source_assumptions:
+      - 27190b95-d223-45ea-b0b6-a56f69f8ae13
+    assumptions:
+    - text: The 'loan_int_rate' column must be present in the input test data, as
+        the code expects to rename it to 'interest_rate'. If this column is missing,
+        downstream processing will fail.
+      sources:
+      - start_line: 24
+        end_line: 36
+        file: ''
+      - start_line: 37
+        end_line: 49
+        file: ''
+      uid: 8339062f-fb0b-4462-9292-1527f3ee9da8
+    - text: The 'loan_int_rate' column in the test data must be complete, with no
+        missing (null) values. Downstream code does not fill missing values or handle
+        nulls in 'interest_rate', and it is used in numeric operations such as variance
+        calculation, correlation computation, and scaling. Nulls would cause errors
+        during these operations.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      - start_line: 80
+        end_line: 124
+        file: ''
+      uid: 1b5ade7e-af32-4e42-923a-11e78203ac1a
+    - text: The 'loan_int_rate' column should be of a numeric (fractional/float) data
+        type in the input test data. The code expects 'interest_rate' to be numeric
+        for calculations such as variance, correlation, and scaling. Non-numeric values
+        would cause errors during these steps.
+      sources:
+      - start_line: 62
+        end_line: 109
+        file: ''
+      - start_line: 112
+        end_line: 117
+        file: ''
+      uid: a6e2f558-f2eb-4109-89db-29d27ff280b8
+    - text: The 'loan_int_rate' column in the test data should have sufficient variance
+        to avoid being dropped as a low-variance feature. If all or almost all values
+        are identical, the column may be dropped and not used for inference.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: fb1edba5-3be3-4184-b7d4-2d96b035c053
+    - text: The distribution of values in the 'loan_int_rate' column in the test data
+        should be similar to that of the training data. Extreme or unexpected values
+        (such as negative interest rates or excessively high rates) may cause the
+        scaler to behave unpredictably, possibly resulting in out-of-distribution
+        inputs to the model.
+      sources:
+      - start_line: 114
+        end_line: 117
+        file: ''
+      - start_line: 123
+        end_line: 124
+        file: ''
+      uid: 27190b95-d223-45ea-b0b6-a56f69f8ae13
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: fd688d17-7a00-452b-9075-3c2889bdf91a
+      source_assumptions:
+      - e953c978-94e5-463e-8159-614d4939db87
+    - suggestion: '.hasDataType(''loan_percent_income'', ''Fractional'', lambda x:
+        x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_percent_income'',
+        ''Fractional'', lambda x: x == 1.0)'
+      level: error
+      uid: 69f9419f-dbd0-4fe6-a990-57bbd5c4acdf
+      source_assumptions:
+      - 197243e8-488e-454b-a01c-4d85a8409d5f
+    - suggestion: '.hasStandardDeviation(''loan_percent_income'', lambda std: std
+        ** 2 >= 1e-4)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 7e9bc8d6-838b-4053-ba69-e82c231f3567
+      source_assumptions:
+      - 782b34ab-39a7-4a09-b80d-5c77df6a515d
+    - suggestion: '.hasCorrelation(''loan_percent_income'', ''<OTHER_NUMERIC_COLUMN>'',
+        lambda corr: abs(corr) <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_percent_income'', ''<OTHER_NUMERIC_COLUMN>'',
+        lambda corr: abs(corr) <= 0.95)'' failed on data sample: Input data does not
+        include column <OTHER_NUMERIC_COLUMN>!'
+      level: warning
+      uid: 20b47288-4440-4b66-9d57-e0e13f214820
+      source_assumptions:
+      - 0a8dd41a-0deb-47cd-a534-65f847666ed8
+    assumptions:
+    - text: The 'loan_percent_income' column in the input data must be present and
+        fully complete (i.e., no missing values), as the dataset's completeness for
+        this column is 1.0 and the code does not perform any missing value imputation
+        or handling for this column before it is used in downstream transformations
+        and model input. This ensures that the code will not fail due to missing values
+        in this column.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 24
+        end_line: 49
+        file: ''
+      uid: e953c978-94e5-463e-8159-614d4939db87
+    - text: The 'loan_percent_income' column in the input data must be of a numeric,
+        fractional data type (e.g., float), as it is included in the list of numeric
+        columns for variance checking, correlation calculation, and is later scaled
+        as a numeric feature for model input. Non-numeric or non-fractional values
+        would cause errors in these operations.
+      sources:
+      - start_line: 24
+        end_line: 49
+        file: ''
+      - start_line: 62
+        end_line: 63
+        file: ''
+      - start_line: 104
+        end_line: 109
+        file: ''
+      uid: 197243e8-488e-454b-a01c-4d85a8409d5f
+    - text: The 'loan_percent_income' column must have sufficient variance in the
+        input data; if its variance is below 1e-4, it will be automatically dropped
+        and not used as a feature. Therefore, for the column to be used in modeling
+        as intended, its variance should be at least 1e-4 in the input dataset.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: 782b34ab-39a7-4a09-b80d-5c77df6a515d
+    - text: The 'loan_percent_income' column should not be highly correlated (correlation
+        > 0.95) with any other numeric column in the input data, or it may be dropped
+        automatically during the feature selection process. To ensure it is retained,
+        its absolute correlation with any other numeric column should be <= 0.95.
+      sources:
+      - start_line: 79
+        end_line: 100
+        file: ''
+      uid: 0a8dd41a-0deb-47cd-a534-65f847666ed8
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 790df4e4-12c3-41ca-b6d5-7229f7ffbd6a
+      source_assumptions:
+      - 705a3795-14b0-4adc-8b82-b8755a00195c
+      - 8bfb4a5b-ec6f-4282-b195-104cf1cd9b14
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_emp_length'',
+        ''Fractional'')'
+      level: error
+      uid: a9ced2c4-e557-485c-b516-e5e2af68f7ee
+      source_assumptions:
+      - a86cdb0f-c71a-476a-9378-f63c130bf918
+    - suggestion: '.hasStandardDeviation(''person_emp_length'', lambda std: std >
+        0.01)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 961066cf-d419-44ac-8976-dd0cddc5fa28
+      source_assumptions:
+      - c48c1460-90c4-47dd-ab77-d88644985da7
+    assumptions:
+    - text: The 'person_emp_length' column must be present in the test data, since
+        it is renamed to 'emp_length' and used in downstream feature processing and
+        model inference. If missing, the code will raise a KeyError.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 41
+        end_line: 41
+        file: ''
+      uid: 705a3795-14b0-4adc-8b82-b8755a00195c
+    - text: The 'person_emp_length' column in the test data must be complete (no missing/null
+        values), because there is no fillna or missing value imputation performed
+        on this column before it is used in numeric feature processing, scaling, and
+        as input to the model. Any nulls would cause errors during transformation
+        or model inference.
+      sources:
+      - start_line: 41
+        end_line: 41
+        file: ''
+      - start_line: 62
+        end_line: 72
+        file: ''
+      - start_line: 112
+        end_line: 124
+        file: ''
+      uid: 8bfb4a5b-ec6f-4282-b195-104cf1cd9b14
+    - text: The 'person_emp_length' column in the test data must be of a numeric (fractional/float
+        or integer) type, as it is renamed to 'emp_length' and included in the list
+        of numeric columns for variance checking, scaling, and model input. Non-numeric
+        types will cause errors in variance calculation, scaling, and model inference.
+      sources:
+      - start_line: 41
+        end_line: 41
+        file: ''
+      - start_line: 62
+        end_line: 72
+        file: ''
+      - start_line: 108
+        end_line: 109
+        file: ''
+      - start_line: 112
+        end_line: 124
+        file: ''
+      uid: a86cdb0f-c71a-476a-9378-f63c130bf918
+    - text: The 'person_emp_length' column in the test data should have a variance
+        above the specified threshold (1e-4), otherwise it will be dropped from the
+        features used for model inference. If all values are nearly identical, the
+        column will be removed and will not contribute to the prediction.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: c48c1460-90c4-47dd-ab77-d88644985da7
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 42b5ca10-9c38-436f-9863-83075bd0b334
+      source_assumptions:
+      - 99e932bf-9cec-4928-987b-dc233e4baf24
+    - suggestion: .hasDataType('person_home_ownership', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_home_ownership'',
+        ''String'')'
+      level: error
+      uid: 531560e3-6345-4973-bd9e-7ed411c24f8c
+      source_assumptions:
+      - 99e932bf-9cec-4928-987b-dc233e4baf24
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 4d9cb522-70d8-48fc-9d0b-4cdda8e0e5f4
+      source_assumptions:
+      - 37a4a8f0-5140-498c-af93-b825c6d06bc5
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership IN (''RENT'', ''MORTGAGE'',
+        ''OWN'', ''OTHER'') THEN 1 ELSE 0 END", "Valid Home Ownership Categories",
+        lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: f4464492-60a2-4b25-bd81-7bfe514ddb2c
+      source_assumptions:
+      - 37a4a8f0-5140-498c-af93-b825c6d06bc5
+    - suggestion: '.hasNumberOfDistinctValues(''person_home_ownership'', lambda x:
+        x <= 5)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''person_home_ownership'',
+        lambda x: x <= 5)'': Check.hasNumberOfDistinctValues() missing 2 required
+        positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: 90e57d58-6990-4f4c-87f4-76056541b3f3
+      source_assumptions:
+      - 2ff2e92a-e17e-4113-8bba-dcad8eb9629b
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = ''OTHER'' THEN 1
+        ELSE 0 END", "Rare OTHER Home Ownership", lambda x: x <= 0.01)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 9735bb1f-39ac-466a-bb9f-2551b41b6009
+      source_assumptions:
+      - 2ff2e92a-e17e-4113-8bba-dcad8eb9629b
+    assumptions:
+    - text: 'The ''person_home_ownership'' column in both train and test datasets
+        must be present, non-null for all rows, and must contain string values only.
+        The code expects 100% completeness (no missing values) and the column is treated
+        as categorical (object dtype) before factorization. If any value is missing
+        or not a string, the code may fail or produce incorrect results. We could
+        represent this assumption as a deequ constraint like this:
+
+        .completeness(''person_home_ownership'') >= 1.0
+
+        .isNonNull(''person_home_ownership'')
+
+        .isStringType(''person_home_ownership'')'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+      - start_line: 37
+        end_line: 40
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 99e932bf-9cec-4928-987b-dc233e4baf24
+    - text: 'The ''person_home_ownership'' column should contain only a small set
+        of categorical values, specifically the categories present in the training
+        data: ''RENT'', ''MORTGAGE'', ''OWN'', and possibly ''OTHER''. Unexpected
+        or unseen categories in the test data will be encoded as -1, which may affect
+        model predictions. Ideally, the fraction of ''person_home_ownership'' values
+        in test data that are not in [''RENT'', ''MORTGAGE'', ''OWN'', ''OTHER'']
+        should be very low (e.g., <1%). We could represent this assumption as a deequ
+        constraint like this:
+
+        .satisfies("CASE WHEN person_home_ownership IN (''RENT'', ''MORTGAGE'', ''OWN'',
+        ''OTHER'') THEN 1 ELSE 0 END", "Valid Home Ownership Categories", lambda x:
+        x >= 0.99)'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+      - start_line: 37
+        end_line: 40
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 37a4a8f0-5140-498c-af93-b825c6d06bc5
+    - text: The distribution of 'person_home_ownership' categories in the test data
+        should be reasonably similar to the training data, where 'RENT', 'MORTGAGE',
+        and 'OWN' are the dominant categories, and 'OTHER' is rare (~0.2%). If the
+        proportion of rare or unseen categories is much higher than in training, model
+        predictions may be unreliable.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+      - start_line: 37
+        end_line: 40
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 2ff2e92a-e17e-4113-8bba-dcad8eb9629b
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 90ebf516-467a-48bc-8acd-3ebe72f0612a
+      source_assumptions:
+      - 5797a4c6-d300-4cef-8d45-352611fd7772
+    - suggestion: .satisfies('loan_grade IN ("A", "B", "C", "D", "E", "F", "G")',
+        'loan_grade only allowed values')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 2a47f105-e918-4185-9dbc-f16e172b70bf
+      source_assumptions:
+      - 276f3aec-cee0-4771-9ae3-9a5076082c44
+    - suggestion: .hasDataType('loan_grade', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_grade'',
+        ''String'')'
+      level: error
+      uid: 219f330a-6415-4e7a-9a36-2f447900ce04
+      source_assumptions:
+      - 12fae4f4-bf37-4c0f-a071-5ec9dba231a5
+    assumptions:
+    - text: The 'loan_grade' column in the test data must be present and have no missing
+        values (i.e., must be 100% complete), as the code renames this column and
+        later applies categorical encoding without handling missing values. Missing
+        values would cause errors during factorization and encoding.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 37
+        end_line: 46
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 5797a4c6-d300-4cef-8d45-352611fd7772
+    - text: 'All values in the ''loan_grade'' column in the test data must be strings
+        that correspond to the categories seen in the training data (i.e., one of:
+        ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G''). If any value in test data
+        is unseen, it will be encoded as -1, which may reduce model performance. Ideally,
+        there should be no unseen categories in ''loan_grade'' in the test data.'
+      sources:
+      - start_line: 24
+        end_line: 25
+        file: ''
+      - start_line: 33
+        end_line: 33
+        file: ''
+      - start_line: 46
+        end_line: 46
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 276f3aec-cee0-4771-9ae3-9a5076082c44
+    - text: The 'loan_grade' column in the test data should only contain string data
+        types and must not contain numeric, boolean, or other non-string types, as
+        the code expects it to be a categorical string for factorization and encoding.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 37
+        end_line: 46
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 12fae4f4-bf37-4c0f-a071-5ec9dba231a5
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 87849a89-5813-40f2-a4a4-446323029472
+      source_assumptions:
+      - 12299b4c-ddbb-4b34-aec8-e930eeed638b
+      - 6cd0b8dc-5ff3-4d05-a3ee-598524d2503d
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_amnt'',
+        ''Integral'', lambda x: x == 1.0)'
+      level: error
+      uid: a20fdb5e-88a5-42da-b277-3dc4d70fd7a2
+      source_assumptions:
+      - b0624e8c-e4d3-425e-820f-fcb450a5fe70
+    - suggestion: '.hasStandardDeviation(''loan_amnt'', lambda std: std >= 1e-4)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 609f3193-ccea-4a3d-8c82-074b9d9d45e0
+      source_assumptions:
+      - 5282e44d-15c0-47fe-8474-70913dc27294
+    assumptions:
+    - text: The 'loan_amnt' column must be present in both the training and test input
+        CSV files, since the code immediately renames 'loan_amnt' to 'loan_amount'
+        after loading. If 'loan_amnt' is missing, the code will fail at the renaming
+        step.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 24
+        end_line: 29
+        file: ''
+      - start_line: 37
+        end_line: 42
+        file: ''
+      uid: 12299b4c-ddbb-4b34-aec8-e930eeed638b
+    - text: The 'loan_amnt' column must be complete (contain no null values) in both
+        the train and test input files. The code does not perform any null-filling
+        or dropping of rows with nulls in 'loan_amnt', but uses it in mathematical
+        operations and feature engineering, which will raise errors if any nulls are
+        present.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 63
+        file: ''
+      uid: 6cd0b8dc-5ff3-4d05-a3ee-598524d2503d
+    - text: All values in the 'loan_amnt' column must be valid integers, as the code
+        expects 'loan_amnt' to be integral (based on the dataset metadata) and uses
+        it in numeric computations such as division and variance calculation.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 63
+        file: ''
+      uid: b0624e8c-e4d3-425e-820f-fcb450a5fe70
+    - text: The distribution of 'loan_amnt' should have sufficient variance in the
+        incoming test data. If all or nearly all values are identical (variance below
+        1e-4), the code will drop 'loan_amnt' (renamed to 'loan_amount') from both
+        train and test sets, which may negatively affect model performance or downstream
+        expectations.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: 5282e44d-15c0-47fe-8474-70913dc27294
+    - text: The range of values in 'loan_amnt' for the test data should be within
+        a reasonable range compared to the training data, since the StandardScaler
+        fitted on the training data will be applied to the test data. Extreme outliers
+        or unseen value ranges may result in unexpected model behavior.
+      sources:
+      - start_line: 114
+        end_line: 116
+        file: ''
+      - start_line: 123
+        end_line: 124
+        file: ''
+      uid: 19b32121-351f-44f1-900e-3e3594334543
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: de105e08-6c00-4731-af88-171fe7e66477
+      source_assumptions:
+      - 51ffd8d1-d3a4-423e-a6e8-b30bb1a3fb1a
+    - suggestion: '.hasDataType(''loan_status'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_status'',
+        ''Integral'', lambda x: x == 1.0)'
+      level: error
+      uid: af787ed7-c32d-4c10-8ef2-b2de2cdec44f
+      source_assumptions:
+      - 51ffd8d1-d3a4-423e-a6e8-b30bb1a3fb1a
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('loan_status',\
+        \ [0, 1])': An error occurred while calling None.None. Trace:\npy4j.Py4JException:\
+        \ Cannot convert java.lang.Integer to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:840)\n\n"
+      level: error
+      uid: 3ed6e569-c976-441f-a257-431585e9d566
+      source_assumptions:
+      - 51ffd8d1-d3a4-423e-a6e8-b30bb1a3fb1a
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x == 2)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''loan_status'',
+        lambda x: x == 2)'': Check.hasNumberOfDistinctValues() missing 2 required
+        positional arguments: ''binningUdf'' and ''maxBins'''
+      level: error
+      uid: 54ff2879-987f-4265-be6b-b6b09f5a9342
+      source_assumptions:
+      - 5eed61b6-3b57-4fd7-b2cf-666b22c49ea4
+    - suggestion: '.satisfies(''NOT loan_status IS NULL'', ''loan_status not in test
+        data'', lambda x: x == 0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''NOT loan_status IS NULL'', ''loan_status
+        not in test data'', lambda x: x == 0)'' failed on data sample: Value: 1.0
+        does not meet the constraint requirement!'
+      level: error
+      uid: 1fa043cf-44fc-42a9-b87d-f99d504c22ce
+      source_assumptions:
+      - 2fe416b3-7e35-4e8f-a7d1-60322aecc99c
+    assumptions:
+    - text: The 'loan_status' column must be present in the input train data, must
+        be complete (no missing values), and must only contain the two distinct integer
+        values 0 and 1. This is because the code treats 'loan_status' as a binary
+        classification target, directly uses it as the label for supervised learning,
+        and does not perform any null-handling or type conversion operations on it.
+        Any missing or unexpected values would cause errors or model misbehavior.
+      sources:
+      - start_line: 20
+        end_line: 20
+        file: ''
+      - start_line: 119
+        end_line: 120
+        file: ''
+      - start_line: 130
+        end_line: 145
+        file: ''
+      - start_line: 154
+        end_line: 209
+        file: ''
+      uid: 51ffd8d1-d3a4-423e-a6e8-b30bb1a3fb1a
+    - text: The 'loan_status' column must not be present in the input test data. The
+        code expects to generate predictions for this column and writes them to the
+        output file. If 'loan_status' is present in the test data, it may cause confusion
+        or overwrite issues in the output submission.
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+      - start_line: 216
+        end_line: 217
+        file: ''
+      uid: 2fe416b3-7e35-4e8f-a7d1-60322aecc99c
+    - text: The distribution of classes in the 'loan_status' column should be such
+        that both classes (0 and 1) are present in the training data. This is inferred
+        from the downstream use of BCELoss for binary classification and the need
+        for a meaningful model. If only one class is present, the model will not learn
+        to discriminate.
+      sources:
+      - start_line: 119
+        end_line: 120
+        file: ''
+      - start_line: 154
+        end_line: 172
+        file: ''
+      uid: 5eed61b6-3b57-4fd7-b2cf-666b22c49ea4
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: df4d60a9-2d62-49c8-a9ef-5252faab3e37
+      source_assumptions:
+      - a433ab0b-23eb-4183-ac00-120c7619002d
+      - 7981bb00-e224-4fbe-9e30-b4cc04e53dbf
+    - suggestion: '.hasDataType(''person_age'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_age'',
+        ''Integral'', lambda x: x == 1.0)'
+      level: error
+      uid: 585aaead-f97b-428c-9343-d0b90323c471
+      source_assumptions:
+      - c4c217a4-aef6-4a99-9f98-933adc0a50ad
+    - suggestion: '.hasNumberOfDistinctValues(''person_age'', lambda x: x > 1)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''person_age'',
+        lambda x: x > 1)'': Check.hasNumberOfDistinctValues() missing 2 required positional
+        arguments: ''binningUdf'' and ''maxBins'''
+      level: error
+      uid: 81dc532b-9eae-4643-b3ba-2067ba6acde6
+      source_assumptions:
+      - dd580259-7213-45d2-b266-e6db4b2cb17e
+    - suggestion: '.hasMin(''person_age'', lambda x: x >= 18)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 572ffea6-e699-45d7-8bc6-3d0f15eecc24
+      source_assumptions:
+      - 723adb9d-e03e-463c-8bf0-1af874f371cb
+    - suggestion: '.hasMax(''person_age'', lambda x: x <= 120)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: e21f151b-f256-4b9f-876b-909ee3ba38e5
+      source_assumptions:
+      - 723adb9d-e03e-463c-8bf0-1af874f371cb
+    assumptions:
+    - text: The 'person_age' column must be present in the test data, since it is
+        renamed to 'age' and used as a numeric feature for modeling. If the column
+        is missing, downstream code will fail.
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+      - start_line: 37
+        end_line: 38
+        file: ''
+      uid: a433ab0b-23eb-4183-ac00-120c7619002d
+    - text: The 'person_age' column in the test data should be complete (contain no
+        null values), as missing values are not filled or imputed at any stage, and
+        the column is used in mathematical operations and as input to a neural network.
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+      - start_line: 37
+        end_line: 38
+        file: ''
+      - start_line: 62
+        end_line: 68
+        file: ''
+      - start_line: 114
+        end_line: 117
+        file: ''
+      uid: 7981bb00-e224-4fbe-9e30-b4cc04e53dbf
+    - text: The 'person_age' column should have numeric (integral) values in the test
+        data, as it is renamed to 'age' and processed as a numeric feature using StandardScaler
+        and input into a PyTorch neural network. Non-numeric or non-integral values
+        will cause errors.
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+      - start_line: 37
+        end_line: 38
+        file: ''
+      - start_line: 114
+        end_line: 117
+        file: ''
+      uid: c4c217a4-aef6-4a99-9f98-933adc0a50ad
+    - text: The 'person_age' column in the test data should have more than one distinct
+        value (i.e., not constant), since columns with extremely low variance are
+        dropped. If all ages are identical, the column may be dropped from the feature
+        set and the model may not function as expected.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: dd580259-7213-45d2-b266-e6db4b2cb17e
+    - text: The distribution and range of values in the 'person_age' column in the
+        test data should be similar to those in the training data, as StandardScaler
+        is fit on training data and applied to test data. Extreme outliers or values
+        outside the training range may result in poorly scaled features and unreliable
+        predictions.
+      sources:
+      - start_line: 114
+        end_line: 124
+        file: ''
+      uid: 723adb9d-e03e-463c-8bf0-1af874f371cb
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 81e6482d-b63f-46f8-a334-b80e29bb4019
+      source_assumptions:
+      - 32c28fe3-1c9a-42e1-ae3e-c7312cff60e9
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: cd589a37-4f43-4f99-8b45-f1a8cf81035b
+      source_assumptions:
+      - dd04a921-2ab9-4eb6-9441-4d2f58d8c76c
+    - suggestion: .hasDataType('loan_intent', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_intent'',
+        ''String'')'
+      level: error
+      uid: 3af184ac-c2d9-4c52-9618-b466ac2c2ed6
+      source_assumptions:
+      - f06099cc-3b70-4f07-91b9-eac0edfdee81
+    assumptions:
+    - text: The 'loan_intent' column must exist in the input (test) data, and must
+        be complete (no missing/null values), as it is renamed to 'intent' and immediately
+        dropped. Its absence or presence of nulls should not cause errors, but the
+        column must be available for the renaming and drop operations to succeed without
+        unexpected behavior.
+      sources:
+      - start_line: 24
+        end_line: 49
+        file: ''
+      - start_line: 57
+        end_line: 58
+        file: ''
+      uid: 32c28fe3-1c9a-42e1-ae3e-c7312cff60e9
+    - text: 'The ''loan_intent'' column in the input (test) data should contain only
+        the following six categories: EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION,
+        MEDICAL, VENTURE. There should be no unseen or unexpected categories, as the
+        code does not handle new categories and drops the column after renaming. This
+        ensures consistency with the training data and prevents errors in downstream
+        processing.'
+      sources:
+      - start_line: 24
+        end_line: 49
+        file: ''
+      uid: dd04a921-2ab9-4eb6-9441-4d2f58d8c76c
+    - text: The 'loan_intent' column in the input (test) data should be of string/object
+        data type and not of numeric or boolean type, as it is treated as a categorical
+        column and renamed without type conversion.
+      sources:
+      - start_line: 24
+        end_line: 49
+        file: ''
+      uid: f06099cc-3b70-4f07-91b9-eac0edfdee81
+  person_income:
+    code:
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 99898fed-265d-436d-8e0a-1ed0ad20dfc0
+      source_assumptions:
+      - bd04b765-5172-4a09-b185-07fc2424d885
+    - suggestion: '.satisfies(''CAST(person_income AS BIGINT) = person_income'', ''person_income_is_integral'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: b5d4162e-4d56-4d4b-9e67-d201f5530c21
+      source_assumptions:
+      - 60182259-05f3-4e27-bfe9-1680840898d6
+    - suggestion: '.hasVariance(''person_income'', lambda x: x >= 1e-4)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasVariance(''person_income'',
+        lambda x: x >= 1e-4)'': ''Check'' object has no attribute ''hasVariance'''
+      level: error
+      uid: 5baa50ca-0b3f-468f-8633-a61781f9bdd1
+      source_assumptions:
+      - 18e45fbc-8c35-4278-9511-bb71fcd14186
+    - suggestion: '.hasApproxQuantile(''person_income'', 0.01, lambda x: x >= <train_1st_percentile>)
+
+        .hasApproxQuantile(''person_income'', 0.99, lambda x: x <= <train_99th_percentile>)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasApproxQuantile(''person_income'',
+        0.01, lambda x: x >= <train_1st_percentile>)
+
+        .hasApproxQuantile(''person_income'', 0.99, lambda x: x <= <train_99th_percentile>)'':
+        invalid syntax (<string>, line 1)'
+      level: warning
+      uid: 68cb7e33-bc09-4ab1-9c78-681cca4a0ae0
+      source_assumptions:
+      - 5f23a561-dff9-45a1-aa95-37419aa7f299
+    assumptions:
+    - text: 'The ''person_income'' column in both train.csv and test.csv must be present
+        and have no missing values (completeness = 1.0). The code does not perform
+        any missing value imputation or null handling for this column, and it is used
+        directly in feature engineering and model input. Therefore, every row in the
+        input files must have a valid (non-null) value for ''person_income''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: bd04b765-5172-4a09-b185-07fc2424d885
+    - text: 'The ''person_income'' column should contain only integral (integer) values,
+        as it is used in numeric calculations and the dataset metadata specifies its
+        data type as Integral. Non-integer or malformed values would cause errors
+        or unintended behavior during division, variance calculation, and scaling.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''CAST(person_income AS BIGINT) = person_income'', ''person_income_is_integral'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 68
+        file: ''
+      - start_line: 108
+        end_line: 114
+        file: ''
+      uid: 60182259-05f3-4e27-bfe9-1680840898d6
+    - text: 'The ''person_income'' column in test data should have variance greater
+        than or equal to 1e-4 (i.e., not be constant or near-constant), because columns
+        with variance below this threshold are dropped and will not be included as
+        features. If the variance of ''person_income'' in the test set is below this
+        threshold, it may be excluded, leading to a mismatch between train and test
+        features.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasVariance(''person_income'', lambda x: x >= 1e-4)'
+      sources:
+      - start_line: 62
+        end_line: 68
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      uid: 18e45fbc-8c35-4278-9511-bb71fcd14186
+    - text: 'The ''person_income'' column should not have extremely large or small
+        values that could cause numerical instability during scaling (StandardScaler)
+        and neural network training. While no explicit range is enforced in the code,
+        values that are outliers could degrade model performance or cause downstream
+        numerical issues. It is recommended that the distribution of ''person_income''
+        in test data be similar to that in the training data.
+
+        We could represent this assumption as a deequ constraint by comparing quantiles
+        or using a max/min bound based on training data statistics.'
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 114
+        end_line: 124
+        file: ''
+      uid: 5f23a561-dff9-45a1-aa95-37419aa7f299
+  '["cb_person_cred_hist_length","person_age"]':
+    code:
+    - suggestion: '.haveCompleteness([''cb_person_cred_hist_length'', ''person_age''],
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 30d379d0-f8f6-4f13-a2e0-b1d4a8bd94df
+      source_assumptions:
+      - f926caf3-c9c6-46a7-b4c9-82690d66716b
+    - suggestion: .satisfies('CAST(`cb_person_cred_hist_length` AS DOUBLE) IS NOT
+        NULL AND CAST(`person_age` AS DOUBLE) IS NOT NULL', 'Both cb_person_cred_hist_length
+        and person_age are numeric')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: b3aa411d-9479-4234-914b-e645467b800c
+      source_assumptions:
+      - 36842f6b-1038-4e97-b112-a5627999784c
+    - suggestion: .satisfies('VAR_POP(`cb_person_cred_hist_length`) > 1e-4 AND VAR_POP(`person_age`)
+        > 1e-4', 'Variance of cb_person_cred_hist_length and person_age is not extremely
+        low')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''VAR_POP(`cb_person_cred_hist_length`)
+        > 1e-4 AND VAR_POP(`person_age`) > 1e-4'', ''Variance of cb_person_cred_hist_length
+        and person_age is not extremely low'')'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [NESTED_AGGREGATE_FUNCTION] It is not allowed to use an aggregate function
+        in the argument of another aggregate function. Please use the inner aggregate
+        function in a sub-query.; line 1 pos 0;
+
+        Aggregate [sum(cast(((var_pop(cast(cb_person_cred_hist_length#374300L as double))
+        > 1.0E-4) AND (var_pop(cast(person_age#374290L as double)) > 1.0E-4)) as int))
+        AS sum(CAST(((VAR_POP(cb_person_cred_hist_length) > 1.0E-4) AND (VAR_POP(person_age)
+        > 1.0E-4)) AS INT))#586407L, count(1) AS count(1)#586408L]
+
+        +- LogicalRDD [id#374289L, person_age#374290L, person_income#374291L, person_home_ownership#374292,
+        person_emp_length#374293, loan_intent#374294, loan_grade#374295, loan_amnt#374296L,
+        loan_int_rate#374297, loan_percent_income#374298, cb_person_default_on_file#374299,
+        cb_person_cred_hist_length#374300L, loan_status#374301L], false
+
+        '
+      level: warning
+      uid: 6b6c79f6-89fb-4a41-a9af-ffcfabd86410
+      source_assumptions:
+      - 6c79aca7-e5bb-4b02-8189-27d87ae96000
+    - suggestion: '.hasCorrelation(''cb_person_cred_hist_length'', ''person_age'',
+        lambda x: abs(x) <= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 01ab8ad7-cc98-477a-81ee-18495daf3897
+      source_assumptions:
+      - 532ef647-6e94-4239-a2cb-990a39b7df77
+    assumptions:
+    - text: The columns 'cb_person_cred_hist_length' and 'person_age' must never contain
+        null (missing) values in the test data. This is required because both columns
+        are renamed ('cb_person_cred_hist_length' to 'credit_hist_length' and 'person_age'
+        to 'age') and included in the numeric feature list used for model inference.
+        The ML pipeline expects all features to be present and numeric, so missing
+        values in either column will cause errors.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 24
+        end_line: 49
+        file: ''
+      - start_line: 62
+        end_line: 63
+        file: ''
+      - start_line: 119
+        end_line: 124
+        file: ''
+      uid: f926caf3-c9c6-46a7-b4c9-82690d66716b
+    - text: Both 'cb_person_cred_hist_length' and 'person_age' (renamed to 'credit_hist_length'
+        and 'age') must be of numeric (integral) type in the test data. Non-numeric
+        values (e.g., strings) in either column would break the preprocessing pipeline,
+        which expects numeric input for scaling and transformation.
+      sources:
+      - start_line: 24
+        end_line: 49
+        file: ''
+      - start_line: 62
+        end_line: 63
+        file: ''
+      - start_line: 114
+        end_line: 115
+        file: ''
+      uid: 36842f6b-1038-4e97-b112-a5627999784c
+    - text: The variance of both 'cb_person_cred_hist_length' ('credit_hist_length')
+        and 'person_age' ('age') in the test data must not be extremely low (i.e.,
+        not all values are nearly identical), or they may be dropped from the feature
+        set. If the variance in the test set is drastically lower than in training,
+        the model may not generalize well and the input shape could mismatch if the
+        columns are dropped.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      - start_line: 119
+        end_line: 124
+        file: ''
+      uid: 6c79aca7-e5bb-4b02-8189-27d87ae96000
+    - text: The columns 'cb_person_cred_hist_length' and 'person_age' must not be
+        perfectly correlated with each other (correlation coefficient <= 0.95) in
+        the test data; otherwise, one of the columns may be dropped by the code, potentially
+        causing a schema mismatch with the model trained on the training data.
+      sources:
+      - start_line: 80
+        end_line: 100
+        file: ''
+      uid: 532ef647-6e94-4239-a2cb-990a39b7df77
+  '["cb_person_default_on_file","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_status'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 6fbc7ae8-d564-472d-b8f1-656e3d3b3429
+      source_assumptions:
+      - 2a4da9b8-15e3-4915-be72-810ebc9a8385
+    assumptions:
+    - text: 'The columns ''income'' and ''loan_amount'' must both be present, non-null,
+        and numeric in every record, and ''loan_amount'' must not be zero, to allow
+        for the calculation of ''income_to_loan'' as ''income'' / (''loan_amount''
+        + 1e-9) without encountering division by zero or type errors. This can be
+        represented in Deequ as: .hasCompleteness(''income'', 1.0).hasCompleteness(''loan_amount'',
+        1.0).isNonNegative(''loan_amount'').hasDataType(''income'', ConstrainableDataTypes.Numeric).hasDataType(''loan_amount'',
+        ConstrainableDataTypes.Numeric)'
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: c7a59a94-256a-404d-8e69-88d24256a41f
+    - text: 'The pair of columns (''id'', ''loan_status'') in the test set must not
+        contain duplicate ''id'' values, ensuring that each predicted ''loan_status''
+        is uniquely associated with a single ''id''. This can be expressed as a uniqueness
+        constraint on ''id'': .isUnique([''id''])'
+      sources:
+      - start_line: 216
+        end_line: 217
+        file: ''
+      uid: 75f6a60c-8877-4059-b40c-462205f7eb73
+    - text: All columns used for training, except for the target column 'loan_status',
+        must be present in the test data with the same names and compatible data types,
+        to allow the preprocessing pipeline and model inference to execute without
+        column mismatch errors. This includes all columns in 'numeric_cols' and 'categorical_cols'
+        after feature engineering and dropping steps. This can be enforced with a
+        constraint that checks for the presence of all required columns and their
+        data types.
+      sources:
+      - start_line: 104
+        end_line: 119
+        file: ''
+      uid: 2a4da9b8-15e3-4915-be72-810ebc9a8385
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 399e2a43-c905-4242-8f80-062de95b9583
+      source_assumptions:
+      - d2cbb04c-c376-4e12-aaa5-d27375c6535b
+    - suggestion: .isUnique('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 6d15965f-ba62-40e8-9da6-d6628aea698b
+      source_assumptions:
+      - cfe79708-bd51-479b-a6f5-5dcb660bdbb6
+    - suggestion: '.hasDataType(''id'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''id'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 1b33ff4b-2620-4701-90eb-99bd575c22cb
+      source_assumptions:
+      - 0e45eede-3141-44e7-b64e-cb759ece00de
+    assumptions:
+    - text: The 'id' column must exist in the input test data and must be complete
+        (no missing values), as it is used to build the final submission file. If
+        'id' is missing, the code will create a placeholder ID, but this is only a
+        fallback and may not preserve the original association between predictions
+        and original records. To ensure correctness, the test data should always include
+        the 'id' column.
+      sources:
+      - start_line: 57
+        end_line: 58
+        file: ''
+      - start_line: 212
+        end_line: 216
+        file: ''
+      uid: d2cbb04c-c376-4e12-aaa5-d27375c6535b
+    - text: The 'id' column in the input test data should have unique values for each
+        row, as it is used to identify each prediction in the output submission. Duplicate
+        'id' values would result in ambiguous mapping between predictions and records.
+      sources:
+      - start_line: 216
+        end_line: 217
+        file: ''
+      uid: cfe79708-bd51-479b-a6f5-5dcb660bdbb6
+    - text: The 'id' column in the input test data should contain only integral (integer)
+        values, as the column is inferred to be of integer type from the data characteristics
+        and is replaced with a numpy-generated integer sequence if missing.
+      sources:
+      - start_line: 214
+        end_line: 214
+        file: ''
+      uid: 0e45eede-3141-44e7-b64e-cb759ece00de
+  '["id","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''id'', ''loan_status''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 1abf857f-adf1-49d8-b60e-213ec5a0d772
+      source_assumptions:
+      - d43d2582-05e3-4fc5-935c-fbd193c2c6e1
+    - suggestion: '.hasUniqueness([''id''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: cb96da28-4c77-4c18-a950-4893cf189838
+      source_assumptions:
+      - d43d2582-05e3-4fc5-935c-fbd193c2c6e1
+      - b0e2c7c4-0da6-403d-9fd5-29f07dedd69c
+    assumptions:
+    - text: 'The ''id'' column in the test dataset must be present and should contain
+        unique, non-null values for each record, so that each prediction can be mapped
+        unambiguously to a test sample. This can be enforced as a multi-column uniqueness
+        and completeness constraint on ''id'' and ''loan_status'' in the submission
+        output: .isComplete([''id'']) and .isUnique([''id'']).'
+      sources:
+      - start_line: 57
+        end_line: 58
+        file: ''
+      - start_line: 212
+        end_line: 216
+        file: ''
+      uid: d43d2582-05e3-4fc5-935c-fbd193c2c6e1
+    - text: The number of rows in the test dataset (as identified by unique 'id' values)
+        must exactly match the number of predictions generated (length of the 'loan_status'
+        prediction array), ensuring a one-to-one correspondence between 'id' and 'loan_status'
+        in the submission DataFrame. This can be expressed as an equality constraint
+        on the count of unique 'id' and the count of 'loan_status' values.
+      sources:
+      - start_line: 212
+        end_line: 216
+        file: ''
+      uid: b0e2c7c4-0da6-403d-9fd5-29f07dedd69c
+  '["income_to_loan","loan_amnt","person_income"]':
+    code:
+    - suggestion: .satisfies('`person_income` IS NOT NULL AND `loan_amnt` IS NOT NULL
+        AND `loan_amnt` != 0', 'Income and Loan Amount Present and Loan Amount Nonzero')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 40e55449-af70-4cfc-928f-18065545c3a1
+      source_assumptions:
+      - 72211be2-594b-458e-82c8-143c1cac153c
+    - suggestion: '.haveCompleteness([''person_income'', ''loan_amnt''], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: c3abe67f-0b8c-45fe-93df-d1a739cfdca9
+      source_assumptions:
+      - 72211be2-594b-458e-82c8-143c1cac153c
+    - suggestion: '.hasDistinctness([''person_income'', ''loan_amnt''], lambda x:
+        x > 0.01)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: f1716ab5-8ed5-41a8-b63b-01250147499c
+      source_assumptions:
+      - d48dad7e-b6fe-4955-8d3f-4d560d460003
+    - suggestion: .satisfies('CAST(`person_income` AS DOUBLE) IS NOT NULL AND CAST(`loan_amnt`
+        AS DOUBLE) IS NOT NULL AND CAST(`person_income` AS DOUBLE) != 0 AND CAST(`loan_amnt`
+        AS DOUBLE) != 0', 'Income and Loan Amount Numeric and Nonzero')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: da73157a-4de3-4c94-9dd1-ce3302ab68c8
+      source_assumptions:
+      - 6dd3c6b2-ed1a-40b0-9f75-b6ca9f842fcc
+    assumptions:
+    - text: The columns 'income' and 'loan_amount' must both be present and non-null
+        in all records of the test dataset. Additionally, 'loan_amount' must never
+        be exactly zero in any record, to avoid division by zero when computing 'income_to_loan'.
+        This is necessary because 'income_to_loan' is derived as income / (loan_amount
+        + 1e-9).
+      sources:
+      - start_line: 53
+        end_line: 53
+        file: ''
+      uid: 72211be2-594b-458e-82c8-143c1cac153c
+    - text: The derived column 'income_to_loan' must always be computable as a numeric
+        value for every record in the test set, and should have sufficient variance
+        (not constant or near-constant across all records), since low-variance columns
+        are dropped and used in downstream modeling. This implies that 'income' and
+        'loan_amount' should not be constant or nearly constant together.
+      sources:
+      - start_line: 53
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: d48dad7e-b6fe-4955-8d3f-4d560d460003
+    - text: The columns 'income', 'loan_amount', and the derived 'income_to_loan'
+        must all be recognized as numeric types, so they are included in the numeric
+        preprocessing pipeline (StandardScaler). If any of these columns are not numeric,
+        preprocessing will fail.
+      sources:
+      - start_line: 108
+        end_line: 115
+        file: ''
+      uid: 6dd3c6b2-ed1a-40b0-9f75-b6ca9f842fcc
+    - text: The combination of all feature columns (including 'income', 'loan_amount',
+        and 'income_to_loan') in the test dataset must match the training dataset
+        in terms of presence and type, after low-variance and highly correlated columns
+        are dropped. This ensures the ColumnTransformer will apply the same transforms
+        and the model will receive the same number of features.
+      sources:
+      - start_line: 62
+        end_line: 115
+        file: ''
+      uid: d511e37b-f44f-450f-9d4f-ae143eff5545
+  '["loan_amnt","loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate''], lambda x:
+        x >= 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: fb907aba-292c-4b41-8554-fb3bb4c8f85e
+      source_assumptions:
+      - a78bd368-9549-4f92-8263-c97d6e6ce64c
+    - suggestion: .satisfies('loan_amnt > 0', 'Loan amount must be positive')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 65bbb398-f083-4bea-9bbb-e91eebf5d2fe
+      source_assumptions:
+      - 84627526-f976-4859-ac9f-3be91095180e
+    - suggestion: .satisfies('CAST(loan_amnt AS DOUBLE) IS NOT NULL AND CAST(loan_int_rate
+        AS DOUBLE) IS NOT NULL', 'Loan amount and interest rate must be numeric')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a25df86e-df3b-4adf-aca2-b96081185a89
+      source_assumptions:
+      - 8488bd34-ffdb-41dc-827d-fd1283698d2a
+    assumptions:
+    - text: 'The columns ''income'' and ''loan_amount'' must both be present and non-null
+        for every record in the test dataset, as the feature ''income_to_loan'' is
+        computed by dividing ''income'' by ''loan_amount''. If either column is missing
+        or contains nulls, this computation (and subsequent model inference) will
+        fail or produce invalid values. This can be represented as a Deequ constraint:
+        .hasCompleteness([''income'', ''loan_amount''], _ >= 1.0)'
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: a78bd368-9549-4f92-8263-c97d6e6ce64c
+    - text: 'The column ''loan_amount'' must not contain zero or negative values in
+        the test dataset, as it is used as a denominator in the calculation of ''income_to_loan''.
+        Even though a small constant is added (1e-9), zero or negative values would
+        yield extremely large or negative derived features, which would be invalid
+        for model inference. This can be represented as a Deequ constraint: .where(''loan_amount
+        > 0'')'
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: 84627526-f976-4859-ac9f-3be91095180e
+    - text: 'The columns ''loan_amount'' and ''interest_rate'' must both be numeric
+        (either integer or float) in the test dataset, as they are included in the
+        list of columns for variance calculation and later numerical transformations.
+        Non-numeric or non-castable values in either column would cause downstream
+        errors in preprocessing. This can be represented as a Deequ constraint: .hasDataType(''loan_amount'',
+        ''Integral'') and .hasDataType(''interest_rate'', ''Fractional'')'
+      sources:
+      - start_line: 62
+        end_line: 63
+        file: ''
+      uid: 8488bd34-ffdb-41dc-827d-fd1283698d2a
+    - text: 'The combination of all columns used for model inference (including ''loan_amount'',
+        ''interest_rate'', and any other derived or categorical columns selected for
+        the model) must be present in the test dataset with the same names and types
+        as in the training dataset. Any missing column would cause errors during transformation
+        and prediction. This can be represented as a Deequ constraint: .hasColumns([''loan_amount'',
+        ''interest_rate'', ...])'
+      sources:
+      - start_line: 62
+        end_line: 116
+        file: ''
+      uid: e8f58150-a914-4be8-a29b-7fa7402daf09
+  '["loan_amnt","loan_percent_income","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''loan_amnt'', ''loan_percent_income''],
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: df432428-63f2-4ffc-939f-1d5bbc5cf1a3
+      source_assumptions:
+      - b07475a2-2826-4f59-8fb8-616870c04df1
+    - suggestion: .satisfies('`person_income` > 0 AND `loan_amnt` >= 0 AND `loan_percent_income`
+        >= 0', 'Non-negative income and loan, income > 0')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 8e7e305a-6bdd-46b2-bfae-a350cbc9a8c9
+      source_assumptions:
+      - b07475a2-2826-4f59-8fb8-616870c04df1
+    - suggestion: .satisfies('ABS(`loan_percent_income` - (`loan_amnt` / `person_income`))
+        < 0.01', 'Loan percent income is approximately loan_amnt / person_income')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''ABS(`loan_percent_income` - (`loan_amnt`
+        / `person_income`)) < 0.01'', ''Loan percent income is approximately loan_amnt
+        / person_income'')'' failed on data sample: Value: 0.9621735299968739 does
+        not meet the constraint requirement!'
+      level: warning
+      uid: b6a6bc0f-eaa0-462b-94a1-7dd343f536fb
+      source_assumptions:
+      - d192ceb2-d675-487d-9b79-b292f6f1bf55
+    - suggestion: .satisfies('CAST(`person_income` AS DOUBLE) IS NOT NULL AND CAST(`loan_amnt`
+        AS DOUBLE) IS NOT NULL AND CAST(`loan_percent_income` AS DOUBLE) IS NOT NULL',
+        'Numeric types for key columns')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 612d31b5-889d-4133-b8e6-d701f7c6aae9
+      source_assumptions:
+      - 6ec0f3b4-3e4f-46eb-841c-d9156007d089
+    - suggestion: '.hasCorrelation(''person_income'', ''loan_amnt'', lambda c: abs(c)
+        <= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 2f8123d0-5e39-486e-b099-c1c100e5a842
+      source_assumptions:
+      - 3547dbd8-2c6f-4abe-a394-98d9fb93badc
+    - suggestion: '.hasCorrelation(''person_income'', ''loan_percent_income'', lambda
+        c: abs(c) <= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 0bd7a609-eab4-4493-8976-ce76d199a04a
+      source_assumptions:
+      - 3547dbd8-2c6f-4abe-a394-98d9fb93badc
+    - suggestion: '.hasCorrelation(''loan_amnt'', ''loan_percent_income'', lambda
+        c: abs(c) <= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6d9dceab-9823-4468-ab52-7901d028bd4e
+      source_assumptions:
+      - 3547dbd8-2c6f-4abe-a394-98d9fb93badc
+    assumptions:
+    - text: "For each record, the value of 'loan_income_ratio' (originally 'loan_percent_income',\
+        \ i.e., loan amount as a percent of income) should be approximately equal\
+        \ to 'loan_amount' divided by 'income', possibly up to a scaling factor (e.g.,\
+        \ 0.01 or 1, depending on the encoding). This means that for any test record,\
+        \ the following should hold: loan_income_ratio \u2248 loan_amount / income.\
+        \ This ensures that derived features and correlations used in training are\
+        \ valid for inference."
+      sources:
+      - start_line: 24
+        end_line: 36
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: d192ceb2-d675-487d-9b79-b292f6f1bf55
+    - text: For all records in the test set, the columns 'income', 'loan_amount',
+        and 'loan_income_ratio' must be present and complete (no nulls), and their
+        values must be numerically compatible (e.g., non-negative, and 'income' and
+        'loan_amount' should both be greater than or equal to zero, with 'income'
+        > 0 to avoid division by zero in 'income_to_loan').
+      sources:
+      - start_line: 20
+        end_line: 49
+        file: ''
+      - start_line: 53
+        end_line: 53
+        file: ''
+      uid: b07475a2-2826-4f59-8fb8-616870c04df1
+    - text: The columns 'income', 'loan_amount', 'loan_income_ratio', and 'income_to_loan'
+        should all be numeric types in the test data, as they are treated as numeric
+        columns in the preprocessing and modeling pipeline. This ensures that standard
+        scaling and downstream ML inference will not fail due to unexpected data types.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 68
+        file: ''
+      - start_line: 108
+        end_line: 115
+        file: ''
+      uid: 6ec0f3b4-3e4f-46eb-841c-d9156007d089
+    - text: There should not be any highly correlated pairs (correlation > 0.95) among
+        the numeric columns, including 'income', 'loan_amount', and 'loan_income_ratio',
+        in the test data, as any such columns are dropped in the pipeline. This ensures
+        the test set schema matches the train set schema after correlation-based feature
+        selection.
+      sources:
+      - start_line: 80
+        end_line: 101
+        file: ''
+      uid: 3547dbd8-2c6f-4abe-a394-98d9fb93badc
+  '["loan_amnt","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''person_income''], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 16254ff8-680d-4c64-8c29-f1ba759a5bf4
+      source_assumptions:
+      - 9a2e0496-f55b-426f-bf0d-e5bfb0d83948
+    - suggestion: .satisfies('`loan_amnt` >= 0 AND `person_income` >= 0', 'Non-negative
+        loan amount and person income')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: ce75bcfa-67f1-4f5a-8e5c-bba796d10505
+      source_assumptions:
+      - a6fe0a4b-c065-4fa3-90b0-64b190f3be88
+    assumptions:
+    - text: Both 'loan_amnt' and 'person_income' columns must be present and complete
+        (no missing values) in the test data, as they are required to compute derived
+        features (such as the income-to-loan ratio) and are included in the set of
+        numeric columns for model inference.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 39
+        end_line: 42
+        file: ''
+      - start_line: 53
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 63
+        file: ''
+      - start_line: 108
+        end_line: 108
+        file: ''
+      - start_line: 114
+        end_line: 114
+        file: ''
+      uid: 9a2e0496-f55b-426f-bf0d-e5bfb0d83948
+    - text: For every row in the test data, the value of 'loan_amnt' (renamed to 'loan_amount')
+        must be greater than or equal to zero and the value of 'person_income' (renamed
+        to 'income') must be greater than or equal to zero, as these columns are used
+        in division to compute the derived feature 'income_to_loan' and negative or
+        zero values could cause erroneous or meaningless results.
+      sources:
+      - start_line: 39
+        end_line: 42
+        file: ''
+      - start_line: 53
+        end_line: 53
+        file: ''
+      uid: a6fe0a4b-c065-4fa3-90b0-64b190f3be88
+    - text: The ratio 'income_to_loan' computed as 'income' / ('loan_amount' + 1e-9)
+        must be finite and non-negative for all records in the test set. This assumes
+        that no record has both 'income' <= 0 and 'loan_amount' <= 0, preventing invalid
+        or infinite ratios.
+      sources:
+      - start_line: 53
+        end_line: 53
+        file: ''
+      uid: 1a2851b7-8c39-4ae7-ae7a-1961d1c3a8ad
+    - text: The columns 'income' (from 'person_income') and 'loan_amount' (from 'loan_amnt')
+        must not be dropped during low-variance or high-correlation filtering steps,
+        as their derived features and values are required for the model's inference
+        pipeline.
+      sources:
+      - start_line: 62
+        end_line: 63
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      - start_line: 91
+        end_line: 100
+        file: ''
+      uid: e7e8bdb3-1b5b-4e1e-99b9-2e305d4e58c6
+  '["loan_grade","loan_intent"]':
+    code:
+    - suggestion: '.haveCompleteness([''grade'', ''intent''], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.haveCompleteness([''grade'', ''intent''],
+        lambda x: x == 1.0)'' failed on data sample: Input data does not include column
+        grade!'
+      level: error
+      uid: b892cdba-569d-43ab-bc7d-2181229f00a7
+      source_assumptions:
+      - 63122927-1e0c-4b04-9f55-988dc6991e1c
+    - suggestion: '.haveAnyCompleteness([''grade'', ''intent''], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.haveAnyCompleteness([''grade'', ''intent''],
+        lambda x: x == 1.0)'' failed on data sample: Input data does not include column
+        grade!'
+      level: warning
+      uid: 8f90d7fa-eade-4075-8d3f-aa639d1bfaa6
+      source_assumptions:
+      - e1793d1e-8bf0-4d21-9cfc-fea867172187
+    assumptions:
+    - text: 'The columns ''loan_grade'' and ''loan_intent'' (renamed as ''grade''
+        and ''intent'') must both be present in the input data, fully populated (no
+        missing values), and contain only the allowed set of categories as observed
+        in the training data. This is required so that factorization and consistent
+        encoding across train and test data can be performed reliably. For Deequ,
+        this can be captured as: .hasCompleteness(''grade'', 1.0) AND .hasCompleteness(''intent'',
+        1.0) AND .isContainedIn(''grade'', [''A'', ''B'', ''C'', ''D'', ''E'', ''F'',
+        ''G'']) AND .isContainedIn(''intent'', [''EDUCATION'', ''HOMEIMPROVEMENT'',
+        ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE''])'
+      sources:
+      - start_line: 24
+        end_line: 36
+        file: ''
+      - start_line: 37
+        end_line: 49
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 63122927-1e0c-4b04-9f55-988dc6991e1c
+    - text: 'During categorical encoding, all unique (grade, intent) pairs present
+        in the test data must have been seen in the training data. Any unseen category
+        in either column should be mapped to a fallback value (e.g., -1), and downstream
+        code must be robust to this. For Deequ, this can be partially expressed as:
+        .isContainedIn(''grade'', <set of training categories>) AND .isContainedIn(''intent'',
+        <set of training categories>).'
+      sources:
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: e1793d1e-8bf0-4d21-9cfc-fea867172187
+  '["person_age","person_emp_length"]':
+    code:
+    - suggestion: '.haveCompleteness(["person_age", "person_emp_length"], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 2e5a094c-f278-4b67-92c2-c22c6cb640a6
+      source_assumptions:
+      - 6fa7c097-0c0b-46e1-a887-53ba9165eb28
+    - suggestion: '.hasCorrelation("person_age", "person_emp_length", lambda c: abs(c)
+        < 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: af92bd4d-7795-4f75-8281-546588dfcd61
+      source_assumptions:
+      - 64c6ce0f-530d-43de-b06d-a789c872f918
+    - suggestion: .satisfies("VARIANCE(`person_age`) > 1e-4 AND VARIANCE(`person_emp_length`)
+        > 1e-4", "Age and Emp Length Sufficient Variance")
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("VARIANCE(`person_age`) > 1e-4 AND
+        VARIANCE(`person_emp_length`) > 1e-4", "Age and Emp Length Sufficient Variance")''
+        failed on data sample: org.apache.spark.sql.AnalysisException: [NESTED_AGGREGATE_FUNCTION]
+        It is not allowed to use an aggregate function in the argument of another
+        aggregate function. Please use the inner aggregate function in a sub-query.;
+        line 1 pos 0;
+
+        Aggregate [sum(cast(((variance(cast(person_age#374290L as double)) > 1.0E-4)
+        AND (variance(person_emp_length#374293) > 1.0E-4)) as int)) AS sum(CAST(((VARIANCE(person_age)
+        > 1.0E-4) AND (VARIANCE(person_emp_length) > 1.0E-4)) AS INT))#585699L, count(1)
+        AS count(1)#585700L]
+
+        +- LogicalRDD [id#374289L, person_age#374290L, person_income#374291L, person_home_ownership#374292,
+        person_emp_length#374293, loan_intent#374294, loan_grade#374295, loan_amnt#374296L,
+        loan_int_rate#374297, loan_percent_income#374298, cb_person_default_on_file#374299,
+        cb_person_cred_hist_length#374300L, loan_status#374301L], false
+
+        '
+      level: error
+      uid: 68c47bd0-0f1d-4ffc-9139-be5c8ee844f8
+      source_assumptions:
+      - b39bdd77-0fd8-4e2d-b18a-2f4ef23daebd
+    assumptions:
+    - text: Both 'person_age' and 'person_emp_length' columns must be present and
+        complete (no missing values) in the test data, since they are renamed to 'age'
+        and 'emp_length', included in the list of numeric columns for variance thresholding,
+        correlation checking, and model input. Their absence or incompleteness would
+        cause downstream errors or misaligned feature vectors.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 24
+        end_line: 28
+        file: ''
+      - start_line: 37
+        end_line: 41
+        file: ''
+      - start_line: 62
+        end_line: 68
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      uid: 6fa7c097-0c0b-46e1-a887-53ba9165eb28
+    - text: The combination of 'person_age' and 'person_emp_length' (as 'age' and
+        'emp_length') should not be perfectly correlated (correlation coefficient
+        should be less than 0.95 in absolute value) in the test data, otherwise one
+        of them may be dropped during high correlation filtering, leading to a mismatch
+        with the model's expected input features.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      - start_line: 80
+        end_line: 100
+        file: ''
+      uid: 64c6ce0f-530d-43de-b06d-a789c872f918
+    - text: '''person_age'' and ''person_emp_length'' (as ''age'' and ''emp_length'')
+        should both have sufficient variance in the test data (variance greater than
+        1e-4), otherwise they may be dropped from the feature set, leading to misalignment
+        with the trained model''s input dimension.'
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: b39bdd77-0fd8-4e2d-b18a-2f4ef23daebd
+  '["person_home_ownership","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''person_home_ownership''],
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 16b05a30-a956-4c7f-8991-93f7fe029b9d
+      source_assumptions:
+      - 1c7e607e-fe60-4058-b43c-980f25bee5ba
+      - 6c8a91a4-5ce6-46c5-b625-b288e977b122
+    - suggestion: .satisfies('(`person_home_ownership` IN ("RENT", "MORTGAGE", "OWN",
+        "OTHER"))', 'Home Ownership Category Valid')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 00a11a4c-de62-4e1d-9ea2-3e1823df05e1
+      source_assumptions:
+      - 1c7e607e-fe60-4058-b43c-980f25bee5ba
+    - suggestion: .satisfies('(`person_income` IS NOT NULL AND `loan_amnt` IS NOT
+        NULL AND `loan_amnt` >= 0)', 'Valid Income to Loan Calculation')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 69a226c3-f059-44ba-b33c-7be66f6727f2
+      source_assumptions:
+      - 6dbdd73c-6742-4cf8-988e-e2df508fdcfe
+    assumptions:
+    - text: The test data must contain both 'person_income' and 'person_home_ownership'
+        columns with no missing values, and the categorical values in 'person_home_ownership'
+        must match the set seen in training (i.e., 'RENT', 'MORTGAGE', 'OWN', 'OTHER').
+        When encoding categorical columns, all categories seen in training should
+        be present in test, or unknown categories should be mapped to a default value
+        (-1). This ensures consistent factorization and one-hot encoding for model
+        inference.
+      sources:
+      - start_line: 21
+        end_line: 41
+        file: ''
+      - start_line: 74
+        end_line: 77
+        file: ''
+      - start_line: 114
+        end_line: 115
+        file: ''
+      uid: 1c7e607e-fe60-4058-b43c-980f25bee5ba
+    - text: For every row in the test data, the combination of 'person_income' (or
+        its renamed version 'income') and 'loan_amnt' (renamed 'loan_amount') must
+        not result in division by zero or undefined values when computing the derived
+        feature 'income_to_loan', i.e., 'loan_amount' should not be missing or negative
+        such that 'income_to_loan' is always a valid finite number.
+      sources:
+      - start_line: 39
+        end_line: 40
+        file: ''
+      - start_line: 53
+        end_line: 53
+        file: ''
+      uid: 6dbdd73c-6742-4cf8-988e-e2df508fdcfe
+    - text: The test data must have the same set of numeric and categorical columns
+        (after renaming and feature engineering) as the training data, including 'person_income'
+        (as 'income') and 'person_home_ownership' (as 'home_ownership'), so that the
+        preprocessing pipeline (StandardScaler, OneHotEncoder) can be applied without
+        missing features.
+      sources:
+      - start_line: 37
+        end_line: 49
+        file: ''
+      - start_line: 108
+        end_line: 115
+        file: ''
+      uid: 6c8a91a4-5ce6-46c5-b625-b288e977b122
+column_data_flow_locations:
+  person_age:
+  - start_line: 20
+    end_line: 25
+    file: ''
+  - start_line: 37
+    end_line: 38
+    file: ''
+  - start_line: 62
+    end_line: 68
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  person_income:
+  - start_line: 20
+    end_line: 21
+    file: ''
+  - start_line: 24
+    end_line: 26
+    file: ''
+  - start_line: 37
+    end_line: 39
+    file: ''
+  - start_line: 52
+    end_line: 53
+    file: ''
+  - start_line: 62
+    end_line: 68
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  - start_line: 108
+    end_line: 109
+    file: ''
+  - start_line: 114
+    end_line: 115
+    file: ''
+  person_home_ownership:
+  - start_line: 20
+    end_line: 21
+    file: ''
+  - start_line: 27
+    end_line: 28
+    file: ''
+  - start_line: 37
+    end_line: 38
+    file: ''
+  - start_line: 40
+    end_line: 41
+    file: ''
+  - start_line: 74
+    end_line: 77
+    file: ''
+  person_emp_length:
+  - start_line: 20
+    end_line: 21
+    file: ''
+  - start_line: 28
+    end_line: 28
+    file: ''
+  - start_line: 41
+    end_line: 41
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  - start_line: 66
+    end_line: 68
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  loan_amnt:
+  - start_line: 24
+    end_line: 29
+    file: ''
+  - start_line: 42
+    end_line: 42
+    file: ''
+  - start_line: 52
+    end_line: 53
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  loan_int_rate:
+  - start_line: 24
+    end_line: 36
+    file: ''
+  - start_line: 37
+    end_line: 49
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  loan_percent_income:
+  - start_line: 24
+    end_line: 36
+    file: ''
+  - start_line: 37
+    end_line: 49
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 24
+    end_line: 36
+    file: ''
+  - start_line: 37
+    end_line: 49
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  loan_grade:
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 46
+    end_line: 46
+    file: ''
+  loan_intent:
+  - start_line: 24
+    end_line: 35
+    file: ''
+  - start_line: 37
+    end_line: 48
+    file: ''
+  - start_line: 57
+    end_line: 58
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 20
+    end_line: 21
+    file: ''
+  - start_line: 24
+    end_line: 36
+    file: ''
+  - start_line: 37
+    end_line: 49
+    file: ''
+  loan_status:
+  - start_line: 105
+    end_line: 106
+    file: ''
+  - start_line: 120
+    end_line: 120
+    file: ''
+  - start_line: 216
+    end_line: 216
+    file: ''
+  id:
+  - start_line: 57
+    end_line: 58
+    file: ''
+  - start_line: 212
+    end_line: 214
+    file: ''
+  - start_line: 216
+    end_line: 216
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.005410000000000001
+    total_tokens: 4472
+    prompt_tokens: 4421
+    completion_tokens: 51
+  data_flow_inspection:
+    cost: 0.088938
+    total_tokens: 41703
+    prompt_tokens: 40781
+    completion_tokens: 922
+  column_correlation_discovery:
+    cost: 0.007346
+    total_tokens: 3931
+    prompt_tokens: 3601
+    completion_tokens: 330
+  multi_column_data_flow_inspection:
+    cost: 0.072178
+    total_tokens: 35123
+    prompt_tokens: 33713
+    completion_tokens: 1410
+  multi_column_assumption_generation:
+    cost: 0.111986
+    total_tokens: 42613
+    prompt_tokens: 37897
+    completion_tokens: 4716
+  multi_column_code_generation:
+    cost: 0.08698
+    total_tokens: 53249
+    prompt_tokens: 51254
+    completion_tokens: 1995
+  single_column_assumption_generation:
+    cost: 0.16314800000000002
+    total_tokens: 62032
+    prompt_tokens: 55518
+    completion_tokens: 6514
+  single_column_code_generation:
+    cost: 0.138596
+    total_tokens: 93610
+    prompt_tokens: 90866
+    completion_tokens: 2744

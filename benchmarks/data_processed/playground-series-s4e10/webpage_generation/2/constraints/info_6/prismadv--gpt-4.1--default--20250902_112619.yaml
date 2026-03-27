@@ -1,0 +1,383 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column must not contain any null values in the input
+        data, as it is directly selected and used for filtering and display without
+        any missing value handling. The dataset description also indicates full completeness
+        (completeness: 1.0). We could represent this assumption as a deequ constraint
+        like this: .isComplete(''loan_amnt'')'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 59
+        end_line: 63
+        file: ''
+      - start_line: 77
+        end_line: 77
+        file: ''
+    - text: 'The ''loan_amnt'' column must only contain integer values in the input
+        data, as its dataType is Integral and it is used in numeric comparisons and
+        displayed as an amount. We could represent this assumption as a deequ constraint
+        like this: .hasDataType(''loan_amnt'', ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 59
+        end_line: 63
+        file: ''
+      - start_line: 77
+        end_line: 77
+        file: ''
+    - text: 'The ''loan_amnt'' column values must be within a reasonable numeric range
+        for loan amounts, as the web interface allows filtering by a minimum and maximum
+        value and expects valid comparisons. Out-of-range or negative values would
+        break the search logic or cause misleading results. We could represent this
+        assumption as a deequ constraint like this: .isNonNegative(''loan_amnt'')
+        and optionally .isLessThanOrEqualTo(''loan_amnt'', MAX_REASONABLE_LOAN_AMOUNT)'
+      sources:
+      - start_line: 59
+        end_line: 63
+        file: ''
+      - start_line: 95
+        end_line: 96
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_grade', 'String')
+      validity: false
+      level: error
+    - suggestion: .satisfies("length(loan_grade) = 1 AND loan_grade = upper(loan_grade)",
+        "loan_grade is a single uppercase letter")
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column must be present and completely non-null in the
+        input data, since it is directly selected and used for filtering and display
+        in the search interface without any missing value handling. The downstream
+        code expects every record to have a valid 'loan_grade' value.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 55
+        end_line: 76
+        file: ''
+    - text: The 'loan_grade' column should contain only the values A, B, C, D, E,
+        F, or G, reflecting the known set of possible grades in the dataset. Any other
+        values would likely break the search and display logic, as the interface expects
+        these categories.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 55
+        end_line: 76
+        file: ''
+    - text: The 'loan_grade' column should be treated as a string type, with values
+        formatted as single uppercase letters (A-G). The code expects to compare user
+        input (converted to uppercase) directly to these values, so any deviation
+        in case or format may cause failed searches or display issues.
+      sources:
+      - start_line: 55
+        end_line: 56
+        file: ''
+      - start_line: 76
+        end_line: 76
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_intent', 'String')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column should not contain null values, as it is directly
+        selected from the input DataFrame and used for search and display in the web
+        interface without any null handling. Its completeness is 1.0, indicating that
+        all values are present. We could represent this assumption as a deequ constraint
+        like this: .isComplete(''loan_intent'')'
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      - start_line: 75
+        end_line: 75
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain one of the following six
+        string categories: EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION,
+        MEDICAL, or VENTURE. The downstream code relies on these categories for search
+        and display, and the column is categorical with an approximate distinct value
+        count of 6. We could represent this assumption as a deequ constraint like
+        this: .satisfies("CASE WHEN loan_intent IN (''EDUCATION'', ''HOMEIMPROVEMENT'',
+        ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'') THEN 1 ELSE
+        0 END", ''Valid Loan Intents'', lambda x: x == 1)'
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      - start_line: 75
+        end_line: 75
+        file: ''
+    - text: 'The ''loan_intent'' column should contain only string values, as it is
+        used in JavaScript for string operations such as .toLowerCase() and .includes().
+        Non-string values would cause runtime errors in the web application. We could
+        represent this assumption as a deequ constraint like this: .hasDataType(''loan_intent'',
+        ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 60
+        end_line: 60
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: .hasDataType('loan_status', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column should be complete (i.e., contain no null values),
+        as it is selected directly from the input DataFrame and used to compute derived
+        columns ('Approved' and 'Default') without any null-handling logic. This is
+        also supported by the dataset profile indicating 100% completeness.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 19
+        end_line: 20
+        file: ''
+    - text: 'The ''loan_status'' column is expected to contain only two distinct integer
+        values: 0 and 1. This is because the downstream code creates binary columns
+        by checking for equality with 0 and 1, and the dataset profile shows only
+        these two values are present.'
+      sources:
+      - start_line: 19
+        end_line: 20
+        file: ''
+    - text: The 'loan_status' column should only contain integer values, as the code
+        compares its values to the integers 0 and 1, and the data type is specified
+        as integral.
+      sources:
+      - start_line: 19
+        end_line: 20
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: '.hasCompleteness(''person_emp_length'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_emp_length'' column must be present in the input data and
+        must be complete, i.e., it should not contain any null or missing values.
+        This is because the column is directly selected and transferred to the output
+        JSON, which is loaded for display in the web interface without any missing
+        value handling or imputation. If nulls were present, they would appear as
+        nulls in the output and potentially break the interface or confuse end users.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''person_emp_length'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 79
+        end_line: 79
+        file: ''
+    - text: 'The ''person_emp_length'' column should contain only fractional (numeric)
+        values, as it is displayed directly in the web interface and is expected to
+        represent a numerical employment length (likely in years or similar units).
+        Any non-numeric values could cause display or interpretation issues in the
+        downstream static site.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''CAST(`person_emp_length` AS DOUBLE) IS NOT NULL'', ''Valid person_emp_length'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 79
+        end_line: 79
+        file: ''
+  person_income:
+    code:
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.isNonNegative(''person_income'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDistinctness([''person_income''], lambda x: x >= 0.8)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column must be present and complete (no missing/null
+        values) in the input data, as the column is directly selected and later displayed
+        in a web search interface without any null handling or filling. This is supported
+        by the dataset''s completeness statistic (completeness: 1.0) and the absence
+        of fillna or similar operations in the code. We could represent this assumption
+        as a deequ constraint like this:
+
+        .hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+    - text: 'Values in the ''person_income'' column should be integral numbers, as
+        the column''s dataType is Integral and the code expects to display it directly
+        (likely as an integer) in the web UI. Any non-integral values would break
+        the expected display and search functionality. We could represent this assumption
+        as a deequ constraint like this:
+
+        .satisfies(''CAST(person_income AS BIGINT) = person_income'', ''Person Income
+        Is Integer'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+    - text: 'The ''person_income'' column should not have extreme or nonsensical values
+        (e.g., negative incomes), as it is intended for display in a public-facing
+        search interface. Although the code does not filter or validate ranges, displaying
+        invalid or highly anomalous values would likely be undesirable for end-users.
+        We could represent this assumption as a deequ constraint like this (assuming
+        income must be non-negative):
+
+        .satisfies(''person_income >= 0'', ''Non-negative Income'', lambda x: x ==
+        1.0)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+    - text: 'The ''person_income'' column should have sufficient cardinality to distinguish
+        between individuals, as it has approximately 2098 distinct values and is used
+        in a searchable dataset. A significant drop in distinct values could indicate
+        data quality issues. We could represent this assumption as a deequ constraint
+        like this:
+
+        .hasApproxDistinctness(''person_income'', lambda x: x >= 0.8)'
+      sources:
+      - start_line: 13
+        end_line: 16
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 78
+    end_line: 78
+    file: ''
+  loan_amnt:
+  - start_line: 16
+    end_line: 17
+    file: ''
+  - start_line: 59
+    end_line: 63
+    file: ''
+  - start_line: 77
+    end_line: 77
+    file: ''
+  loan_intent:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 60
+    end_line: 60
+    file: ''
+  - start_line: 75
+    end_line: 75
+    file: ''
+  loan_grade:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 55
+    end_line: 56
+    file: ''
+  - start_line: 76
+    end_line: 76
+    file: ''
+  person_emp_length:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 79
+    end_line: 79
+    file: ''
+  loan_status:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 19
+    end_line: 20
+    file: ''

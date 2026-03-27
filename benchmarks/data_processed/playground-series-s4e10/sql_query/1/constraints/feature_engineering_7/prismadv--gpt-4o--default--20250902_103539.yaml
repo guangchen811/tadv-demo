@@ -1,0 +1,57 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_int_rate:
+    code:
+    - suggestion: .hasDataType('loan_int_rate', Fractional)
+      validity: false
+      level: error
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .satisfies('loan_int_rate < 10 OR (loan_int_rate >= 10 AND loan_int_rate
+        <= 20) OR loan_int_rate > 20', 'Interest Rate Categorization')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column must contain numeric values that are comparable
+        using '<', '>', and 'BETWEEN' operators, as the code categorizes interest
+        rates into tiers based on these conditions. Since the column's data type is
+        'Fractional', this assumption is satisfied.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column should not contain null values, as the code
+        does not handle null cases explicitly and assumes all rows can be categorized
+        into one of the defined interest rate tiers.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: 'The ''loan_int_rate'' column should have values that fall into one of
+        the defined categories: ''Low Rate'' (< 10), ''Medium Rate'' (10 to 20), or
+        ''High Rate'' (> 20). This ensures all interest rates are categorized appropriately.'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  loan_int_rate:
+  - start_line: 2
+    end_line: 5
+    file: ''

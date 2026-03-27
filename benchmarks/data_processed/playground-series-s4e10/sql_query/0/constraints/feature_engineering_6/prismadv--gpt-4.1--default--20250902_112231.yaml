@@ -1,0 +1,126 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column must not contain null values, as it is directly
+        used in arithmetic operations (division and multiplication) without any null-handling.
+        Null values would cause errors or unexpected results in the SQL query. We
+        could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_amnt'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral (whole number)
+        values, as expected by its data type and its use in arithmetic operations.
+        Non-integer values could indicate data corruption or schema mismatch. We could
+        represent this assumption as a deequ constraint like this: .isNonNegative(''loan_amnt'')
+        and a custom constraint to check for integral values if required.'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''loan_amnt'' column should not contain negative values, because
+        a negative loan amount is not meaningful in the context of a loan-to-income
+        ratio calculation. We could represent this assumption as a deequ constraint
+        like this: .isNonNegative(''loan_amnt'')'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .satisfies('`person_income` <> 0', 'No zero person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column must not contain any null values. This is
+        because it is used as a denominator in the calculation of the loan-to-income
+        ratio, and division by NULL would result in a NULL output or cause a runtime
+        error in some SQL engines. Since the column completeness is 1.0, we assume
+        the input data must also be complete for this column. We could represent this
+        assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_income` IS NOT NULL THEN 1 ELSE 0 END", "Non-null
+        person_income", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''person_income'' column must not contain zero values. Since it is
+        used as a denominator in division (loan_amnt * 1.0 / person_income), any zero
+        value would cause a division by zero error. We could represent this assumption
+        as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_income` = 0 THEN 0 ELSE 1 END", "No zero person_income",
+        lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''person_income'' column should contain only integral (whole number)
+        values, as it is described as having an Integral data type and is used in
+        a financial ratio calculation. Non-integer values would violate the expected
+        data type and could impact calculation correctness. We could represent this
+        assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN CAST(`person_income` AS BIGINT) = `person_income` THEN
+        1 ELSE 0 END", "Integral person_income", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''person_income'' column should have only non-negative values (i.e.,
+        zero or positive), as negative incomes are likely not meaningful in the context
+        of loan-to-income ratio calculations and could yield misleading results. We
+        could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_income` < 0 THEN 0 ELSE 1 END", "Non-negative
+        person_income", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  loan_amnt:
+  - start_line: 2
+    end_line: 6
+    file: ''
+  person_income:
+  - start_line: 2
+    end_line: 6
+    file: ''

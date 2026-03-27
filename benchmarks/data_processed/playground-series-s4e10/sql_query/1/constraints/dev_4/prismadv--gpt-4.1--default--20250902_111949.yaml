@@ -1,0 +1,88 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column must be complete (no null values), as the code
+        aggregates it using SUM without any NULL handling. Any NULLs in 'loan_amnt'
+        would cause SUM to ignore those rows or result in unexpected aggregates, potentially
+        affecting the top customer selection.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: The 'loan_amnt' column should contain only integer values, as it is used
+        in a SUM aggregation and the dataType is Integral. Non-integer values would
+        cause errors or incorrect aggregation results.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: The 'loan_amnt' column should contain non-negative values, since negative
+        loan amounts are likely not meaningful in the context of total loan aggregation
+        and would distort the calculation of top customers.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', ConstrainableDataTypes.Fractional)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must be complete with no null values, since
+        the code calculates the average (AVG) of ''loan_int_rate'' and SQL aggregate
+        functions like AVG ignore nulls, which could lead to misleading results if
+        nulls are present. Therefore, to ensure meaningful and accurate average calculations,
+        ''loan_int_rate'' should not contain any null values in the input data. This
+        can be represented as a deequ constraint like: .isComplete(''loan_int_rate'')'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: 'The ''loan_int_rate'' column should be of a numeric (fractional) data
+        type, as the AVG() function is used on it in the SQL query, which requires
+        numeric input. Non-numeric values would cause errors or be ignored. This can
+        be represented as a deequ constraint like: .hasDataType(''loan_int_rate'',
+        ConstrainableDataTypes.Fractional)'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+column_data_flow_locations:
+  loan_amnt:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  loan_int_rate:
+  - start_line: 3
+    end_line: 3
+    file: ''

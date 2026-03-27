@@ -1,0 +1,109 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''cb_person_default_on_file'', lambda
+        x: x == 2)'
+      validity: false
+      level: warning
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'cb_person_default_on_file' column should be complete, meaning it
+        should not contain any null values. This is because the code does not perform
+        any null handling operations on the column and directly utilizes its values
+        for frequency calculation.
+      sources:
+      - start_line: 14
+        end_line: 21
+        file: ''
+    - text: The 'cb_person_default_on_file' column is expected to have only two distinct
+        values, 'Y' and 'N', which are used to represent the data in a categorical
+        manner. This assumption aligns with the histogram data provided.
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_grade' column should not have any null values as the code does
+        not include any operations to handle missing values, and it directly uses
+        the column to compute value counts.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_grade'' column is expected to contain only specific categorical
+        values: A, B, C, D, E, F, G. This is inferred from the provided histogram
+        of the column.'
+      sources:
+      - start_line: 1
+        end_line: 3
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column is expected to be complete (i.e., have no null
+        values) because it is used without null-handling operations, such as fillna
+        or dropna, and its completeness is 1.0. This suggests that the data is assumed
+        to be complete by the downstream tasks.
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_intent'' column is expected to have a limited set of distinct
+        values, specifically the six categories: EDUCATION, HOMEIMPROVEMENT, PERSONAL,
+        DEBTCONSOLIDATION, MEDICAL, and VENTURE. This is inferred from the approximate
+        number of distinct values and the histogram data.'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 18
+    end_line: 21
+    file: ''
+  loan_intent:
+  - start_line: 18
+    end_line: 18
+    file: ''
+  - start_line: 20
+    end_line: 21
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 14
+    end_line: 21
+    file: ''

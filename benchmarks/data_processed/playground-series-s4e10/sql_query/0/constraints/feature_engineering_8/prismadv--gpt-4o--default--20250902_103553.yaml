@@ -1,0 +1,47 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: '.hasMax(''person_emp_length'', lambda max_value: max_value > 0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_emp_length' column should not contain null values as it is
+        directly used in calculations for normalization and categorization without
+        any null handling. This indicates that the column is expected to be complete
+        in the input data.
+      sources:
+      - start_line: 3
+        end_line: 10
+        file: ''
+    - text: The 'person_emp_length' column should have a maximum value greater than
+        0 to ensure meaningful normalization. The code calculates the normalized employment
+        length by dividing by the maximum value of the column, thus assuming the maximum
+        is not zero.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 3
+    end_line: 10
+    file: ''

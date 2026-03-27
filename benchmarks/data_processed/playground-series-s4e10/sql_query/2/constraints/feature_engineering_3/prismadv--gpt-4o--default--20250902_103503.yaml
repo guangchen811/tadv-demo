@@ -1,0 +1,82 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column should contain only ''Y'' or
+        ''N'' as values, as the code checks for ''Y'' to calculate the default rate.
+        This implies that any other value would be considered invalid for this analysis.
+        We could represent this assumption as a deequ constraint like this: .satisfies("CASE
+        WHEN `cb_person_default_on_file` IN (''Y'', ''N'') THEN 1 ELSE 0 END", "Valid
+        cb_person_default_on_file Values", lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+    - text: 'The ''cb_person_default_on_file'' column should not contain null values,
+        as the code does not handle nulls explicitly and assumes all values are either
+        ''Y'' or ''N''. We could represent this assumption as a deequ constraint like
+        this: .satisfies("CASE WHEN `cb_person_default_on_file` IS NOT NULL THEN 1
+        ELSE 0 END", "Non-null cb_person_default_on_file Values", lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column should have complete data with no null values,
+        as the code does not handle null values and performs a GROUP BY operation,
+        which requires non-null values in the column.
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain the expected categories:
+        EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, and VENTURE,
+        as the operation groups by these categories and any unexpected value might
+        lead to incorrect grouping.'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 4
+    end_line: 4
+    file: ''

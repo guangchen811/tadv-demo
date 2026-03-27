@@ -1,0 +1,152 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .satisfies('loan_amnt >= 500 and loan_amnt <= 50000', 'loan_amnt
+        reasonable range')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_amnt' column must be complete and contain no null values, because
+        the downstream code calculates the count and mean of 'loan_amnt' for each
+        'Income Bracket' without handling missing values. Nulls in 'loan_amnt' would
+        result in incorrect aggregation results or errors.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+      - start_line: 21
+        end_line: 23
+        file: ''
+    - text: The 'loan_amnt' column must contain only integer values, as it is used
+        for counting and averaging, and the column dataType is Integral according
+        to the dataset description.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+      - start_line: 21
+        end_line: 23
+        file: ''
+    - text: The 'loan_amnt' column should have a reasonable range and not contain
+        extreme outliers, since the average loan amount per income bracket is displayed
+        in the output. Extreme values could distort the mean and mislead users of
+        the web page.
+      sources:
+      - start_line: 23
+        end_line: 23
+        file: ''
+      - start_line: 89
+        end_line: 91
+        file: ''
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''CASE WHEN loan_status IN (0, 1) THEN 1 ELSE 0 END'',
+        ''Valid Loan Status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column must have complete data with no missing values,
+        as it is used directly in aggregation operations without any null handling.
+        This implies that every record in the input data is expected to have a non-null
+        value for ''loan_status''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 24
+        file: ''
+    - text: 'The ''loan_status'' column is expected to be binary, containing only
+        two distinct integer values (likely 0 and 1), since it is used in the expression
+        (x == 1).sum() to count defaults. All values should be either 0 or 1, and
+        no other values are expected.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''CASE WHEN loan_status IN (0, 1) THEN 1 ELSE 0 END'', ''Valid
+        Loan Status'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_income' column must be complete (i.e., contain no null values),
+        as it is directly used in pd.cut to assign income brackets without any missing
+        value handling. If there were nulls, pd.cut would result in NaN for those
+        rows, which may affect downstream groupby operations and reporting.
+      sources:
+      - start_line: 13
+        end_line: 18
+        file: ''
+    - text: All values in the 'person_income' column must be numeric and integral,
+        as the code expects this column to be numeric to perform binning with pd.cut
+        using specified numeric bin edges.
+      sources:
+      - start_line: 13
+        end_line: 18
+        file: ''
+    - text: All values in the 'person_income' column must be greater than or equal
+        to 0, since the income bins start at 0 and negative incomes would not fit
+        into any defined bracket, resulting in NaN for 'Income Bracket'.
+      sources:
+      - start_line: 16
+        end_line: 18
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 18
+    end_line: 18
+    file: ''
+  loan_amnt:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 21
+    end_line: 23
+    file: ''
+  loan_status:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''

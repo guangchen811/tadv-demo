@@ -1,0 +1,244 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('cb_person_cred_hist_length', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column should not contain null values
+        because the code performs a dropna operation on the selected features, including
+        'cb_person_cred_hist_length'. This implies that the column is expected to
+        be complete with no missing values in the input data.
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: The 'cb_person_cred_hist_length' column is expected to contain integral
+        data as it is processed without any type conversion, indicating that the input
+        data should already be in this format.
+      sources:
+      - start_line: 23
+        end_line: 23
+        file: ''
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column should not contain any null values because the
+        code drops rows with null values in any of the selected columns before proceeding
+        with further processing. We could represent this assumption as a deequ constraint
+        like this: .isComplete(''loan_amnt'')'
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: 'The ''loan_amnt'' column is assumed to be a numeric column, specifically
+        integral, as it is used with the StandardScaler for scaling, which requires
+        numeric input. We could represent this assumption as a deequ constraint like
+        this: .hasDataType(''loan_amnt'', ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 32
+        end_line: 32
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_int_rate'', lambda x: x > 100)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_int_rate'' column should not contain null values because the
+        code drops any rows with null values in the selected features, which includes
+        ''loan_int_rate''. We could represent this assumption as a deequ constraint
+        like this: .satisfies(''CASE WHEN `loan_int_rate` IS NOT NULL THEN 1 ELSE
+        0 END'', ''No Null Loan Interest Rates'', lambda x: x == 1)'
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: 'The ''loan_int_rate'' column is expected to have a large number of distinct
+        values since it is used as a feature for t-SNE, which benefits from varied
+        and diverse input data. We could represent this assumption as a deequ constraint
+        like this: .hasApproxQuantile(''loan_int_rate'', 0.5, 0.05, lambda x: len(set(x))
+        > 100)'
+      sources:
+      - start_line: 19
+        end_line: 32
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: isComplete('loan_percent_income')
+      validity: false
+      level: error
+    - suggestion: hasDataType('loan_percent_income', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_percent_income' column should not contain null values as the
+        code drops any rows with null values in this column before proceeding with
+        further data processing. This is evident from the use of dropna() in the code.
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: The 'loan_percent_income' column should contain fractional numeric values,
+        as implied by the data type 'Fractional'. This is consistent with the column's
+        description indicating it holds fractional numbers.
+      sources:
+      - start_line: 19
+        end_line: 25
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column should not contain null values as the code uses
+        dropna() to remove any rows with null values in this column. Given that the
+        dataset metadata indicates completeness as 1.0, this assumption is satisfied.
+      sources:
+      - start_line: 27
+        end_line: 28
+        file: ''
+    - text: The 'loan_status' column should only contain binary values, specifically
+        0 and 1, as it is used to filter and distinguish between approved and rejected
+        loans in the code.
+      sources:
+      - start_line: 41
+        end_line: 41
+        file: ''
+      - start_line: 89
+        end_line: 90
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_emp_length'' column should not contain null values because
+        the code drops any rows with null values in the selected features, including
+        ''person_emp_length''. We could represent this assumption as a deequ constraint
+        like this: .satisfies(''CASE WHEN `person_emp_length` IS NOT NULL THEN 1 ELSE
+        0 END'', ''Non-null person_emp_length'', lambda x: x == 1)'
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: 'The ''person_emp_length'' column should be a numeric type since it is
+        included in the list of features that are scaled using StandardScaler, which
+        requires numeric input. We could represent this assumption as a deequ constraint
+        like this: .satisfies(''CASE WHEN CAST(`person_emp_length` AS DOUBLE) IS NOT
+        NULL THEN 1 ELSE 0 END'', ''Numeric person_emp_length'', lambda x: x == 1)'
+      sources:
+      - start_line: 19
+        end_line: 32
+        file: ''
+  person_income:
+    code:
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column should not contain any null values. This
+        is inferred from the fact that the code drops rows with any null values in
+        the selected features, including ''person_income'', before proceeding with
+        scaling and t-SNE transformation. We could represent this assumption as a
+        deequ constraint like this: .hasCompleteness(''person_income'', lambda x:
+        x == 1.0)'
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: 'The ''person_income'' column is expected to be of integral data type,
+        as indicated by the dataset''s column description. We could represent this
+        assumption as a deequ constraint like this: .isNonNegative(''person_income'')'
+      sources: []
+column_data_flow_locations:
+  person_income:
+  - start_line: 16
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  loan_amnt:
+  - start_line: 16
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  person_emp_length:
+  - start_line: 18
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 16
+    end_line: 28
+    file: ''
+  loan_int_rate:
+  - start_line: 19
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  loan_percent_income:
+  - start_line: 19
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  loan_status:
+  - start_line: 27
+    end_line: 28
+    file: ''
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 41
+    end_line: 41
+    file: ''
+  - start_line: 89
+    end_line: 90
+    file: ''

@@ -1,0 +1,109 @@
+constraints:
+  bloodtype:
+    code:
+    - suggestion: .isComplete('bloodtype')
+      validity: null
+      level: error
+    - suggestion: '.satisfies("bloodtype = ''AB negative'' OR bloodtype = ''B negative''",
+        "Contains rare bloodtypes", lambda x: x >= 1)'
+      validity: null
+      level: warning
+    - suggestion: '.hasDataType(''bloodtype'', ''String'', lambda x: x == 1.0)'
+      validity: null
+      level: error
+    assumptions:
+    - text: The 'bloodtype' column must not contain any null values, since the code
+        drops all rows with missing values using dropna() before downstream operations.
+        This implies that all input data in the 'bloodtype' column must be complete
+        (non-null) so that relevant records are not inadvertently removed.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: The 'bloodtype' column is expected to contain values beyond just 'O pos'
+        and 'A pos', specifically including rare blood types such as 'AB negative'
+        and 'B negative', since the code queries for these values. If these categories
+        are missing from the input data, the downstream calculation of strokes for
+        rare blood types will always return zero, which may not be meaningful.
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: The 'bloodtype' column should contain string values representing blood
+        types. No non-string or malformed values should be present, as downstream
+        SQL queries rely on string matching within the column.
+      sources:
+      - start_line: 7
+        end_line: 8
+        file: ''
+  diagnosis:
+    code:
+    - suggestion: .isComplete('diagnosis')
+      validity: null
+      level: error
+    - suggestion: '.satisfies("`diagnosis` = ''stroke''", "Presence of Stroke Diagnosis",
+        lambda x: x > 0)'
+      validity: null
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''diagnosis'', lambda x: x <= 10)'
+      validity: null
+      level: warning
+    assumptions:
+    - text: 'The ''diagnosis'' column should have no null values in the input data,
+        as the code uses dropna() to remove any rows with missing values before performing
+        queries. This means that any nulls in the input data would result in those
+        rows being dropped, potentially reducing the size of the dataset and affecting
+        the counts returned by the queries. To ensure meaningful results and consistency,
+        the input data should have complete (non-null) values for ''diagnosis''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `diagnosis` IS NOT NULL THEN 1 ELSE 0 END", "No Null
+        Diagnoses", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+    - text: 'The ''diagnosis'' column is expected to contain the value ''stroke''
+        in the input data, as the downstream SQL queries filter for rows where diagnosis
+        = ''stroke''. If ''stroke'' is missing from the input data, the resulting
+        counts will be zero and the queries may not be meaningful. Therefore, the
+        input data should include at least some rows with diagnosis = ''stroke''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `diagnosis` = ''stroke'' THEN 1 ELSE 0 END", "Presence
+        of Stroke Diagnosis", lambda x: x > 0)'
+      sources:
+      - start_line: 4
+        end_line: 8
+        file: ''
+    - text: 'The ''diagnosis'' column should contain only a small number of distinct
+        string values (as indicated by the data profile with 3 distinct values: ''cancer'',
+        ''cough'', and ''fraction''), and it is expected that the set of valid diagnoses
+        is limited and consistent. Unexpected or misspelled values in ''diagnosis''
+        could cause queries to miss relevant rows or return inaccurate counts. Therefore,
+        the input data should only contain valid, expected diagnosis strings.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasNumberOfDistinctValues(''diagnosis'', lambda x: x <= 10)'
+      sources:
+      - start_line: 1
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  diagnosis:
+  - start_line: 4
+    end_line: 5
+    file: ''
+  - start_line: 6
+    end_line: 8
+    file: ''
+  bloodtype:
+  - start_line: 1
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 8
+    file: ''

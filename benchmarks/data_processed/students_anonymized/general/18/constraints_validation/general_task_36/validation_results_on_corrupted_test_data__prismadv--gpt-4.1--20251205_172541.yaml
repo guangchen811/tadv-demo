@@ -1,0 +1,231 @@
+results:
+  c30:
+    code:
+    - suggestion: .isComplete('c30')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c21:
+    code:
+    - suggestion: '.haveCompleteness([''c23'', ''c24'', ''c25'', ''c27'', ''c26'',
+        ''c29'', ''c30'', ''c31'', ''c33'', ''c32'', ''c13'', ''c16'', ''c17'', ''c21''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c13","c21"]':
+    code:
+    - suggestion: .satisfies('c21 IN (0, 1)', 'c21 is binary (0 or 1)')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''c13'', ''c21''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c13:
+    code:
+    - suggestion: '.hasCompleteness(''c13'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasMin(''c13'', lambda x: x >= 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasMax(''c13'', lambda x: x <= 200)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c31:
+    code:
+    - suggestion: .isComplete('c31')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c16:
+    code:
+    - suggestion: .isComplete('c16')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c17:
+    code:
+    - suggestion: .isComplete('c17')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c23:
+    code:
+    - suggestion: .isComplete('c23')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CAST(`c23` AS BIGINT) = `c23`'', ''c23_is_integer'',
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c32:
+    code:
+    - suggestion: .isComplete('c32')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isNonNegative('c32')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c24:
+    code:
+    - suggestion: .isComplete('c24')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c25:
+    code:
+    - suggestion: '.hasCompleteness(''c25'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''c25 IS NOT NULL AND cast(c25 as double) IS NOT NULL'',
+        ''c25 Numeric'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c26:
+    code:
+    - suggestion: '.hasCompleteness(''c26'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c27:
+    code:
+    - suggestion: '.hasCompleteness(''c27'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''c27 BETWEEN 0 AND 10'', ''c27 in expected range'',
+        lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''satisfies(''c27 BETWEEN 0 AND 10'', ''c27 in
+        expected range'', lambda x: x == 1.0)'' failed on data sample: Value: 0.998868778280543
+        does not meet the constraint requirement!'
+      level: warning
+  c29:
+    code:
+    - suggestion: .isComplete('c29')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c33:
+    code:
+    - suggestion: .isComplete('c33')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CASE WHEN c33 = 0 THEN 1 ELSE 0 END'', ''High proportion
+        of zeros in c33'', lambda x: x >= 0.9)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["c13","c16","c17","c21"]':
+    code:
+    - suggestion: .satisfies('(`c16` IN (0,1)) AND (`c17` IN (0,1)) AND (`c21` IN
+        (0,1))', 'c16, c17, c21 are binary (0/1)')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c14","c21"]':
+    code:
+    - suggestion: .satisfies("`c21` IN (0, 1)", "c21 is binary 0 or 1")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness(["c14", "c21"], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c16","c17"]':
+    code:
+    - suggestion: '.haveCompleteness(["c16", "c17"], lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(`c16` IN (0,1) AND `c17` IN (0,1))", "c16 and c17
+        domain is 0/1", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c23","c25","c27","c29","c31","c33"]':
+    code:
+    - suggestion: .satisfies("(((`c23` - `c27`) + (`c29` - `c33`) <= 0) OR ((`c25`
+        IS NOT NULL AND `c31` IS NOT NULL AND (`c25` + `c31`) IS NOT NULL)))", "c25
+        + c31 non-null when denominator positive (rate3)")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("((`c23` + `c29`) <= 0 OR (`c25` IS NOT NULL AND `c23`
+        IS NOT NULL AND `c31` IS NOT NULL AND `c29` IS NOT NULL AND `c32` IS NOT NULL
+        AND (`c23` + `c29`) IS NOT NULL))", "weighted avg grade: all required columns
+        non-null when denominator positive")'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness(["c23", "c25", "c27", "c29", "c31", "c32", "c33"],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["c23","c26","c29","c32"]':
+    code:
+    - suggestion: '.haveCompleteness([''c23'', ''c26'', ''c29'', ''c32''], lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('((`c23` - `c27`) + (`c29` - `c33`)) >= 0', 'Denominator
+        of rate3 non-negative')
+      status: false
+      reason_if_failed: 'Constraint ''satisfies(''((`c23` - `c27`) + (`c29` - `c33`))
+        >= 0'', ''Denominator of rate3 non-negative'')'' failed on data sample: Value:
+        0.9971719457013575 does not meet the constraint requirement!'
+      level: warning
+  '["c23","c27","c29","c33"]':
+    code:
+    - suggestion: .satisfies("(NOT (`c23` > `c27`) OR (`c23` - `c27` != 0 AND `c25`
+        IS NOT NULL AND `c23` IS NOT NULL))", "Valid rate1 division for c23 > c27")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies("(NOT (`c29` > `c33`) OR (`c29` - `c33` != 0 AND `c31`
+        IS NOT NULL AND `c29` IS NOT NULL))", "Valid rate2 division for c29 > c33")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies("(NOT ((`c23` + `c29`) > 0) OR ((`c23` IS NOT NULL AND
+        `c26` IS NOT NULL AND `c29` IS NOT NULL AND `c32` IS NOT NULL AND (`c23` +
+        `c29`) != 0)))", "Valid weighted average grade division when c23 + c29 > 0")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''c23'', ''c27'', ''c29'', ''c33''], lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c29","c31","c33"]':
+    code:
+    - suggestion: .isGreaterThanOrEqualTo('c29', 'c33')
+      status: false
+      reason_if_failed: 'Constraint ''isGreaterThanOrEqualTo(''c29'', ''c33'')'' failed
+        on data sample: Value: 0.9847285067873304 does not meet the constraint requirement!'
+      level: error
+    - suggestion: .satisfies('(`c31` >= 0)', 'c31_non_negative')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''c29'', ''c31'', ''c33''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

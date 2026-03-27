@@ -1,0 +1,73 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['E', 'F', 'A', 'G', 'B', 'C', 'D'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column should not contain null values, as the code does
+        not perform any null checks or fill operations on this column before using
+        it in the groupby operation.
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+    - text: The 'loan_grade' column should only contain the distinct values E, F,
+        A, G, B, C, and D, as these are the expected categories used for calculating
+        approval rates.
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x == 2)'
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column is assumed to be complete with no null values,
+        as the downstream code does not perform any null handling operations on this
+        column. This can be represented in deequ as: .hasCompleteness(''loan_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+    - text: 'The ''loan_status'' column is assumed to have exactly two distinct values
+        (0 and 1), as the code calculates approval rates based on these two values.
+        This can be represented in deequ as: .hasNumberOfDistinctValues(''loan_status'',
+        lambda x: x == 2)'
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 14
+    end_line: 18
+    file: ''
+  loan_status:
+  - start_line: 14
+    end_line: 19
+    file: ''

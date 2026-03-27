@@ -1,0 +1,58 @@
+results:
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''length(trim(loan_intent)) > 0'', ''Non-empty loan_intent'',
+        lambda x: x >= 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isContainedIn(''loan_intent'', [''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE''],
+        lambda x: x >= 0.98)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''loan_intent = UPPER(TRIM(loan_intent))'', ''Uppercase
+        and trimmed loan_intent'', lambda x: x >= 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasPattern(''loan_intent'', r''^[A-Z]+$'', lambda x: x >= 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_status:
+    code:
+    - suggestion: .isComplete("loan_status")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CAST(loan_status AS INT) IN (0,1)", "loan_status castable
+        to INT and binary", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete("person_home_ownership")
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isContainedIn("person_home_ownership", ["RENT", "MORTGAGE", "OWN",
+        "OTHER"], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = TRIM(person_home_ownership)
+        THEN 1 ELSE 0 END", "Trimmed home ownership", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = UPPER(person_home_ownership)
+        THEN 1 ELSE 0 END", "Uppercased home ownership", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning

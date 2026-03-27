@@ -1,0 +1,274 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_grade', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column must be present and should not contain any
+        null values, as the code selects this column, groups by it, and aggregates
+        results without handling missing values. The code expects all records to have
+        a valid loan grade for correct grouping and aggregation.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_grade` IS NOT NULL THEN 1 ELSE 0 END", "No Null
+        Loan Grades", lambda x: x == 1)'
+      sources:
+      - start_line: 7
+        end_line: 8
+        file: ''
+      - start_line: 14
+        end_line: 15
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: 'The ''loan_grade'' column should only contain known valid grade values:
+        ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G''. The code implicitly assumes
+        these are the only possible values, as the dataset histogram shows only these,
+        and results are grouped and ordered by grade without handling unexpected categories.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_grade` IN (''A'', ''B'', ''C'', ''D'', ''E'',
+        ''F'', ''G'') THEN 1 ELSE 0 END", "Valid Loan Grades", lambda x: x == 1)'
+      sources:
+      - start_line: 1
+        end_line: 3
+        file: ''
+      - start_line: 7
+        end_line: 8
+        file: ''
+      - start_line: 14
+        end_line: 15
+        file: ''
+    - text: 'The ''loan_grade'' column should be of string (categorical) type, as
+        the code treats it as a categorical variable for grouping, and the dataset
+        describes it as a string with seven distinct values.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("loan_grade", ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 1
+        end_line: 3
+        file: ''
+      - start_line: 7
+        end_line: 8
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1.0)'
+      validity: false
+      level: error
+    - suggestion: .satisfies('loan_int_rate > 0 AND loan_int_rate < 100', 'loan_int_rate
+        in (0, 100) exclusive')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain any null values. This is
+        because the code directly selects 'loan_int_rate' from the input data and
+        then calculates the average interest rate using AVG(interest_rate) without
+        any null handling, which assumes all values are present and numeric. A null
+        value could cause the average to be misleading or not reflect the true average
+        for the segment.
+      sources:
+      - start_line: 10
+        end_line: 17
+        file: ''
+    - text: The 'loan_int_rate' column should contain only valid fractional (numeric)
+        values. Because the downstream code uses AVG and ROUND SQL functions on this
+        column, all values must be parseable as numbers (i.e., not strings or malformed
+        data). Any non-numeric value will cause the aggregation to fail or yield incorrect
+        results.
+      sources:
+      - start_line: 10
+        end_line: 17
+        file: ''
+    - text: The 'loan_int_rate' column should have a reasonable range of values for
+        interest rates (e.g., strictly greater than 0 and less than 100). While the
+        code does not explicitly enforce this, extremely high or negative values would
+        make the average interest rate calculation meaningless. It is expected that
+        all rates are positive and within a reasonable range for loan interest rates.
+      sources:
+      - start_line: 10
+        end_line: 17
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''loan_status IN (0, 1)'', ''Valid loan_status values'',
+        lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_status', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column must not contain any null values, as the code
+        uses it directly in aggregations (SUM and CASE WHEN) without handling missing
+        values. This means every row in the input data is expected to have a non-null
+        ''loan_status'' value. We could represent this assumption as a deequ constraint
+        like this: .isComplete(''loan_status'')'
+      sources:
+      - start_line: 9
+        end_line: 10
+        file: ''
+      - start_line: 18
+        end_line: 20
+        file: ''
+    - text: 'The ''loan_status'' column is expected to contain only the values 0 and
+        1, representing non-default and default statuses, respectively. The code computes
+        aggregates assuming only these two values are present, and the dataset statistics
+        confirm only two distinct integral values exist. We could represent this assumption
+        as a deequ constraint like this: .satisfies(''loan_status IN (0, 1)'', ''Valid
+        loan_status values'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 9
+        end_line: 10
+        file: ''
+      - start_line: 18
+        end_line: 20
+        file: ''
+      - start_line: 1
+        end_line: 3
+        file: ''
+    - text: 'The ''loan_status'' column should be of an integral (integer) data type,
+        as the code treats it as such in CASE statements and aggregations, and the
+        column description specifies its type as Integral. We could represent this
+        assumption as a deequ constraint like this: .hasDataType(''loan_status'',
+        ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 9
+        end_line: 10
+        file: ''
+      - start_line: 1
+        end_line: 3
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_emp_length'', lambda x: x >=
+        20 and x <= 45)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_emp_length' column must not contain any null values. This
+        is because the column is directly selected and used in GROUP BY and ORDER
+        BY clauses, which require non-null values for correct grouping and sorting.
+        If any null values exist, the grouping and sorting may not behave as expected
+        or may cause errors depending on SQL dialect.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: The 'person_emp_length' column should contain only fractional numeric
+        values, as it is used for grouping and ordering, and its dataType is specified
+        as Fractional. All values should be valid numbers (not strings or other types)
+        to ensure meaningful aggregation and ordering.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+    - text: The 'person_emp_length' column should have a reasonable range of distinct
+        values (as per the dataset, approximately 33 distinct values are expected).
+        If test data contains far fewer or far more distinct values, it may indicate
+        an issue with data quality or format.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 22
+        end_line: 23
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 22
+    end_line: 22
+    file: ''
+  - start_line: 23
+    end_line: 23
+    file: ''
+  loan_grade:
+  - start_line: 8
+    end_line: 8
+    file: ''
+  - start_line: 15
+    end_line: 15
+    file: ''
+  - start_line: 22
+    end_line: 22
+    file: ''
+  - start_line: 23
+    end_line: 23
+    file: ''
+  loan_status:
+  - start_line: 9
+    end_line: 9
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  loan_int_rate:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 17
+    end_line: 17
+    file: ''

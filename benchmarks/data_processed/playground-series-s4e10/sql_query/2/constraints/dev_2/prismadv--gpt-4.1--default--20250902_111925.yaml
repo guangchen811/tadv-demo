@@ -1,0 +1,133 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: '.hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''loan_amnt = CAST(loan_amnt AS BIGINT)'', ''Loan Amount
+        Integral'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column must not contain NULL values because the AVG()
+        aggregation in SQL ignores NULLs, which would make the average loan amount
+        calculation misleading if there are missing values. The dataset description
+        confirms ''loan_amnt'' completeness is 1.0, indicating no missing values.
+        To ensure correctness, input data must always have non-null values in ''loan_amnt''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral (whole number)
+        values, as indicated in the dataset description (dataType: Integral) and because
+        loan amounts are expected to be recorded in whole currency units. Input data
+        should not have fractional values in ''loan_amnt''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_amnt = CAST(loan_amnt AS BIGINT)'', ''Loan Amount Integral'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must be complete (no null values) in the
+        input data, because the code computes AVG(loan_int_rate) without handling
+        nulls, and SQL AVG ignores nulls, which could lead to misleading averages
+        if nulls are present. The dataset description indicates completeness is 1.0,
+        so this assumption should be enforced for test data as well. We could represent
+        this assumption as a deequ constraint like this: .isComplete(''loan_int_rate'')'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: 'The ''loan_int_rate'' column should contain only numeric (fractional)
+        values, as it is used in the AVG aggregation, which requires numeric input.
+        Non-numeric values would cause errors or be ignored, resulting in incorrect
+        averages. We could represent this assumption as a deequ constraint like this:
+        .isFractional(''loan_int_rate'')'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column must not contain null values, as it is used
+        directly in the SELECT clause and as a GROUP BY key. Any nulls would cause
+        the GROUP BY and aggregation to produce unexpected or incorrect results, or
+        potentially fail depending on SQL dialect. We could represent this assumption
+        as a deequ constraint like this: .isComplete(''loan_intent'')'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'All values in the ''loan_intent'' column should be among the known categories:
+        ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'',
+        or ''VENTURE''. Unexpected categories may indicate data quality issues or
+        break downstream grouping/aggregation logic. We could represent this assumption
+        as a deequ constraint like this: .satisfies("CASE WHEN loan_intent IN (''EDUCATION'',
+        ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'')
+        THEN 1 ELSE 0 END", ''Valid Loan Intents'', lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  loan_int_rate:
+  - start_line: 5
+    end_line: 5
+    file: ''

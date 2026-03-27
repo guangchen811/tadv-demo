@@ -1,0 +1,213 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column is assumed to be complete with no null values
+        since the code does not fill nulls or handle missing data explicitly for the
+        'loan_grade' column. This is crucial for the groupby operation used in heatmap
+        generation.
+      sources:
+      - start_line: 14
+        end_line: 19
+        file: ''
+      - start_line: 23
+        end_line: 25
+        file: ''
+    - text: 'The ''loan_grade'' column is expected to contain only specific known
+        categories: A, B, C, D, E, F, and G, as the heatmap generation relies on consistent
+        categorical values for accurate grouping and visualization.'
+      sources:
+      - start_line: 18
+        end_line: 25
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column should have no null values. This is assumed because
+        the code does not perform any null-checking or filling on this column, and
+        it is used directly in the computation of heatmap data.
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: 'The ''loan_intent'' column is expected to contain only the following
+        distinct values: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', ''VENTURE''. This is inferred from the histogram data and the
+        fact that these are the only categories present in the data.'
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x == 2)'
+      validity: false
+      level: error
+    - suggestion: .hasDataType('loan_status', 'Integral')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_status' column should not have null values because the code
+        does not include any operation to handle null values before grouping and generating
+        heatmaps.
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+      - start_line: 23
+        end_line: 27
+        file: ''
+    - text: The 'loan_status' column is expected to have exactly two distinct integer
+        values, as indicated by the dataset's approximate number of distinct values
+        and its histogram.
+      sources:
+      - start_line: 14
+        end_line: 27
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_emp_length'', lambda x: x ==
+        33)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_emp_length' column should not contain null values because
+        the downstream task involves grouping by 'person_emp_length', which requires
+        non-null values for meaningful grouping. The column's completeness is 1.0,
+        indicating no null values are expected.
+      sources:
+      - start_line: 19
+        end_line: 19
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+    - text: The 'person_emp_length' column is assumed to have a reasonable number
+        of distinct values, approximately 33, which allows for effective grouping
+        in the heatmap generation process.
+      sources:
+      - start_line: 19
+        end_line: 19
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['OTHER', 'OWN', 'MORTGAGE',
+        'RENT'])
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'person_home_ownership' column must not contain null values because
+        it is used in the 'compute_heatmap_data' function without any null handling,
+        implying that null values would cause issues in the downstream processing.
+        Since the completeness is 1.0, this assumption is satisfied.
+      sources:
+      - start_line: 19
+        end_line: 19
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: 'The ''person_home_ownership'' column is expected to have one of the following
+        distinct values: ''OTHER'', ''OWN'', ''MORTGAGE'', ''RENT''. This is inferred
+        from the histogram data provided.'
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 23
+    end_line: 25
+    file: ''
+  - start_line: 30
+    end_line: 31
+    file: ''
+  - start_line: 35
+    end_line: 37
+    file: ''
+  loan_intent:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 23
+    end_line: 27
+    file: ''
+  loan_status:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 23
+    end_line: 27
+    file: ''
+  person_home_ownership:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  person_emp_length:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 23
+    end_line: 31
+    file: ''

@@ -1,0 +1,168 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column must be complete (no missing or null values) in
+        the input data, because the code performs aggregation operations such as 'count'
+        and 'mean' on this column without any missing value handling (no fillna or
+        dropna), and the dataset description confirms 100% completeness. If any value
+        were missing, the 'mean' calculation could produce incorrect results or fail.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+      - start_line: 21
+        end_line: 23
+        file: ''
+    - text: The 'loan_amnt' column must contain only integral (whole number) values,
+        as the dataset description specifies its data type as 'Integral', and the
+        code expects this type when performing count and mean aggregations. Non-integral
+        or string values would lead to errors or incorrect calculations.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+      - start_line: 21
+        end_line: 23
+        file: ''
+    - text: The 'loan_amnt' column should have a reasonable range of values that represent
+        valid loan amounts. Since the code computes the mean loan amount per income
+        bracket and displays this in a risk analysis, outlier or negative values would
+        adversely affect the analysis. Thus, all values should be non-negative and
+        within plausible loan size limits.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+      - start_line: 21
+        end_line: 23
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: '.hasDataType(''loan_status'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column must be complete (i.e., have no missing/null
+        values), as the code does not perform any null handling or imputation before
+        using it in groupby aggregations and boolean comparisons.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_status' column is expected to be binary, containing only the
+        values 0 and 1, since the code calculates defaults as (loan_status == 1) and
+        the column has only two distinct integer values according to the data characteristics.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_status' column should have an integer data type, as it is used
+        in equality comparison with integer 1 and the dataType is reported as Integral.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+  person_income:
+    code:
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''person_income'' column must be complete (i.e., contain no null
+        or missing values) in the input data. This is because the code immediately
+        uses ''person_income'' in pd.cut to assign income brackets, which would fail
+        or produce NaNs if there are missing values in ''person_income''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 18
+        file: ''
+    - text: 'All values in the ''person_income'' column must be numeric and integral,
+        as the code expects to bin them using numerical intervals and the column''s
+        data type is specified as Integral.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isNonNegative(''person_income'') (if negative incomes are not expected) and
+        .isIntegral(''person_income'')'
+      sources:
+      - start_line: 13
+        end_line: 18
+        file: ''
+    - text: 'All values in ''person_income'' must be greater than or equal to 0, since
+        the first income bin is [0, 20000) and negative incomes would not be assigned
+        to any valid bracket, resulting in NaN for ''Income Bracket''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''person_income >= 0'', ''Non-negative Income'', lambda x: x ==
+        1.0)'
+      sources:
+      - start_line: 16
+        end_line: 18
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 18
+    end_line: 18
+    file: ''
+  loan_amnt:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 21
+    end_line: 23
+    file: ''
+  loan_status:
+  - start_line: 13
+    end_line: 13
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''

@@ -1,0 +1,71 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    - suggestion: .isUnique('id')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column should not contain null values
+        because the code calculates the difference using the LAG function, which requires
+        non-null values to produce meaningful results.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+    - text: The 'cb_person_cred_hist_length' column should be ordered by 'id' to ensure
+        that the LAG function calculates the credit history change correctly. This
+        implies that the 'id' column should not have duplicate values.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+  id:
+    code:
+    - suggestion: .isUnique('id')
+      validity: true
+      level: error
+    - suggestion: .isComplete('id')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'id' column should have unique values because it is used to order
+        the rows in the LAG function. If there are duplicate values, the ordering
+        may not be consistent, leading to incorrect results.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: The 'id' column should not contain null values because it is used in the
+        ORDER BY clause, which requires non-null values to establish a proper ordering.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+column_data_flow_locations:
+  cb_person_cred_hist_length:
+  - start_line: 2
+    end_line: 3
+    file: ''
+  id:
+  - start_line: 3
+    end_line: 3
+    file: ''

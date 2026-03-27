@@ -1,0 +1,121 @@
+constraints:
+  booking_status:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `booking_status` IN (''COMPLETED'', ''IN_PROGRESS'',
+        ''CANCELED'') THEN 1 ELSE 0 END", "Valid Booking Status", lambda x: x == 1)'
+      validity: true
+      level: error
+    - suggestion: '.hasCompleteness(''booking_status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''booking_status'' column should contain only the expected string
+        values, specifically ''COMPLETED'', ''IN_PROGRESS'', or ''CANCELED'', as the
+        code filters for rows where booking_status == ''COMPLETED''. Any other unexpected
+        values could cause the downstream logic to miss relevant rows or behave incorrectly.
+        We could represent this assumption as a deequ constraint like this: .satisfies("CASE
+        WHEN `booking_status` IN (''COMPLETED'', ''IN_PROGRESS'', ''CANCELED'') THEN
+        1 ELSE 0 END", "Valid Booking Status", lambda x: x == 1)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: 'The ''booking_status'' column should not contain null or missing values,
+        since the code filters on booking_status and expects valid string values to
+        be present in every row. If nulls were present, those rows would be excluded
+        from processing, potentially leading to missed bookings. We could represent
+        this assumption as a deequ constraint like this: .hasCompleteness(''booking_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  email:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `booking_status` = ''COMPLETED'' THEN CASE
+        WHEN `email` IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "No Null Emails for
+        Completed Bookings", lambda x: x == 1)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `booking_status` = ''COMPLETED'' THEN CASE
+        WHEN `email` RLIKE ''^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'' THEN
+        1 ELSE 0 END ELSE 1 END", "Valid Email Format for Completed Bookings", lambda
+        x: x == 1)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''email'' column should not contain null values for rows where ''booking_status''
+        is ''COMPLETED'', as the code iterates over these rows and directly accesses
+        ''email'' to send confirmation mails without handling missing values.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `booking_status` = ''COMPLETED'' THEN CASE WHEN `email`
+        IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "No Null Emails for Completed Bookings",
+        lambda x: x == 1)'
+      sources:
+      - start_line: 5
+        end_line: 7
+        file: ''
+    - text: 'The ''email'' column is expected to contain valid email address strings
+        for rows where ''booking_status'' is ''COMPLETED'', as these values are used
+        as recipient addresses in the send_discount_confirmation_mail function. The
+        code assumes these values are properly formatted email addresses.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `booking_status` = ''COMPLETED'' THEN CASE WHEN `email`
+        RLIKE ''^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'' THEN 1 ELSE 0
+        END ELSE 1 END", "Valid Email Format for Completed Bookings", lambda x: x
+        == 1)'
+      sources:
+      - start_line: 5
+        end_line: 7
+        file: ''
+  guest_category_idx:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `guest_category_idx` IN (0, 1, 2, 3) THEN
+        1 ELSE 0 END", "Valid Guest Category Indices", lambda x: x == 1)'
+      validity: true
+      level: error
+    - suggestion: '.hasCompleteness("guest_category_idx", lambda x: x == 1)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''guest_category_idx'' column must only contain integer values that
+        are valid indices for the ''discount_per_category'' list, which in this code
+        is [5, 10, 25, 500], so only 0, 1, 2, or 3 are allowed. Any value outside
+        this range would cause an IndexError during processing.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `guest_category_idx` IN (0, 1, 2, 3) THEN 1 ELSE 0 END",
+        "Valid Guest Category Indices", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 4
+        file: ''
+    - text: 'The ''guest_category_idx'' column should not contain null values, as
+        the code directly uses its values as indices without null handling. Null values
+        would cause errors during mapping.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness("guest_category_idx", lambda x: x == 1)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+column_data_flow_locations:
+  guest_category_idx:
+  - start_line: 3
+    end_line: 4
+    file: ''
+  booking_status:
+  - start_line: 5
+    end_line: 5
+    file: ''
+  email:
+  - start_line: 6
+    end_line: 7
+    file: ''

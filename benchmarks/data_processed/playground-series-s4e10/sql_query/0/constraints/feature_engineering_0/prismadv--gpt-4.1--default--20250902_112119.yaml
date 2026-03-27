@@ -1,0 +1,133 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['DEBTCONSOLIDATION', 'EDUCATION',
+        'VENTURE', 'HOMEIMPROVEMENT', 'PERSONAL', 'MEDICAL'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_intent', 'String')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column should not contain null values, as the code
+        applies a CASE statement to ''loan_intent'' without handling nulls. Nulls
+        would result in the ELSE branch, but given the dataset completeness is 1.0,
+        the input data is expected to have no missing values for ''loan_intent''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_intent` IS NOT NULL THEN 1 ELSE 0 END", "No Nulls
+        in loan_intent", lambda x: x == 1)'
+      sources:
+      - start_line: 3
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_intent'' column should contain only the following values:
+        ''DEBTCONSOLIDATION'', ''EDUCATION'', ''VENTURE'', ''HOMEIMPROVEMENT'', ''PERSONAL'',
+        ''MEDICAL''. The code only explicitly maps three of these values and applies
+        ELSE to all others, so values outside this set would be treated as ''unknown''
+        and default to 0.20, which may not be intended. The input data should not
+        contain unexpected categories.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_intent` IN (''DEBTCONSOLIDATION'', ''EDUCATION'',
+        ''VENTURE'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''MEDICAL'') THEN 1 ELSE 0
+        END", "Valid loan_intent categories", lambda x: x == 1)'
+      sources:
+      - start_line: 3
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_intent'' column is expected to be of string data type, as
+        the code compares it to string literals and the dataType is String in the
+        dataset description. Input data should not contain non-string values in this
+        column.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN typeof(`loan_intent`) = ''string'' THEN 1 ELSE 0 END",
+        "loan_intent is string", lambda x: x == 1)'
+      sources:
+      - start_line: 3
+        end_line: 7
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''person_income'' column must not contain null values. This is because
+        the code performs numeric comparisons (such as ''< 50000'' and ''BETWEEN 50000
+        AND 100000'') on ''person_income'' without handling nulls, so null values
+        would cause the SQL query to not assign a ''default_probability_score'' for
+        those rows, or could cause errors in certain SQL dialects.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_income` IS NOT NULL THEN 1 ELSE 0 END", "No
+        Null person_income", lambda x: x == 1)'
+      sources:
+      - start_line: 10
+        end_line: 12
+        file: ''
+    - text: 'The ''person_income'' column should contain only integral (whole number)
+        values, as the dataType is Integral and the code expects to perform numeric
+        range comparisons. Non-integer values could lead to unexpected results or
+        errors.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN CAST(`person_income` AS BIGINT) = `person_income` THEN
+        1 ELSE 0 END", "Integral person_income", lambda x: x == 1)'
+      sources:
+      - start_line: 10
+        end_line: 12
+        file: ''
+    - text: 'The ''person_income'' column should contain values that are within a
+        realistic and positive income range (for example, greater than or equal to
+        0). Negative incomes or extremely large values are likely not expected in
+        the context of personal income and could affect the calculation of ''default_probability_score''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_income` >= 0 THEN 1 ELSE 0 END", "Non-negative
+        person_income", lambda x: x == 1)'
+      sources:
+      - start_line: 10
+        end_line: 12
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 3
+    end_line: 7
+    file: ''
+  person_income:
+  - start_line: 10
+    end_line: 12
+    file: ''

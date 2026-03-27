@@ -1,0 +1,151 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values because the code
+        calculates the average loan amount without handling nulls, which implies that
+        all values should be non-null to avoid errors in the calculation.
+      sources:
+      - start_line: 4
+        end_line: 9
+        file: ''
+    - text: The 'loan_amnt' column should be of an integral data type, as indicated
+        by the dataset description, and this should be maintained in the input data
+        to ensure that operations like averaging work correctly without type conversion
+        errors.
+      sources:
+      - start_line: 4
+        end_line: 9
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column should have no null values since its completeness
+        is 1.0, and the code does not handle nulls. It is assumed that all values
+        in the 'loan_grade' column are valid and non-null.
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+    - text: The 'loan_grade' column should only contain the values 'A', 'B', 'C',
+        'D', 'E', 'F', and 'G'. These are the distinct values identified in the dataset,
+        and no additional handling for unexpected values is present in the code.
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column should be complete with no null values, as the
+        code does not handle nulls and uses this column in a GROUP BY operation. The
+        column is expected to have categorical string values representing loan intents,
+        such as EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL,
+        and VENTURE.
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+    - text: The 'loan_intent' column should only contain values from the set {EDUCATION,
+        HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, VENTURE}. This assumption
+        is based on the distinct values observed in the data, and the code groups
+        by loan intent, implying these are the expected categories.
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+  person_income:
+    code:
+    - suggestion: .hasDataType('person_income', 'Numeric')
+      validity: false
+      level: error
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_income' column should contain numeric values as the code calculates
+        the average income. The average function requires numeric data types.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: The 'person_income' column should not have null values because the code
+        directly uses it to calculate the average income without any null handling
+        operations. This implies that the column should be complete.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 1
+    end_line: 1
+    file: ''
+  - start_line: 6
+    end_line: 12
+    file: ''
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 11
+    end_line: 12
+    file: ''
+  person_income:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 9
+    end_line: 9
+    file: ''

@@ -1,0 +1,241 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('cb_person_cred_hist_length', Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column should not contain any null values
+        because the code drops rows with null values in the selected features before
+        standardization and PCA processing. This means all values must be present
+        in the input data for this column.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'cb_person_cred_hist_length' column should contain integral data types
+        as it is used in numerical operations like standardization and PCA. The code
+        expects this column to be numerical and continuous.
+      sources:
+      - start_line: 21
+        end_line: 28
+        file: ''
+  loan_amnt:
+    code:
+    - suggestion: '.hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column should not contain null values because the code
+        drops rows with null values in the selected features, including ''loan_amnt''.
+        We could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_amnt'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 18
+        end_line: 24
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain numerical values as it is included
+        in a list of features that are standardized using StandardScaler, which requires
+        numerical input. We could represent this assumption as a deequ constraint
+        like this: .hasDataType(''loan_amnt'', ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 21
+        end_line: 28
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain any null values, as the
+        code drops rows with null values using dropna() before proceeding with further
+        analysis.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_int_rate' column is expected to be a numerical type, specifically
+        fractional, as it is included in the list of numerical features for PCA analysis.
+      sources:
+      - start_line: 21
+        end_line: 22
+        file: ''
+      - start_line: 27
+        end_line: 28
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_percent_income', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_percent_income' column should not contain null values as the
+        code uses the dropna() method, which removes any rows with null values before
+        further processing.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_percent_income' column is assumed to be a numerical feature
+        suitable for scaling and PCA transformation. This implies that the values
+        should be numerical and within a reasonable range for these operations.
+      sources:
+      - start_line: 21
+        end_line: 28
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x == 2)'
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column must not contain null values because the code
+        explicitly drops rows with null values in the target column before proceeding
+        with further processing such as PCA and logistic regression.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_status' column is expected to have exactly two distinct integer
+        values, which represent different loan statuses (e.g., approved and rejected).
+        This is inferred from the code using logistic regression to classify loan
+        status and the filtering of records based on loan status values.
+      sources:
+      - start_line: 39
+        end_line: 39
+        file: ''
+      - start_line: 108
+        end_line: 109
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_emp_length' column should not contain null values because
+        the code drops any rows with null values in the selected features, including
+        'person_emp_length', before further processing.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'person_emp_length' column is expected to be numerical (fractional)
+        as it is included in the list of numerical features for PCA analysis and is
+        standardized using StandardScaler.
+      sources:
+      - start_line: 21
+        end_line: 28
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_income' column should not contain null values because the
+        code drops nulls from the selected features before proceeding with further
+        analysis.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'person_income' column is expected to contain integral data types,
+        as the data type is explicitly specified as 'Integral'.
+      sources:
+      - start_line: 18
+        end_line: 24
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 18
+    end_line: 24
+    file: ''
+  - start_line: 26
+    end_line: 28
+    file: ''
+  loan_amnt:
+  - start_line: 21
+    end_line: 24
+    file: ''
+  - start_line: 28
+    end_line: 28
+    file: ''
+  person_emp_length:
+  - start_line: 18
+    end_line: 24
+    file: ''
+  - start_line: 26
+    end_line: 28
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 18
+    end_line: 24
+    file: ''
+  - start_line: 28
+    end_line: 28
+    file: ''
+  loan_int_rate:
+  - start_line: 21
+    end_line: 24
+    file: ''
+  - start_line: 27
+    end_line: 28
+    file: ''
+  loan_percent_income:
+  - start_line: 21
+    end_line: 24
+    file: ''
+  - start_line: 28
+    end_line: 28
+    file: ''
+  loan_status:
+  - start_line: 23
+    end_line: 24
+    file: ''
+  - start_line: 35
+    end_line: 35
+    file: ''
+  - start_line: 38
+    end_line: 39
+    file: ''
+  - start_line: 108
+    end_line: 109
+    file: ''

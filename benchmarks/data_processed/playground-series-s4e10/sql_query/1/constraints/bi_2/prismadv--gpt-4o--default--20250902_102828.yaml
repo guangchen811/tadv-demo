@@ -1,0 +1,88 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column should contain only ''Y'' or
+        ''N'' values, as the code uses these specific values to calculate the number
+        of defaults and the default rate. We could represent this assumption as a
+        deequ constraint like this: .satisfies("CASE WHEN `cb_person_default_on_file`
+        IN (''Y'', ''N'') THEN 1 ELSE 0 END", "Valid Default Values", lambda x: x
+        == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 6
+        file: ''
+    - text: 'The ''cb_person_default_on_file'' column should have no null values,
+        as the completeness of the column is 1.0, indicating that the data is expected
+        to be fully complete. We could represent this assumption as a deequ constraint
+        like this: .satisfies("CASE WHEN `cb_person_default_on_file` IS NOT NULL THEN
+        1 ELSE 0 END", "Non-null Default Values", lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 6
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column should not contain any null values since the
+        code does not handle nulls before grouping by this column. The completeness
+        of this column is expected to be 1.0.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: The 'loan_intent' column should only contain the values 'EDUCATION', 'HOMEIMPROVEMENT',
+        'PERSONAL', 'DEBTCONSOLIDATION', 'MEDICAL', and 'VENTURE'. These are the expected
+        categories for the loan intent, as indicated by the histogram of distinct
+        values.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 3
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 4
+    end_line: 6
+    file: ''

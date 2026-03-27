@@ -1,0 +1,98 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  person_age:
+    code:
+    - suggestion: '.hasCompleteness(''person_age'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_age'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_age'' column is present in the input data, is of integral
+        (integer) data type, and is fully populated (no null or missing values), as
+        indicated by its completeness of 1.0 and the code''s ability to exclude it
+        without prior null handling. This ensures that if the column were to be included
+        in future analyses or queries, it would not introduce errors due to missing
+        or incorrectly typed data. We could represent this assumption as a Deequ constraint
+        like this: .hasCompleteness(''person_age'', lambda x: x == 1.0) and .isInteger(''person_age'').'
+      sources:
+      - start_line: 1
+        end_line: 3
+        file: ''
+      - start_line: 17
+        end_line: 18
+        file: ''
+    - text: The 'person_age' column is not required for the current employment categorization
+        task and is intentionally excluded from the downstream analysis to focus on
+        job experience and maintain privacy. This assumes that its absence does not
+        affect the correctness or completeness of the employment categorization output.
+        If future tasks require 'person_age', its inclusion should be justified and
+        validated accordingly.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+      - start_line: 17
+        end_line: 20
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: warning
+    - suggestion: .isNonNegative('person_emp_length')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_emp_length' column must be of numeric (fractional) type, as
+        the code performs numerical comparisons (<, >, BETWEEN) to categorize employment
+        length. Non-numeric values would cause the SQL query to fail.
+      sources:
+      - start_line: 4
+        end_line: 9
+        file: ''
+    - text: The 'person_emp_length' column should not contain NULL values, as the
+        code assigns 'Unknown' to any row not matching the specified numeric ranges,
+        which implicitly handles NULLs, but the analysis focuses on meaningful employment
+        categorization. A high proportion of NULLs would reduce the utility of the
+        results.
+      sources:
+      - start_line: 4
+        end_line: 10
+        file: ''
+    - text: The 'person_emp_length' column should only contain realistic, non-negative
+        values. Negative employment lengths do not make sense in the context of job
+        experience analysis, and such values would be miscategorized as 'Unknown'.
+      sources:
+      - start_line: 4
+        end_line: 10
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 4
+    end_line: 9
+    file: ''
+  person_age:
+  - start_line: 3
+    end_line: 3
+    file: ''

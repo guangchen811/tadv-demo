@@ -1,0 +1,290 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_amnt' column should not have null values because the code calculates
+        the average loan amount using this column, which requires non-null values.
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 25
+        end_line: 25
+        file: ''
+    - text: The 'loan_amnt' column is expected to contain integral values as it is
+        used in the calculation of the average loan amount, which suggests it should
+        be numeric.
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 25
+        end_line: 25
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['E', 'F', 'A', 'G', 'B', 'C', 'D'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column should not contain null values because it is used
+        directly in the SQL query without any null handling, and the column has a
+        completeness of 1.0, indicating no nulls in the dataset.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+      - start_line: 30
+        end_line: 30
+        file: ''
+    - text: The 'loan_grade' column should only contain the distinct values E, F,
+        A, G, B, C, and D based on the provided data distribution, as these are the
+        only values found in the histogram of the dataset.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+      - start_line: 30
+        end_line: 30
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain null values because the
+        code calculates the average interest rate using this column, and null values
+        would affect the calculation.
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_int_rate' column contains fractional data types, and the average
+        is rounded to two decimal places, indicating that precision is important.
+        Therefore, the values in 'loan_int_rate' should be meaningful and precise
+        enough to support such operations.
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column is expected to have no null values as it is used
+        in grouping and ordering operations, which assume complete data in this column.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 30
+        end_line: 31
+        file: ''
+    - text: The 'loan_intent' column should only contain values from the set {EDUCATION,
+        HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, VENTURE}, as these
+        are the distinct values observed in the dataset and are used for segmenting
+        the data.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      level: error
+    - suggestion: .satisfies('loan_percent_income >= 0 AND loan_percent_income <=
+        100', 'Valid Range for loan_percent_income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_percent_income' column should be complete, meaning it should
+        not have any null values, as its average is calculated without any null handling
+        in the downstream task.
+      sources:
+      - start_line: 5
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+    - text: The values in the 'loan_percent_income' column should be within a reasonable
+        range to ensure meaningful averages, as it represents the loan amount as a
+        percentage of borrower's income. This could imply values should be between
+        0 and 100.
+      sources:
+      - start_line: 5
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: '.satisfies(''`loan_status` = 1'', ''At least one default entry'',
+        lambda x: x > 0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_status' column should not contain null values because it is
+        being used in calculations to count defaults and calculate default rates,
+        which assume the presence of valid integral data (0 or 1) for each entry.
+      sources:
+      - start_line: 7
+        end_line: 8
+        file: ''
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: The 'loan_status' column should only contain the distinct integral values
+        0 and 1, representing non-default and default statuses, respectively, as it
+        is used to identify defaults in the data.
+      sources:
+      - start_line: 7
+        end_line: 8
+        file: ''
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: The 'loan_status' column must have at least one entry with the value 1
+        to ensure that the calculation of default-related metrics (such as total defaults
+        and default rate) is meaningful.
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'person_income' column should not contain null values as the code
+        calculates the average income using this column, which implies that all values
+        should be present for the calculation.
+      sources:
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: The 'person_income' column should contain numeric values since the code
+        performs an average calculation on this column, which requires numeric data
+        types.
+      sources:
+      - start_line: 26
+        end_line: 26
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 5
+    end_line: 5
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 31
+    end_line: 31
+    file: ''
+  loan_intent:
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 15
+    end_line: 15
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 31
+    end_line: 31
+    file: ''
+  loan_status:
+  - start_line: 7
+    end_line: 8
+    file: ''
+  - start_line: 18
+    end_line: 21
+    file: ''
+  loan_int_rate:
+  - start_line: 8
+    end_line: 8
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''
+  loan_amnt:
+  - start_line: 9
+    end_line: 9
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  person_income:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  loan_percent_income:
+  - start_line: 5
+    end_line: 11
+    file: ''
+  - start_line: 27
+    end_line: 27
+    file: ''

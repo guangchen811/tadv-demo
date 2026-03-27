@@ -1,0 +1,78 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_intent:
+    code:
+    - suggestion: .isContainedIn('loan_intent', ['DEBTCONSOLIDATION', 'EDUCATION',
+        'VENTURE', 'HOMEIMPROVEMENT', 'PERSONAL', 'MEDICAL'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column should only contain the values ''DEBTCONSOLIDATION'',
+        ''EDUCATION'', ''VENTURE'', ''HOMEIMPROVEMENT'', ''PERSONAL'', and ''MEDICAL''.
+        This is because the code uses a CASE statement to assign probabilities based
+        on specific values of ''loan_intent'', and any value outside these categories
+        will default to the ELSE condition. We could represent this assumption as
+        a deequ constraint like this: .satisfies("CASE WHEN `loan_intent` IN (''DEBTCONSOLIDATION'',
+        ''EDUCATION'', ''VENTURE'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''MEDICAL'')
+        THEN 1 ELSE 0 END", "Valid loan_intent Values", lambda x: x == 1)'
+      sources:
+      - start_line: 3
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_intent'' column should not contain null values, as the completeness
+        of the column is 1.0, indicating that all values are present. We could represent
+        this assumption as a deequ constraint like this: .satisfies("CASE WHEN `loan_intent`
+        IS NOT NULL THEN 1 ELSE 0 END", "Non-null loan_intent", lambda x: x == 1)'
+      sources:
+      - start_line: 3
+        end_line: 7
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_income' column should not contain any null values because
+        the code performs operations that assume the presence of non-null values.
+      sources:
+      - start_line: 10
+        end_line: 12
+        file: ''
+    - text: The 'person_income' column should contain values that are meaningful for
+        comparison with the thresholds 50000 and 100000, as the code categorizes these
+        income levels to adjust the default probability score.
+      sources:
+      - start_line: 10
+        end_line: 12
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 3
+    end_line: 8
+    file: ''
+  person_income:
+  - start_line: 10
+    end_line: 12
+    file: ''

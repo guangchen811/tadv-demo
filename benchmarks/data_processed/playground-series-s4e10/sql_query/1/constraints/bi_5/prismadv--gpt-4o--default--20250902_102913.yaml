@@ -1,0 +1,112 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values because the code
+        calculates the average loan amount, which requires non-null values in the
+        column.
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column should contain only the expected categories:
+        A, B, C, D, E, F, G. This is because the SQL query groups by ''loan_grade'',
+        implying that these categories are used for segmentation and analysis.'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+    - text: The 'loan_grade' column should not contain any null values. The completeness
+        of the column is 1.0, indicating it is fully populated, and the SQL query
+        groups by 'loan_grade', which requires complete data without null values.
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    - suggestion: .satisfies('person_income >= 0', 'Non-negative Income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'person_income' column should not contain null values as the SQL query
+        directly uses the column without any null handling, indicating an assumption
+        of complete data.
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: The 'person_income' column is expected to contain numeric values, as it
+        is used in a comparison operation to categorize income levels. Therefore,
+        all values should be of a numeric type that supports comparison operations.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: The 'person_income' column is expected to have values that can be categorized
+        into 'Low Income', 'Medium Income', or 'High Income' based on the defined
+        ranges, implying the values should be within a reasonable range for personal
+        income data.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 2
+    end_line: 6
+    file: ''
+  loan_grade:
+  - start_line: 8
+    end_line: 8
+    file: ''
+  - start_line: 15
+    end_line: 15
+    file: ''
+  - start_line: 16
+    end_line: 16
+    file: ''
+  loan_amnt:
+  - start_line: 12
+    end_line: 12
+    file: ''

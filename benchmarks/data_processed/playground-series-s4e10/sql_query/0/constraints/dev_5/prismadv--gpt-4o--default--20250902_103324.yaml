@@ -1,0 +1,119 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  id:
+    code:
+    - suggestion: .isUnique('id')
+      validity: true
+      level: error
+    - suggestion: .satisfies('id = 43152', 'Check for specific ID')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'id' column should have unique values for each row because it is used
+        in the GROUP BY clause and uniquely identifies records in the WHERE clause.
+        This ensures that each 'id' corresponds to a distinct record in the dataset.
+      sources:
+      - start_line: 2
+        end_line: 11
+        file: ''
+    - text: The 'id' column should contain the value 43152 because the code filters
+        for this specific value in the WHERE clause. This ensures the query returns
+        results for the specified 'id'.
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', Integral)
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_amnt' column should contain numerical values that can be aggregated
+        using the SUM function without causing errors. This implies the values should
+        be non-null and numerical, as the completeness of 'loan_amnt' is 1.0, indicating
+        no null values are expected.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+    - text: The 'loan_amnt' column should have values such that when summed, they
+        can be meaningfully compared to 'person_income' in the eligibility check.
+        This implies that the values should be reasonable loan amounts within the
+        context of personal income.
+      sources:
+      - start_line: 6
+        end_line: 8
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'person_income' column should not be null because the code performs
+        a comparison operation with 'SUM(loan_amnt) * 2'. Null values could cause
+        errors in this operation.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'person_income' column should contain non-negative values since income
+        should logically be non-negative. This is implicitly assumed in the eligibility
+        calculation.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  id:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 11
+    end_line: 11
+    file: ''
+  person_income:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 11
+    end_line: 11
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 6
+    file: ''

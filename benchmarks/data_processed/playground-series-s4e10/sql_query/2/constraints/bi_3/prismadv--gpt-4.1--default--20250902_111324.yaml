@@ -1,0 +1,246 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_default_on_file' column must have no null values. This
+        is because the code directly compares its values to 'Y' in a CASE WHEN statement
+        to compute the default rate, and there is no handling for nulls. Null values
+        would result in those rows being treated as non-defaults, which may bias the
+        default rate calculation or cause misleading results. Thus, the input data
+        should be fully complete for this column.
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: The 'cb_person_default_on_file' column should only contain the values
+        'Y' and 'N'. The default rate calculation assumes that only 'Y' indicates
+        a default, and any other value (including unexpected values) would be counted
+        as non-default. This could lead to incorrect default rates if the column contains
+        values other than 'Y' or 'N'.
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: The 'cb_person_default_on_file' column should be present for all rows
+        that meet the filter condition (loan_int_rate > 15.0). Since the default rate
+        is computed as the ratio of defaults to total loans in each group, missing
+        values in this column for filtered rows would distort the results.
+      sources:
+      - start_line: 10
+        end_line: 13
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_grade'', ''String'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_grade'', lambda x: x == 7)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_grade' column should have no null values, as it is used in GROUP
+        BY and SELECT clauses without any null handling. This means every row in the
+        input data is expected to have a valid 'loan_grade' value.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The 'loan_grade' column should only contain valid grade values. Based
+        on the dataset histogram and usage in the code, expected values are 'A', 'B',
+        'C', 'D', 'E', 'F', and 'G'. There should not be any other unexpected or misspelled
+        values.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The 'loan_grade' column should be of string type, as it is used for categorical
+        grouping and the dataset indicates all values are of string type.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The 'loan_grade' column should be reasonably distributed among its categories
+        to ensure meaningful aggregation. If any expected category (A-G) is missing
+        entirely from the input data, some segments will not appear in the results,
+        which may reduce the usefulness of the analysis.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: '.hasCompleteness(''loan_int_rate'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''loan_int_rate > 15.0'', ''High Interest Rate Loans'',
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must not contain any NULL values, as it
+        is used in the AVG() aggregation and filtered in the WHERE clause without
+        any NULL-handling. If there are NULLs in ''loan_int_rate'', those rows will
+        be excluded from the results or may cause errors depending on the SQL engine.
+        To ensure the code works as intended and the averages are meaningful, all
+        input data should have non-null values for ''loan_int_rate''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_int_rate'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'All values in the ''loan_int_rate'' column must be strictly greater than
+        15.0, as the code filters out any records with ''loan_int_rate'' less than
+        or equal to 15.0 in the WHERE clause. If any values are 15.0 or below, they
+        will be excluded from downstream analysis and not contribute to the grouped
+        results, potentially resulting in unexpected segment sizes or missing categories.
+        To ensure the input data provides meaningful results for this analysis, it
+        should only contain ''loan_int_rate'' values above 15.0.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_int_rate > 15.0'', ''High Interest Rate Loans'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'The ''loan_int_rate'' column must contain numeric (fractional/decimal)
+        values, as it is used in arithmetic operations and aggregation (AVG) in the
+        SQL query. Non-numeric values would cause the query to fail or produce incorrect
+        results. The data type must be consistent with the expected fractional format.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isFractional(''loan_int_rate'')'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      validity: true
+      level: error
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = ''OTHER'' THEN 1
+        ELSE 0 END", "Low proportion of ''OTHER'' in person_home_ownership", lambda
+        x: x <= 0.05)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'person_home_ownership' column must not have any null values, as it
+        is used in SELECT and GROUP BY clauses without any null handling. All rows
+        are expected to have a value for this column.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The 'person_home_ownership' column should only contain the values 'RENT',
+        'MORTGAGE', 'OWN', or 'OTHER'. The code assumes these are the only expected
+        categories, and the dataset histogram confirms that these are the only present
+        values. The presence of any other value could lead to unexpected groupings
+        or meaningless results.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+    - text: The distribution of the 'person_home_ownership' column values should not
+        be heavily skewed toward unrecognized or rare categories (such as 'OTHER').
+        The code is designed to produce meaningful group-level statistics, so if a
+        large proportion of rows fall into 'OTHER' or unexpected categories, the results
+        may be less meaningful.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  loan_grade:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  loan_int_rate:
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 13
+    end_line: 13
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 15
+    end_line: 15
+    file: ''

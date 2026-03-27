@@ -1,0 +1,253 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column is assumed to be complete with no null values since
+        the code does not perform any null checks or fillna operations before using
+        this column in filtering and display operations.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 59
+        end_line: 62
+        file: ''
+      - start_line: 77
+        end_line: 77
+        file: ''
+    - text: The 'loan_amnt' column is expected to contain numeric values that can
+        be compared against the minimum and maximum amount inputs for filtering purposes.
+      sources:
+      - start_line: 56
+        end_line: 57
+        file: ''
+      - start_line: 62
+        end_line: 62
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column should be complete with no null values, as it
+        is directly used in filtering operations and displayed in the search results
+        on the generated HTML page. The code does not include any null handling or
+        filling for this column.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 55
+        end_line: 61
+        file: ''
+      - start_line: 75
+        end_line: 76
+        file: ''
+      - start_line: 102
+        end_line: 102
+        file: ''
+    - text: The 'loan_grade' column should only contain the values 'A', 'B', 'C',
+        'D', 'E', 'F', and 'G', as these are the observed distinct values in the data
+        distribution and the code does not account for any other values.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 55
+        end_line: 61
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column should contain only the following distinct
+        values: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', ''VENTURE''. The code expects these values for filtering and
+        displaying search results. We could represent this assumption as a deequ constraint
+        like this: .satisfies("CASE WHEN `loan_intent` IN (''EDUCATION'', ''HOMEIMPROVEMENT'',
+        ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'') THEN 1 ELSE
+        0 END", "Valid Loan Intent Values", lambda x: x == 1)'
+      sources:
+      - start_line: 59
+        end_line: 60
+        file: ''
+      - start_line: 75
+        end_line: 75
+        file: ''
+    - text: 'The ''loan_intent'' column should not have null values because it is
+        directly accessed and used for filtering without any null handling. We could
+        represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_intent'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 59
+        end_line: 60
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column is expected to have no null values because it
+        is used directly to create new columns 'Approved' and 'Default' without any
+        null handling. This indicates that the downstream task assumes 'loan_status'
+        is complete.
+      sources:
+      - start_line: 16
+        end_line: 20
+        file: ''
+    - text: The 'loan_status' column is expected to have exactly two distinct values,
+        0 and 1, which represent the loan status as either approved or defaulted.
+        This is inferred from how the column is used to create binary columns 'Approved'
+        and 'Default'.
+      sources:
+      - start_line: 19
+        end_line: 20
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_emp_length' column should not contain null values, as the
+        code does not perform any null-checking or filling operations on this column
+        during the data processing. This is inferred from the fact that the column
+        is directly selected and used in the JSON output without any null-handling.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 78
+        end_line: 79
+        file: ''
+    - text: The 'person_emp_length' column is expected to contain fractional data,
+        as indicated by the data type description. This implies that the values should
+        be numeric and can include decimal points.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'person_income' column should be complete and contain no null values,
+        as the column is directly selected and used in the JSON output without any
+        null handling in the code.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+    - text: The 'person_income' column should be of Integral data type, as assumed
+        by the data characteristics and because it is used directly without conversion.
+      sources:
+      - start_line: 16
+        end_line: 16
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 78
+    end_line: 78
+    file: ''
+  loan_amnt:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 59
+    end_line: 62
+    file: ''
+  - start_line: 77
+    end_line: 77
+    file: ''
+  loan_intent:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 59
+    end_line: 60
+    file: ''
+  - start_line: 75
+    end_line: 75
+    file: ''
+  - start_line: 101
+    end_line: 101
+    file: ''
+  loan_grade:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 55
+    end_line: 61
+    file: ''
+  - start_line: 75
+    end_line: 76
+    file: ''
+  - start_line: 102
+    end_line: 102
+    file: ''
+  person_emp_length:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 78
+    end_line: 79
+    file: ''
+  loan_status:
+  - start_line: 16
+    end_line: 20
+    file: ''

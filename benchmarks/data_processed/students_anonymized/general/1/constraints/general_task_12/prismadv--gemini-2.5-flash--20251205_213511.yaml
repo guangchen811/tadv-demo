@@ -1,0 +1,2559 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: No specific description provided. The script can
+      be used for any task.
+  llm:
+    model_name: gemini-2.5-flash
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  c13:
+    code:
+    - suggestion: '.hasDataType("c13", "Numeric", lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType("c13", "Numeric",
+        lambda x: x == 1.0)'
+      level: error
+      uid: af0251b9-16d4-4280-bf9c-58a59d390b60
+      source_assumptions:
+      - 2bc495ae-2fa3-496a-87bf-7a12ef6f5d19
+    - suggestion: .isComplete("c13")
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 39c12450-eb70-4948-9730-faca93f8a79a
+      source_assumptions:
+      - ac6569d3-78c3-459b-a4f5-cc1274187504
+    - suggestion: '.satisfies("`c13` + `c7` > 400", "c13_c7_sum_can_exceed_400", lambda
+        x: x > 0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("`c13` + `c7` > 400", "c13_c7_sum_can_exceed_400",
+        lambda x: x > 0)'' failed on data sample: Value: 0.0 does not meet the constraint
+        requirement!'
+      level: warning
+      uid: 0e513d9f-1428-427c-ab46-0ea80b14878f
+      source_assumptions:
+      - 75664cd7-528e-4bda-8f78-ab9338cb7288
+    - suggestion: '.satisfies("ABS(`c13` - `c7`) > 50", "c13_c7_diff_can_exceed_50",
+        lambda x: x > 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: a1df06f0-1136-4a97-8b96-b9845b1ed3c7
+      source_assumptions:
+      - 75664cd7-528e-4bda-8f78-ab9338cb7288
+    assumptions:
+    - text: The 'c13' column should contain numeric values (integers or fractional
+        numbers). The code explicitly attempts to convert this column to a numeric
+        type (float) using `pd.to_numeric`, indicating an expectation of numeric data.
+        While `errors='coerce'` handles non-numeric values by converting them to nulls,
+        subsequent arithmetic operations on `v6` (which is `df['c13']`) require valid
+        numeric input.
+      sources:
+      - start_line: 27
+        end_line: 27
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 56
+        end_line: 56
+        file: ''
+      - start_line: 58
+        end_line: 58
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      uid: 2bc495ae-2fa3-496a-87bf-7a12ef6f5d19
+    - text: The 'c13' column should not contain null values. Although `pd.to_numeric(errors='coerce')`
+        can introduce nulls by converting non-numeric entries, the code does not explicitly
+        handle or impute these nulls. Instead, any nulls in 'c13' (whether from input
+        or coercion) will propagate through calculations (e.g., `val4`, `val5`, `val6`,
+        `risk3`, `score1`), leading to null `risk_score` values. If a complete `risk_score`
+        is expected for all rows, the input 'c13' column must be complete.
+      sources:
+      - start_line: 27
+        end_line: 27
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 56
+        end_line: 56
+        file: ''
+      - start_line: 58
+        end_line: 58
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: ac6569d3-78c3-459b-a4f5-cc1274187504
+    - text: The values in 'c13' (in conjunction with 'c7') are expected to be such
+        that intermediate calculations (`val5`, `val6`, `risk3`) can fall outside
+        the [0, 1] range. Specifically, the absolute difference `np.abs(c13 - c7)`
+        can exceed 50 (leading to `val6 < 0`), and the sum `c13 + c7` can exceed 400
+        (leading to `val5 > 1` and thus `1 - val5 < 0`). The code explicitly includes
+        `np.clip` operations to constrain these intermediate results to `[0.0, 1.0]`,
+        indicating that such magnitudes are anticipated in the input data.
+      sources:
+      - start_line: 58
+        end_line: 58
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      - start_line: 61
+        end_line: 61
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+      - start_line: 79
+        end_line: 79
+        file: ''
+      uid: 75664cd7-528e-4bda-8f78-ab9338cb7288
+  c16:
+    code:
+    - suggestion: '.hasDataType("c16", "Integral", lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType("c16", "Integral",
+        lambda x: x == 1.0)'
+      level: error
+      uid: 14c86249-83e7-48ba-995a-4cd3c8fe49ed
+      source_assumptions:
+      - 00163035-984e-4870-b8b7-f42270be9eb4
+    - suggestion: '.hasCompleteness("c16", lambda x: x > 0.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 76889763-eb2f-49cf-a453-f33b57e114c7
+      source_assumptions:
+      - 1823046f-f73b-4041-9874-01bea9c8e79b
+    - suggestion: '.isContainedIn("c16", [0, 1], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn(\"c16\"\
+        , [0, 1], lambda x: x == 1.0)': An error occurred while calling None.None.\
+        \ Trace:\npy4j.Py4JException: Cannot convert java.lang.Integer to java.lang.String\n\
+        \tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\t\
+        at py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: 753fbbd2-5d71-4a55-8b2d-1e1d5c671600
+      source_assumptions:
+      - 0480221c-c417-49e3-bc4e-fc8fadd7d28f
+    assumptions:
+    - text: 'The ''c16'' column is expected to contain integral numeric values. The
+        code explicitly converts it to a numeric type (lines 34-36) and then to a
+        nullable integer type (`Int64`) (line 64) before using it in arithmetic operations
+        (line 81). We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("c16", ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 29
+        end_line: 29
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 64
+        end_line: 64
+        file: ''
+      - start_line: 81
+        end_line: 81
+        file: ''
+      uid: 00163035-984e-4870-b8b7-f42270be9eb4
+    - text: 'The ''c16'' column can contain null values or values that are not convertible
+        to a number. These will be coerced to `NaN` or `pd.NA` (line 36, 64) and are
+        tolerated in subsequent calculations for ''risk_financial'' (lines 81, 87).
+        However, for ''c16'' to contribute meaningfully to the ''risk_financial''
+        score, it should not be entirely null. We could represent this assumption
+        as a deequ constraint like this:
+
+        .completeness("c16", lambda x: x > 0.0)'
+      sources:
+      - start_line: 36
+        end_line: 36
+        file: ''
+      - start_line: 64
+        end_line: 64
+        file: ''
+      - start_line: 81
+        end_line: 81
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      - start_line: 99
+        end_line: 99
+        file: ''
+      uid: 1823046f-f73b-4041-9874-01bea9c8e79b
+    - text: 'The ''c16'' column is expected to contain non-negative integral values,
+        most likely 0 or 1. This is inferred because ''c16'' is directly multiplied
+        by 0.6 (line 81) and contributes to ''risk_financial'', which is subsequently
+        clipped between 0.0 and 1.0 (line 83). Values greater than approximately 1.67
+        (i.e., 1.0 / 0.6) would be clipped to 1.0, suggesting that the intended domain
+        is small and non-negative, consistent with a binary indicator. The provided
+        dataset characteristics (histogram showing only ''0'' and ''1'') strongly
+        support this. We could represent this assumption as a deequ constraint like
+        this:
+
+        .isContainedIn("c16", Array("0", "1"))'
+      sources:
+      - start_line: 81
+        end_line: 81
+        file: ''
+      - start_line: 83
+        end_line: 83
+        file: ''
+      uid: 0480221c-c417-49e3-bc4e-fc8fadd7d28f
+  c17:
+    code:
+    - suggestion: '.hasDataType("c17", "Integral", assertion=lambda x: x >= 0.95)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType("c17", "Integral",
+        assertion=lambda x: x >= 0.95)'
+      level: error
+      uid: 7fd46e7c-ce05-451f-86d4-d13a640051a2
+      source_assumptions:
+      - 4927a845-fe58-4557-b2c8-eafe26bab42c
+    - suggestion: '.hasCompleteness("c17", assertion=lambda x: x >= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 683aeff9-d3a2-41dc-88a9-e17bccb56231
+      source_assumptions:
+      - 4927a845-fe58-4557-b2c8-eafe26bab42c
+    - suggestion: '.isContainedIn("c17", ["0", "1"], assertion=lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 77e8a431-8b2d-4df3-a553-f9230837979b
+      source_assumptions:
+      - 95dd0deb-e7f8-450e-afef-911996392baf
+    - suggestion: '.hasNumberOfDistinctValues("c17", assertion=lambda x: x == 2)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues("c17",
+        assertion=lambda x: x == 2)'': Check.hasNumberOfDistinctValues() missing 2
+        required positional arguments: ''binningUdf'' and ''maxBins'''
+      level: error
+      uid: 0fd183d5-1949-400d-b6d4-cde3fe54ff62
+      source_assumptions:
+      - 95dd0deb-e7f8-450e-afef-911996392baf
+    assumptions:
+    - text: 'The ''c17'' column is expected to contain integer values. The code explicitly
+        handles potential non-numeric values by coercing them to nulls (NaN) during
+        type conversion (line 36) and then uses a nullable integer type (`Int64`)
+        (line 65). This implies that the input ''c17'' column may contain non-numeric
+        values or nulls, which will be treated as missing data (`pd.NA`) in downstream
+        operations. However, for meaningful calculations, the column should predominantly
+        contain valid integer data. We could represent this assumption as a deequ
+        constraint like this:
+
+        .isIntegral("c17", lambda x: x >= 0.95) // Allow up to 5% non-integral values
+        that are coerced to nulls
+
+        .isComplete("c17", lambda x: x >= 0.95) // Allow up to 5% null values after
+        coercion'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 65
+        end_line: 65
+        file: ''
+      uid: 4927a845-fe58-4557-b2c8-eafe26bab42c
+    - text: 'The ''c17'' column is expected to contain only two distinct integer values,
+        specifically 0 and 1. This is strongly implied by its usage in calculations
+        like `1.0 - v9` and comparisons such as `v9 == 0` (lines 81-82), which are
+        consistent with a binary (0/1) interpretation of the column. We could represent
+        this assumption as a deequ constraint like this:
+
+        .isContainedIn("c17", ["0", "1"])
+
+        .hasNumberOfDistinctValues("c17", lambda x: x == 2)'
+      sources:
+      - start_line: 81
+        end_line: 82
+        file: ''
+      uid: 95dd0deb-e7f8-450e-afef-911996392baf
+  c19:
+    code:
+    - suggestion: '.hasDataType(''c19'', ''Integral'', assertion=lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c19'', ''Integral'',
+        assertion=lambda x: x == 1.0)'
+      level: warning
+      uid: 373d39ed-3f0e-46da-ba89-fa8c7897ce21
+      source_assumptions:
+      - a76b0471-e0c7-4c7f-ae04-1dc6fd02331c
+    - suggestion: '.isContainedIn(''c19'', [0, 1], assertion=lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c19',\
+        \ [0, 1], assertion=lambda x: x == 1.0)': An error occurred while calling\
+        \ None.None. Trace:\npy4j.Py4JException: Cannot convert java.lang.Integer\
+        \ to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: ea74224d-2f4e-4458-b529-5cbd8a691dcd
+      source_assumptions:
+      - fa613d4d-be88-4abe-a906-f9a013de9004
+    assumptions:
+    - text: The 'c19' column is expected to contain values that are convertible to
+        an integer type. The code handles non-numeric values in the input by coercing
+        them to nulls (`pd.NA`), which are then processed as such in subsequent steps.
+      sources:
+      - start_line: 31
+        end_line: 36
+        file: ''
+      - start_line: 66
+        end_line: 66
+        file: ''
+      uid: a76b0471-e0c7-4c7f-ae04-1dc6fd02331c
+    - text: The 'c19' column is expected to be a binary flag, primarily containing
+        values of 0 or 1. The code specifically checks for the value 1, indicating
+        its significance in downstream calculations.
+      sources:
+      - start_line: 66
+        end_line: 66
+        file: ''
+      - start_line: 82
+        end_line: 82
+        file: ''
+      uid: fa613d4d-be88-4abe-a906-f9a013de9004
+    - text: Any null values in the 'c19' column (either originally present in the
+        input or resulting from coercion of non-numeric input) are implicitly treated
+        as '0' for the purpose of evaluating the condition `c19 == 1` in the `risk4`
+        calculation.
+      sources:
+      - start_line: 31
+        end_line: 36
+        file: ''
+      - start_line: 66
+        end_line: 66
+        file: ''
+      - start_line: 82
+        end_line: 82
+        file: ''
+      uid: 9d5fdd4a-fb04-4657-8443-f50e44af9460
+  c23:
+    code:
+    - suggestion: '.hasDataType(''c23'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c23'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: b3aeb8c3-6fa9-4d34-a7fe-01e9ecc6da50
+      source_assumptions:
+      - 455e1d5b-2595-4488-8ecc-c0fa7f67cd36
+    - suggestion: .isComplete('c23')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 07fc0468-f9a9-4dcd-89b5-6cb76f39037f
+      source_assumptions:
+      - 681ea712-95b9-42ee-b33f-593141d5fac4
+    - suggestion: '.isPositive(''c23'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.isPositive(''c23'', lambda x: x == 1.0)''
+        failed on data sample: Value: 0.9630467571644042 does not meet the constraint
+        requirement!'
+      level: warning
+      uid: a239bcd6-0707-4b1f-83f3-f5fad3c2bd78
+      source_assumptions:
+      - 2ec2df90-02f4-49df-8e3f-c7dd3ba8e4b2
+    assumptions:
+    - text: The 'c23' column is expected to contain integral numeric values. While
+        the code attempts to convert values to numeric types using `pd.to_numeric`
+        and coerces non-numeric entries to `NaN`, the subsequent use of 'c23' in arithmetic
+        operations implies an expectation of valid numeric, specifically integral,
+        data in the input. The dataset description also indicates an 'Integral' data
+        type.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 39
+        end_line: 39
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: 455e1d5b-2595-4488-8ecc-c0fa7f67cd36
+    - text: 'The ''c23'' column is expected to be complete (i.e., contain no null
+        values). Although the code''s `pd.to_numeric(errors=''coerce'')` and `np.where`
+        logic will treat nulls (or values coerced to `NaN`) as non-positive, resulting
+        in `ratio1` being `0.0`, the provided dataset description shows `completeness:
+        1.0`, indicating that nulls are not typically present and their presence would
+        lead to `ratio1` defaulting to `0.0` instead of a calculation based on actual
+        data.'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 39
+        end_line: 39
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: 681ea712-95b9-42ee-b33f-593141d5fac4
+    - text: For the 'ratio1' calculation to involve division (`v2 / v1`), the 'c23'
+        column is expected to contain positive values. The code explicitly handles
+        cases where 'c23' is zero or negative by setting `ratio1` to `0.0`, implying
+        that non-positive values are considered a distinct state for which the ratio
+        calculation is bypassed.
+      sources:
+      - start_line: 39
+        end_line: 39
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: 2ec2df90-02f4-49df-8e3f-c7dd3ba8e4b2
+  c32:
+    code:
+    - suggestion: '.hasDataType(''c32'', ''Fractional'', assertion=lambda x: x ==
+        1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c32'', ''Fractional'',
+        assertion=lambda x: x == 1.0)'
+      level: warning
+      uid: fcf8e7a1-fe4c-435c-8b56-9accf3115f28
+      source_assumptions:
+      - 9456cd47-b3d4-4c73-868e-770973136ebc
+    - suggestion: .isComplete('c32')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: bb72a85b-61f1-4279-86b1-24128d0731ea
+      source_assumptions:
+      - ee561d10-b7fa-4335-a749-3d38124f8f0e
+    - suggestion: .isNonNegative('c32')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 34d857ee-3869-44cb-848f-acab8c3c9e91
+      source_assumptions:
+      - 8df0e9dd-dc29-49a3-9183-804fbccc7b78
+    assumptions:
+    - text: The 'c32' column is expected to contain numeric values. Although `pd.to_numeric(df[c],
+        errors='coerce')` on lines 34-36 handles non-numeric values by converting
+        them to nulls, subsequent arithmetic operations (lines 50-52, 74-75, 87) directly
+        use 'c32' and depend on numeric input. If non-numeric values are frequent
+        in the input, they will propagate as nulls to critical output metrics like
+        `risk_score` and `priority_score`, indicating a data quality issue for the
+        intended calculations.
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 50
+        end_line: 52
+        file: ''
+      - start_line: 74
+        end_line: 75
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: 9456cd47-b3d4-4c73-868e-770973136ebc
+    - text: 'The ''c32'' column should not contain null values. The input data description
+        states `completeness: 1.0`. While `pd.to_numeric(df[c], errors=''coerce'')`
+        on lines 34-36 can potentially introduce nulls from non-numeric strings, the
+        code does not explicitly handle nulls after this conversion. Null values would
+        propagate through arithmetic operations (lines 50-52, 74-75, 87) to key output
+        columns such as `risk_score` and `priority_score`, potentially leading to
+        `NaN`s in the final risk assessments and affecting downstream sorting and
+        filtering (lines 110-124).'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 50
+        end_line: 52
+        file: ''
+      - start_line: 74
+        end_line: 75
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      - start_line: 110
+        end_line: 110
+        file: ''
+      - start_line: 118
+        end_line: 118
+        file: ''
+      uid: ee561d10-b7fa-4335-a749-3d38124f8f0e
+    - text: The 'c32' column is expected to contain non-negative values, as it represents
+        a "grade" (line 47). Furthermore, the calculations involving `(c26 + c32)
+        / 2.0` (line 50) and `(c26 - c32).abs()` (line 51), combined with the use
+        of `20.0` and `6.0` as divisors and subsequent clipping of `val3` and `risk2`
+        to `[0.0, 1.0]` (lines 53, 76), suggest that 'c32' is implicitly expected
+        to be on a scale where its average with 'c26' is typically between 0 and 20,
+        and its absolute difference with 'c26' is typically between 0 and 6. While
+        the code handles values outside these implicit ranges by clipping, extreme
+        values might indicate data quality issues.
+      sources:
+      - start_line: 47
+        end_line: 47
+        file: ''
+      - start_line: 50
+        end_line: 53
+        file: ''
+      - start_line: 74
+        end_line: 76
+        file: ''
+      uid: 8df0e9dd-dc29-49a3-9183-804fbccc7b78
+  c24:
+    code:
+    - suggestion: '.hasDataType(''c24'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c24'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 740a6e88-186f-430a-acf7-11b89315b418
+      source_assumptions:
+      - f46fa965-9841-46ef-80ff-a7bee7d8c97b
+    - suggestion: .isComplete('c24')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: c25c1050-417e-431b-8683-92022ff061df
+      source_assumptions:
+      - 2fe02bca-2325-4fac-869e-b6ca53a6095e
+    - suggestion: '.isNonNegative(''c24'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 7944aa89-aed9-4aad-92d6-9b8e2216d400
+      source_assumptions:
+      - d06bfee2-78f8-41f8-8892-cac1371845c5
+    assumptions:
+    - text: The 'c24' column should contain integral numeric values. The code explicitly
+        converts the column to a numeric type using `pd.to_numeric` (lines 34-36),
+        and the input data description confirms its `dataType` is `Integral`.
+      sources:
+      - start_line: 22
+        end_line: 22
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      uid: f46fa965-9841-46ef-80ff-a7bee7d8c97b
+    - text: 'The ''c24'' column should not contain null values, nor values that, when
+        converted to a numeric type, result in nulls. Although `pd.to_numeric(errors=''coerce'')`
+        on line 36 handles non-numeric values by converting them to nulls, these nulls
+        (NaNs) can propagate through calculations for `ratio1` (line 44), `risk1`
+        (line 71), and `score1` (line 87), leading to `NaN` in key output metrics.
+        The input data description `completeness: 1.0` also suggests no nulls are
+        expected initially, implying that the input should be clean enough not to
+        introduce NaNs via coercion.'
+      sources:
+      - start_line: 22
+        end_line: 22
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 40
+        end_line: 40
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      - start_line: 71
+        end_line: 71
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      - start_line: 94
+        end_line: 94
+        file: ''
+      - start_line: 104
+        end_line: 104
+        file: ''
+      - start_line: 105
+        end_line: 105
+        file: ''
+      - start_line: 110
+        end_line: 110
+        file: ''
+      uid: 2fe02bca-2325-4fac-869e-b6ca53a6095e
+    - text: The 'c24' column should contain non-negative values (i.e., greater than
+        or equal to 0). It is used in the context of '1st semester academic engagement
+        features' and appears as a quantity in calculations for `ratio1` and `ratio2`.
+        While `np.where(v2 > 0, v4 / v2, 0.0)` on line 45 explicitly handles non-positive
+        values by setting `ratio2` to 0.0, negative values would likely be semantically
+        incorrect for this type of feature representing engagement.
+      sources:
+      - start_line: 40
+        end_line: 40
+        file: ''
+      - start_line: 45
+        end_line: 45
+        file: ''
+      uid: d06bfee2-78f8-41f8-8892-cac1371845c5
+  c25:
+    code:
+    - suggestion: '.hasDataType(''c25'', ''Numeric'', lambda x: x >= 0.99)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c25'', ''Numeric'',
+        lambda x: x >= 0.99)'
+      level: error
+      uid: acd1f01b-4608-432e-a730-3f1ffdfafd75
+      source_assumptions:
+      - 49a31b73-0997-4242-82bb-51e7458549a0
+    - suggestion: .isComplete('c25')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a1517f45-3c78-4978-bb70-2a813587fc88
+      source_assumptions:
+      - ee83a248-1532-4bf8-8f3a-0f57cbf016b2
+    - suggestion: .isNonNegative('c25')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: f0861fe7-b15a-4be2-86b3-ea62d87bdf3e
+      source_assumptions:
+      - 50faea28-c964-4a84-a86f-311b711e6d85
+    assumptions:
+    - text: 'The ''c25'' column is expected to contain numeric values (integral or
+        float). The code explicitly converts it to numeric using `pd.to_numeric(errors=''coerce'')`.
+        Values that cannot be converted to numeric will be coerced to nulls (NaNs),
+        which will then propagate through calculations, potentially leading to nulls
+        in the final output columns like ''risk_score'' and ''approved_ratio_1st''.
+        Therefore, to ensure meaningful and complete output, ''c25'' should primarily
+        contain values successfully convertible to a numeric type.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        `.isConvertibleTo(DoubleType)` or `.satisfies("CASE WHEN TRY_CAST(`c25` AS
+        DOUBLE) IS NOT NULL THEN 1 ELSE 0 END", "Numeric Convertibility", lambda x:
+        x >= 0.99)`'
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 42
+        end_line: 42
+        file: ''
+      - start_line: 45
+        end_line: 45
+        file: ''
+      - start_line: 71
+        end_line: 71
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      - start_line: 93
+        end_line: 93
+        file: ''
+      - start_line: 105
+        end_line: 105
+        file: ''
+      uid: 49a31b73-0997-4242-82bb-51e7458549a0
+    - text: 'The ''c25'' column should not contain null values. While the `pd.to_numeric(errors=''coerce'')`
+        handles non-numeric values by converting them to nulls, and the initial dataset
+        description shows 100% completeness, any nulls (either from input or coercion)
+        will propagate through calculations, resulting in nulls in critical output
+        columns such as ''risk_score'' and ''approved_ratio_1st''. To produce complete
+        and valid risk assessment outputs, ''c25'' must be complete.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        `.isComplete()`'
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 42
+        end_line: 42
+        file: ''
+      - start_line: 45
+        end_line: 45
+        file: ''
+      - start_line: 71
+        end_line: 71
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      - start_line: 93
+        end_line: 93
+        file: ''
+      - start_line: 105
+        end_line: 105
+        file: ''
+      uid: ee83a248-1532-4bf8-8f3a-0f57cbf016b2
+    - text: 'The ''c25'' column is expected to contain non-negative values (i.e.,
+        values greater than or equal to 0). It is used in the numerator of a ratio
+        (`v4 / v2`) which is later named ''approved_ratio_1st'', implying it represents
+        a count or quantity that cannot be negative. While the final ''risk1'' is
+        clipped, negative values in ''c25'' would lead to negative `ratio2` values,
+        which might be inconsistent with the business interpretation of an "approved
+        ratio" and could skew the risk calculation before clipping.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        `.isNonNegative()` or `.satisfies("`c25` >= 0", "Non-negative Check")`'
+      sources:
+      - start_line: 42
+        end_line: 42
+        file: ''
+      - start_line: 45
+        end_line: 45
+        file: ''
+      - start_line: 105
+        end_line: 105
+        file: ''
+      uid: 50faea28-c964-4a84-a86f-311b711e6d85
+  c26:
+    code:
+    - suggestion: .isComplete("c26")
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 848484c3-4248-4b01-8a7a-e564a48d5596
+      source_assumptions:
+      - 66f71316-8764-497f-a890-a9f774752ced
+    - suggestion: '.hasDataType("c26", "Fractional", lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType("c26", "Fractional",
+        lambda x: x == 1.0)'
+      level: error
+      uid: a6ef884f-bc3b-4af0-a6dd-f2f3aecd16be
+      source_assumptions:
+      - 66f71316-8764-497f-a890-a9f774752ced
+    - suggestion: '.isNonNegative("c26", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3debc402-befd-40ed-9d4b-29c66bf381f3
+      source_assumptions:
+      - 69f6fed5-ad51-440b-9e4a-bcb83da710e3
+    - suggestion: '.satisfies("`c26` <= 20", "c26 should be at most 20", lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: aebec8fd-8e1f-4b83-a446-1b9313c779c7
+      source_assumptions:
+      - cc7b0c5c-4673-49de-b12e-bc3fbaa23b46
+    assumptions:
+    - text: 'The ''c26'' column should contain only fractional numeric values and
+        no nulls. The dataset description indicates `dataType: Fractional` and `completeness:
+        1.0`, aligning with this expectation. Although the code explicitly attempts
+        to convert ''c26'' to a numeric type using `pd.to_numeric(errors=''coerce'')`
+        (lines 34-36), which would replace non-numeric values with `NaN`, subsequent
+        arithmetic operations (lines 50-51) do not handle these `NaN`s. This implies
+        that the input data is expected to be clean (purely numeric and complete)
+        to ensure valid calculations downstream without unexpected `NaN` propagation.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isComplete("c26")
+
+        .hasDataType("c26", "Fractional")'
+      sources:
+      - start_line: 17
+        end_line: 17
+        file: ''
+      - start_line: 20
+        end_line: 36
+        file: ''
+      - start_line: 43
+        end_line: 43
+        file: ''
+      - start_line: 48
+        end_line: 48
+        file: ''
+      - start_line: 50
+        end_line: 51
+        file: ''
+      uid: 66f71316-8764-497f-a890-a9f774752ced
+    - text: 'The ''c26'' column should contain non-negative values. This is inferred
+        because ''c26'' represents a grade feature (line 47), and grades are typically
+        non-negative. Additionally, the calculation of `risk2` (lines 74-76) implies
+        that `val1 = (c26 + c32) / 2.0` is expected to be non-negative (to prevent
+        `risk2` from becoming greater than 1.0 before clipping), which aligns with
+        ''c26'' being non-negative.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `c26` >= 0 AND `c26` IS NOT NULL THEN 1 ELSE 0 END",
+        "c26 should be non-negative", lambda x: x == 1.0)'
+      sources:
+      - start_line: 47
+        end_line: 47
+        file: ''
+      - start_line: 50
+        end_line: 50
+        file: ''
+      - start_line: 74
+        end_line: 74
+        file: ''
+      - start_line: 76
+        end_line: 76
+        file: ''
+      uid: 69f6fed5-ad51-440b-9e4a-bcb83da710e3
+    - text: 'The ''c26'' column is expected to have an upper bound, likely around
+        20.0. This is inferred from the calculation `risk2 = 1.0 - (val1 / 20.0)`
+        (line 74) where `val1` is the average of ''c26'' and ''c32''. For `risk2`
+        to fall within its intended range before clipping to `[0.0, 1.0]`, `val1`
+        is implicitly expected to be at most 20.0. Given that ''c26'' is a grade feature,
+        it is reasonable to assume ''c26'' is also expected to be within a range that
+        keeps its average with ''c32'' below or equal to 20.0.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `c26` <= 20 AND `c26` IS NOT NULL THEN 1 ELSE 0 END",
+        "c26 should be at most 20", lambda x: x == 1.0)'
+      sources:
+      - start_line: 47
+        end_line: 47
+        file: ''
+      - start_line: 50
+        end_line: 50
+        file: ''
+      - start_line: 74
+        end_line: 74
+        file: ''
+      - start_line: 76
+        end_line: 76
+        file: ''
+      uid: cc7b0c5c-4673-49de-b12e-bc3fbaa23b46
+  c27:
+    code:
+    - suggestion: .hasDataType("c27", "Integral")
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType("c27", "Integral")'
+      level: warning
+      uid: 3bfa5b5a-0019-402b-a2f6-7c8139a5947c
+      source_assumptions:
+      - 0fc9990f-3271-4073-a5d9-ae636d62b1e6
+    - suggestion: .isComplete("c27")
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 5454f1f3-3a1a-428a-bf37-d4d14650c2ce
+      source_assumptions:
+      - 0fc9990f-3271-4073-a5d9-ae636d62b1e6
+    - suggestion: .isNonNegative("c27")
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: b5a9e658-284e-4396-b1dc-224a95f4030e
+      source_assumptions:
+      - ad1f1623-6336-4391-ba03-491fbca846f1
+    assumptions:
+    - text: 'The ''c27'' column is expected to contain numeric values. While the code
+        uses `pd.to_numeric(..., errors=''coerce'')` to handle non-numeric values
+        by converting them to nulls (NaN), and subsequent operations implicitly treat
+        these nulls as non-positive (0 for `mask1`), it is an assumption that the
+        column should ideally be numeric and not contain null values in the input
+        to avoid silent data transformations and potential misinterpretations of data
+        quality. Based on the dataset description, the column is currently integral
+        and complete.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("c27", "Integral")
+
+        .isComplete("c27")'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 41
+        end_line: 41
+        file: ''
+      - start_line: 70
+        end_line: 70
+        file: ''
+      uid: 0fc9990f-3271-4073-a5d9-ae636d62b1e6
+    - text: 'The ''c27'' column is expected to contain non-negative numeric values.
+        The code explicitly checks if values are greater than zero (`v3 > 0`), which
+        indicates that values of zero have a distinct meaning from positive values
+        in the downstream `risk1` calculation. Negative values, if present, would
+        be treated the same as zero for this comparison.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isNonNegative("c27")'
+      sources:
+      - start_line: 41
+        end_line: 41
+        file: ''
+      - start_line: 70
+        end_line: 70
+        file: ''
+      uid: ad1f1623-6336-4391-ba03-491fbca846f1
+  c3:
+    code:
+    - suggestion: .isComplete('c3')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d39c6e9b-6b37-4b8b-8be2-d112f6171cf9
+      source_assumptions:
+      - 1f9d71d3-aee7-41f7-b8bb-78c4fa20c536
+    - suggestion: '.hasDataType(''c3'', ''Integral'', assertion=lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c3'', ''Integral'',
+        assertion=lambda x: x == 1.0)'
+      level: error
+      uid: 57d258b0-6066-445c-8666-198a3e87c6ce
+      source_assumptions:
+      - 88dfc3a5-638a-4189-9f90-685648177ae8
+      - 527d7bed-5bca-4bc8-8761-e7119af1ab7d
+    - suggestion: '.isContainedIn(''c3'', [0, 1, 2, 3, 4, 5, 6, 9], assertion=lambda
+        x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c3', [0,\
+        \ 1, 2, 3, 4, 5, 6, 9], assertion=lambda x: x == 1.0)': An error occurred\
+        \ while calling None.None. Trace:\npy4j.Py4JException: Cannot convert java.lang.Integer\
+        \ to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: bee7814a-e221-4047-b65e-390331d69175
+      source_assumptions:
+      - 527d7bed-5bca-4bc8-8761-e7119af1ab7d
+    assumptions:
+    - text: The 'c3' column is assumed to contain values that are convertible to a
+        numeric type (e.g., integers or floats). The code explicitly attempts to convert
+        the column to a numeric type using `pd.to_numeric`, and any values that cannot
+        be converted will be coerced to NaN.
+      sources:
+      - start_line: 20
+        end_line: 36
+        file: ''
+      uid: 88dfc3a5-638a-4189-9f90-685648177ae8
+    - text: 'The ''c3'' column is assumed to be complete and should not contain any
+        null values. This is supported by the provided data characteristics (completeness:
+        1.0) and the downstream operations that expect meaningful numeric data. While
+        non-numeric input values are coerced to NaN, which are then implicitly handled
+        in calculations, the primary expectation for the input is completeness.'
+      sources:
+      - start_line: 20
+        end_line: 36
+        file: ''
+      - start_line: 68
+        end_line: 85
+        file: ''
+      uid: 1f9d71d3-aee7-41f7-b8bb-78c4fa20c536
+    - text: The 'c3' column is assumed to contain integer values, functioning as a
+        categorical or ordinal variable. Specifically, the values `0`, `1`, and `9`
+        are explicitly checked and assigned special weights in the `val7` calculation.
+        Other integer values (e.g., `2, 3, 4, 5, 6` as observed in the histogram)
+        are also expected and are implicitly handled with a default weight of `0.0`
+        in the `val7` calculation.
+      sources:
+      - start_line: 68
+        end_line: 85
+        file: ''
+      uid: 527d7bed-5bca-4bc8-8761-e7119af1ab7d
+  c7:
+    code:
+    - suggestion: '.hasDataType(''c7'', ''Fractional'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c7'', ''Fractional'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 1002853f-d183-4bb3-84e9-45c730a484e1
+      source_assumptions:
+      - ef397096-5902-4597-895c-be692d38bb87
+    - suggestion: .isComplete('c7')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: c4ec8c3d-edbe-447b-a3c2-b0af58a84a92
+      source_assumptions:
+      - 6a7234eb-d940-4d53-909b-2b5d6e0957c7
+    assumptions:
+    - text: The 'c7' column must exist in the input dataset.
+      sources:
+      - start_line: 17
+        end_line: 17
+        file: ''
+      - start_line: 28
+        end_line: 28
+        file: ''
+      - start_line: 57
+        end_line: 57
+        file: ''
+      uid: b1572fc4-b27e-405b-bcea-97f05548f26b
+    - text: 'The ''c7'' column is expected to contain numeric values (integers or
+        floats). While the code explicitly applies `pd.to_numeric(errors=''coerce'')`
+        to ''c7'', which converts non-numeric entries into NaN, the subsequent arithmetic
+        operations (addition, division, subtraction, absolute value on lines 58, 60)
+        do not explicitly handle these NaN values. If non-numeric values are present
+        in the input, they will become NaN, propagating through calculations and resulting
+        in NaN values in the final ''risk_score'' and ''risk_prep'' output columns.
+        To ensure meaningful numeric results for these derived scores, the input values
+        in ''c7'' should be numeric. This aligns with the described `dataType: Fractional`
+        for the column.'
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+      - start_line: 36
+        end_line: 36
+        file: ''
+      - start_line: 58
+        end_line: 58
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: ef397096-5902-4597-895c-be692d38bb87
+    - text: 'The ''c7'' column should not contain any null values (e.g., `None`, `np.nan`,
+        or empty strings that would coerce to NaN). Although `pd.to_numeric(errors=''coerce'')`
+        can convert non-numeric entries to NaN, it does not fill existing NaN values.
+        The subsequent arithmetic operations (lines 58, 60) do not explicitly handle
+        NaN values, which would lead to NaN values propagating into the final ''risk_score''
+        and ''risk_prep'' output columns. The code implicitly assumes that these final
+        scores should be valid numbers. This aligns with the described `completeness:
+        1.0` for the column.'
+      sources:
+      - start_line: 36
+        end_line: 36
+        file: ''
+      - start_line: 58
+        end_line: 58
+        file: ''
+      - start_line: 60
+        end_line: 60
+        file: ''
+      - start_line: 78
+        end_line: 78
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: 6a7234eb-d940-4d53-909b-2b5d6e0957c7
+  '["c13","c16","c17","c19","c23","c24","c25","c26","c27","c3","c32","c7"]':
+    code:
+    - suggestion: '.haveCompleteness([''c23'', ''c24'', ''c27'', ''c25'', ''c26'',
+        ''c32'', ''c13'', ''c7'', ''c16'', ''c17'', ''c19'', ''c3''], lambda x: x
+        == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 1a71bf36-ee36-4c5c-99df-0b47ee37065d
+      source_assumptions:
+      - 26e99b19-715c-454c-a33b-d35342bd489d
+    - suggestion: .satisfies("`c23` > 0 => `c24` IS NOT NULL", "c24 must not be null
+        when c23 is positive")
+      validity: false
+      reason_if_invalid: "Constraint '.satisfies(\"`c23` > 0 => `c24` IS NOT NULL\"\
+        , \"c24 must not be null when c23 is positive\")' failed on data sample: org.apache.spark.sql.catalyst.parser.ParseException:\
+        \ \n[PARSE_SYNTAX_ERROR] Syntax error at or near '=>'.(line 1, pos 10)\n\n\
+        == SQL ==\n`c23` > 0 => `c24` IS NOT NULL\n----------^^^\n"
+      level: error
+      uid: 06c31782-4e63-440f-9c6b-a9a9c5a0597b
+      source_assumptions:
+      - 80657f26-9790-40b6-b3be-c5cb921c372e
+    - suggestion: .satisfies("`c24` > 0 => `c25` IS NOT NULL", "c25 must not be null
+        when c24 is positive")
+      validity: false
+      reason_if_invalid: "Constraint '.satisfies(\"`c24` > 0 => `c25` IS NOT NULL\"\
+        , \"c25 must not be null when c24 is positive\")' failed on data sample: org.apache.spark.sql.catalyst.parser.ParseException:\
+        \ \n[PARSE_SYNTAX_ERROR] Syntax error at or near '=>'.(line 1, pos 10)\n\n\
+        == SQL ==\n`c24` > 0 => `c25` IS NOT NULL\n----------^^^\n"
+      level: error
+      uid: 24905d65-8aac-4b04-86ad-c1789d00aef2
+      source_assumptions:
+      - 80657f26-9790-40b6-b3be-c5cb921c372e
+    - suggestion: .satisfies("abs(`c26` - `c32`) <= 6", "Absolute difference between
+        c26 and c32 should be at most 6")
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("abs(`c26` - `c32`) <= 6", "Absolute
+        difference between c26 and c32 should be at most 6")'' failed on data sample:
+        Value: 0.9475867269984917 does not meet the constraint requirement!'
+      level: warning
+      uid: f5b1128f-d540-443a-9f1c-ec2b32a4c08c
+      source_assumptions:
+      - 77cfcf07-6b7a-49f2-af73-65b9cc399908
+    - suggestion: .satisfies("abs(`c13` - `c7`) <= 50", "Absolute difference between
+        c13 and c7 should be at most 50")
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("abs(`c13` - `c7`) <= 50", "Absolute
+        difference between c13 and c7 should be at most 50")'' failed on data sample:
+        Value: 0.9958521870286576 does not meet the constraint requirement!'
+      level: warning
+      uid: 0ff4191e-f1ee-4ea9-98c6-7d65fe5c1c46
+      source_assumptions:
+      - 3b4222b8-9cd1-4375-94a5-28861105ea74
+    assumptions:
+    - text: 'All columns listed in `cols1` (''c3'', ''c7'', ''c13'', ''c16'', ''c17'',
+        ''c19'', ''c23'', ''c24'', ''c25'', ''c26'', ''c27'', ''c32'') are expected
+        to be complete (non-null) and convertible to numeric types. The downstream
+        code performs various arithmetic operations and conditional logic on these
+        columns, and null values would propagate, leading to incomplete or incorrect
+        derived features and final outputs. We could represent this assumption as
+        a Deequ constraint like this:
+
+        .areComplete(["c3", "c7", "c13", "c16", "c17", "c19", "c23", "c24", "c25",
+        "c26", "c27", "c32"])'
+      sources:
+      - start_line: 20
+        end_line: 36
+        file: ''
+      uid: 26e99b19-715c-454c-a33b-d35342bd489d
+    - text: 'For the ''eval_ratio_1st'' calculation (v2 / v1), if ''c23'' (v1) is
+        greater than 0, then ''c24'' (v2) must not be null to ensure a valid ratio.
+        Similarly, for the ''approved_ratio_1st'' calculation (v4 / v2), if ''c24''
+        (v2) is greater than 0, then ''c25'' (v4) must not be null. The `np.where`
+        clause handles division by zero but does not prevent null results if the numerator
+        is null when the denominator is positive. We could represent this assumption
+        as Deequ constraints like this:
+
+        .satisfies("c23 > 0 => c24 IS NOT NULL", "c24 must not be null when c23 is
+        positive")
+
+        .satisfies("c24 > 0 => c25 IS NOT NULL", "c25 must not be null when c24 is
+        positive")'
+      sources:
+      - start_line: 39
+        end_line: 45
+        file: ''
+      uid: 80657f26-9790-40b6-b3be-c5cb921c372e
+    - text: 'For the ''val3'' calculation, which represents grade stability, the absolute
+        difference between ''c26'' and ''c32'' should ideally not exceed 6. Values
+        significantly above 6 will cause ''val3'' to be clipped to 0.0, potentially
+        losing granular information about the actual grade difference and stability.
+        We could represent this assumption as a Deequ constraint like this:
+
+        .satisfies("abs(c26 - c32) <= 6", "Absolute difference between c26 and c32
+        should be at most 6")'
+      sources:
+      - start_line: 51
+        end_line: 53
+        file: ''
+      uid: 77cfcf07-6b7a-49f2-af73-65b9cc399908
+    - text: 'For the ''val6'' calculation, which contributes to preparedness features,
+        the absolute difference between ''c13'' and ''c7'' should ideally not exceed
+        50. Values significantly above 50 will cause ''val6'' to be clipped to 0.0,
+        potentially losing granular information about the actual preparedness grade
+        difference. We could represent this assumption as a Deequ constraint like
+        this:
+
+        .satisfies("abs(c13 - c7) <= 50", "Absolute difference between c13 and c7
+        should be at most 50")'
+      sources:
+      - start_line: 60
+        end_line: 61
+        file: ''
+      uid: 3b4222b8-9cd1-4375-94a5-28861105ea74
+  '["c13","c7"]':
+    code:
+    - suggestion: '.satisfies("((c13 + c7) / 2.0) >= 0.0 AND ((c13 + c7) / 2.0) <=
+        200.0", "Average of c13 and c7 should be between 0 and 200", lambda x: x ==
+        1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 21dfd598-c577-4ae0-a678-12f773fdd53d
+      source_assumptions:
+      - 14cfbab1-7369-4b28-b129-542d68da1338
+    - suggestion: '.satisfies("ABS(c13 - c7) <= 50.0", "Absolute difference between
+        c13 and c7 should be at most 50", lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("ABS(c13 - c7) <= 50.0", "Absolute
+        difference between c13 and c7 should be at most 50", lambda x: x == 1.0)''
+        failed on data sample: Value: 0.9958521870286576 does not meet the constraint
+        requirement!'
+      level: warning
+      uid: 4313ed78-bc8f-4b25-90b2-84e8b1728d2a
+      source_assumptions:
+      - 9abd6385-4d09-4413-b1be-b66aaa68af9c
+    assumptions:
+    - text: 'The average of ''c13'' and ''c7'' is expected to be within the range
+        [0.0, 200.0]. This is derived from the calculation `val4 = (c13 + c7) / 2.0`
+        which is then normalized by dividing by 200.0 to produce `val5`. `val5` is
+        subsequently used in the `risk3` calculation, which is ultimately clipped
+        to `[0.0, 1.0]`. If the average exceeds 200.0 or is negative, `val5` would
+        fall outside `[0.0, 1.0]`, leading to `risk3` being outside `[0.0, 1.0]` before
+        its own clipping, potentially indicating an unexpected grade scale or data
+        issue. We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("((c13 + c7) / 2.0) >= 0.0 AND ((c13 + c7) / 2.0) <= 200.0", "Average
+        of c13 and c7 should be between 0 and 200")'
+      sources:
+      - start_line: 56
+        end_line: 59
+        file: ''
+      - start_line: 78
+        end_line: 79
+        file: ''
+      uid: 14cfbab1-7369-4b28-b129-542d68da1338
+    - text: 'The absolute difference between ''c13'' and ''c7'' is expected to be
+        at most 50.0. This is based on the calculation `val6 = 1.0 - (np.abs(c13 -
+        c7) / 50.0)`, where `val6` is immediately clipped to `[0.0, 1.0]`. If the
+        absolute difference exceeds 50.0, `val6` would become negative before clipping,
+        indicating a significant discrepancy between the two grades that the model
+        treats as a maximum level of inconsistency. We could represent this assumption
+        as a deequ constraint like this:
+
+        .satisfies("ABS(c13 - c7) <= 50.0", "Absolute difference between c13 and c7
+        should be at most 50")'
+      sources:
+      - start_line: 56
+        end_line: 57
+        file: ''
+      - start_line: 60
+        end_line: 61
+        file: ''
+      - start_line: 78
+        end_line: 79
+        file: ''
+      uid: 9abd6385-4d09-4413-b1be-b66aaa68af9c
+  '["c16","c17","c19"]':
+    code:
+    - suggestion: '.satisfies("c19 IN (0, 1) AND c17 IN (0, 1)", "c19 and c17 are
+        binary values", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 37e51831-edc6-4a69-9842-4a1d8163462b
+      source_assumptions:
+      - 3c416893-22ee-4d35-a9fe-31232c754e43
+    - suggestion: '.satisfies("c19 = 1 AND c17 = 0", "Specific joint state c19=1 and
+        c17=0 occurs", lambda x: x > 0.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: f0d33273-02b2-4e6e-9c58-10ebaa8aa967
+      source_assumptions:
+      - 3c416893-22ee-4d35-a9fe-31232c754e43
+    assumptions:
+    - text: 'The columns ''c19'' and ''c17'' are expected to contain only binary integer
+        values (0 or 1). Furthermore, the specific joint state where ''c19'' is 1
+        and ''c17'' is 0 is assumed to be a valid and occurring condition in the dataset.
+        This assumption is crucial because this exact combination triggers a specific,
+        additive adjustment of 0.2 to the ''risk4'' score, indicating its importance
+        in the financial risk model. If this combination never occurs, the associated
+        risk adjustment will never be applied, potentially misrepresenting the financial
+        risk for certain individuals. We could represent this assumption as Deequ
+        constraints like this:
+
+        .isContainedIn("c19", Seq("0", "1"))
+
+        .isContainedIn("c17", Seq("0", "1"))
+
+        .hasNumberOfMatches(col("c19") === 1 && col("c17") === 0, _ > 0)'
+      sources:
+      - start_line: 82
+        end_line: 82
+        file: ''
+      uid: 3c416893-22ee-4d35-a9fe-31232c754e43
+  '["c17","c19"]':
+    code:
+    - suggestion: '.satisfies("CASE WHEN (`c17` IS NOT NULL AND (`c17` = 0 OR `c17`
+        = 1)) AND (`c19` IS NOT NULL AND (`c19` = 0 OR `c19` = 1)) THEN 1 ELSE 0 END",
+        "c17 and c19 must be binary and not null", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 1564f376-128f-4a18-9b08-6429488adf07
+      source_assumptions:
+      - 3bf35105-27d2-4e69-a366-60b131c1aad5
+    assumptions:
+    - text: 'The columns ''c17'' and ''c19'' are assumed to be binary flags, containing
+        only integer values of 0 or 1, and should not contain any null values. This
+        is critical because the code explicitly casts them to `Int64` and uses them
+        in a specific conditional logic `(c19 == 1) & (c17 == 0)` to calculate `risk4`.
+        Any values outside of {0, 1} or the presence of nulls would lead to unexpected
+        `NaN` or `pd.NA` propagation, affecting the final `risk_score` and `recommended_action`.
+        The provided dataset characteristics (completeness 1.0, integral type, and
+        histogram showing only 0 and 1) align with this assumption.
+
+        We could represent this assumption as Deequ constraints like this:
+
+        .isComplete("c17")
+
+        .isComplete("c19")
+
+        .isContainedIn("c17", [0, 1])
+
+        .isContainedIn("c19", [0, 1])'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 65
+        end_line: 66
+        file: ''
+      - start_line: 81
+        end_line: 83
+        file: ''
+      - start_line: 87
+        end_line: 88
+        file: ''
+      - start_line: 112
+        end_line: 113
+        file: ''
+      uid: 3bf35105-27d2-4e69-a366-60b131c1aad5
+  '["c23","c24"]':
+    code:
+    - suggestion: '.satisfies("c23 >= 0 AND c24 >= 0 AND (c23 <= 0 OR c24 <= c23)",
+        "C23_C24_Ratio_Validity", lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("c23 >= 0 AND c24 >= 0 AND (c23
+        <= 0 OR c24 <= c23)", "C23_C24_Ratio_Validity", lambda x: x == 1.0)'' failed
+        on data sample: Value: 0.364630467571644 does not meet the constraint requirement!'
+      level: warning
+      uid: 6e6578c2-1f51-4e3b-8f8b-641635045cb5
+      source_assumptions:
+      - e00151d0-1455-4d71-b607-ea345e5235fa
+    assumptions:
+    - text: 'The columns ''c23'' and ''c24'' are expected to represent non-negative
+        quantities. Specifically, when ''c23'' is positive, ''c24'' is assumed to
+        be less than or equal to ''c23''. This ensures that ''ratio1'' (calculated
+        as ''c24'' / ''c23'' on line 44) is a proportion within the [0.0, 1.0] range,
+        which aligns with its use in the ''risk1'' calculation (line 71) where `1.0
+        - ratio1` is a component, and the final ''risk1'' is clipped to [0.0, 1.0].
+        If ''c23'' is zero or negative, ''ratio1'' is explicitly set to 0.0, implying
+        that negative or zero ''c23'' values are handled as a base case where the
+        ratio is zero. We could represent this assumption as deequ constraints like
+        this: .isNonNegative("c23"), .isNonNegative("c24"), .isLessThanOrEqualTo("c24",
+        "c23").where("c23 > 0")'
+      sources:
+      - start_line: 39
+        end_line: 40
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      uid: e00151d0-1455-4d71-b607-ea345e5235fa
+  '["c23","c24","c25","c27"]':
+    code:
+    - suggestion: '.satisfies("`c23` IS NOT NULL AND `c24` IS NOT NULL AND `c23` >=
+        0 AND `c24` >= 0 AND (`c23` <= 0 OR `c24` <= `c23`)`, "c23_c24_ratio1_valid",
+        lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.satisfies("`c23` IS
+        NOT NULL AND `c24` IS NOT NULL AND `c23` >= 0 AND `c24` >= 0 AND (`c23` <=
+        0 OR `c24` <= `c23`)`, "c23_c24_ratio1_valid", lambda x: x == 1.0)'': unterminated
+        string literal (detected at line 1) (<string>, line 1)'
+      level: error
+      uid: e8c6f7c0-4a1e-462c-88c8-98e256428ce9
+      source_assumptions:
+      - eaa238a4-a3bd-4b36-a32c-933201f031c7
+    - suggestion: '.satisfies("`c24` IS NOT NULL AND `c25` IS NOT NULL AND `c24` >=
+        0 AND `c25` >= 0 AND (`c24` <= 0 OR `c25` <= `c24`)`, "c24_c25_ratio2_valid",
+        lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.satisfies("`c24` IS
+        NOT NULL AND `c25` IS NOT NULL AND `c24` >= 0 AND `c25` >= 0 AND (`c24` <=
+        0 OR `c25` <= `c24`)`, "c24_c25_ratio2_valid", lambda x: x == 1.0)'': unterminated
+        string literal (detected at line 1) (<string>, line 1)'
+      level: error
+      uid: 38486864-e779-4974-a370-17b1528f18ec
+      source_assumptions:
+      - 64fe92b9-70a8-4a0e-867a-53f2874fab4a
+    assumptions:
+    - text: 'The ''c23'' and ''c24'' columns are used to calculate `ratio1` (line
+        44), which is then used as a component in `risk1` (line 71). The final `risk1`
+        is clipped to the range [0.0, 1.0] (line 72). This implies an assumption that
+        `ratio1` itself should ideally be within the range [0.0, 1.0]. Given that
+        `ratio1` is computed as `c24 / c23` (when `c23 > 0`), it is assumed that both
+        ''c23'' and ''c24'' contain non-negative numerical values, and for records
+        where `c23` is positive, `c24` should be less than or equal to `c23`. We could
+        represent this assumption as Deequ constraints like this:
+
+        .isNonNegative(''c23'')
+
+        .isNonNegative(''c24'')
+
+        .hasCompliance(''c24_le_c23_if_c23_pos'', ''CASE WHEN c23 > 0 THEN c24 <=
+        c23 ELSE TRUE END'')'
+      sources:
+      - start_line: 39
+        end_line: 40
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      uid: eaa238a4-a3bd-4b36-a32c-933201f031c7
+    - text: 'The ''c24'' and ''c25'' columns are used to calculate `ratio2` (line
+        45), which is then used as a component in `risk1` (line 71). The final `risk1`
+        is clipped to the range [0.0, 1.0] (line 72). This implies an assumption that
+        `ratio2` itself should ideally be within the range [0.0, 1.0]. Given that
+        `ratio2` is computed as `c25 / c24` (when `c24 > 0`), it is assumed that both
+        ''c24'' and ''c25'' contain non-negative numerical values, and for records
+        where `c24` is positive, `c25` should be less than or equal to `c24`. We could
+        represent this assumption as Deequ constraints like this:
+
+        .isNonNegative(''c24'')
+
+        .isNonNegative(''c25'')
+
+        .hasCompliance(''c25_le_c24_if_c24_pos'', ''CASE WHEN c24 > 0 THEN c25 <=
+        c24 ELSE TRUE END'')'
+      sources:
+      - start_line: 40
+        end_line: 40
+        file: ''
+      - start_line: 42
+        end_line: 42
+        file: ''
+      - start_line: 45
+        end_line: 45
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      uid: 64fe92b9-70a8-4a0e-867a-53f2874fab4a
+  '["c24","c25"]':
+    code:
+    - suggestion: '.satisfies("c24 >= 0", "c24_non_negative", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 59bb95b3-2f2e-46f0-9c6c-6f05b7490470
+      source_assumptions:
+      - 0c2c6232-916b-489d-8ee5-f10b2c7621b9
+    - suggestion: '.satisfies("c25 >= 0", "c25_non_negative", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 44a6f779-1856-4fee-b255-1c9859a02cea
+      source_assumptions:
+      - 0c2c6232-916b-489d-8ee5-f10b2c7621b9
+    - suggestion: '.isLessThanOrEqualTo("c25", "c24", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 8fd5691c-03c3-4692-af4d-f05071e1e4f7
+      source_assumptions:
+      - 0c2c6232-916b-489d-8ee5-f10b2c7621b9
+    assumptions:
+    - text: 'The columns ''c24'' and ''c25'' are used to calculate an ''approved_ratio_1st''
+        where ''c25'' is divided by ''c24''. This implies that ''c25'' represents
+        a quantity that is a part of or related to ''c24''. Therefore, it is assumed
+        that both ''c24'' and ''c25'' should be non-negative. Furthermore, ''c25''
+        should be less than or equal to ''c24'' to ensure the ''approved_ratio_1st''
+        is within a meaningful range (0 to 1) when ''c24'' is positive. The code explicitly
+        handles cases where ''c24'' is not positive by setting the ratio to 0.0, but
+        the underlying relationship between ''c24'' and ''c25'' as components of a
+        ratio should hold for data validity. We could represent this assumption as
+        deequ constraints like this:
+
+        .isNonNegative("c24")
+
+        .isNonNegative("c25")
+
+        .isLessThanOrEqualTo("c25", "c24")'
+      sources:
+      - start_line: 42
+        end_line: 45
+        file: ''
+      - start_line: 105
+        end_line: 105
+        file: ''
+      uid: 0c2c6232-916b-489d-8ee5-f10b2c7621b9
+  '["c26","c32"]':
+    code:
+    - suggestion: '.satisfies("c26 IS NOT NULL AND c32 IS NOT NULL", "Both ''c26''
+        and ''c32'' must be non-null for combined arithmetic operations.", lambda
+        x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: bf8a3897-add8-4915-a0d2-327cc1097bb8
+      source_assumptions:
+      - f0d51e54-fb0c-4df1-9bd2-82b7615e7a14
+    - suggestion: '.satisfies("ABS(c26 - c32) <= 6.0", "The absolute difference between
+        ''c26'' and ''c32'' should typically not exceed 6.0.", lambda x: x >= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("ABS(c26 - c32) <= 6.0", "The absolute
+        difference between ''c26'' and ''c32'' should typically not exceed 6.0.",
+        lambda x: x >= 0.95)'' failed on data sample: Value: 0.9475867269984917 does
+        not meet the constraint requirement!'
+      level: warning
+      uid: eb41babc-e43d-4a45-82dd-2ca2ea218324
+      source_assumptions:
+      - 36dee86f-5da4-4a58-9164-aac732462611
+    - suggestion: '.satisfies("((c26 + c32) / 2.0) <= 20.0", "The average of ''c26''
+        and ''c32'' should typically not exceed 20.0.", lambda x: x >= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: b05f43c0-0bd4-48d7-a97a-c949e06d75d0
+      source_assumptions:
+      - 36dee86f-5da4-4a58-9164-aac732462611
+    assumptions:
+    - text: 'The calculations for `val1` (average) and `val2` (absolute difference)
+        explicitly combine values from ''c26'' and ''c32''. For these combined arithmetic
+        operations to yield meaningful, non-null results, it is assumed that both
+        ''c26'' and ''c32'' are jointly non-null and numeric. The propagation of nulls
+        from either column would lead to null values for `val1`, `val2`, `val3`, `risk2`,
+        and ultimately `score1` for affected records, as there is no explicit null
+        handling for these derived variables. This is supported by the dataset description
+        stating 1.0 completeness for both columns.
+
+        Deequ constraint example:
+
+        .satisfies("c26 IS NOT NULL AND c32 IS NOT NULL", "Both ''c26'' and ''c32''
+        must be non-null for combined arithmetic operations.", 1.0)
+
+        .satisfies("CAST(c26 AS DOUBLE) IS NOT NULL AND CAST(c32 AS DOUBLE) IS NOT
+        NULL", "Both ''c26'' and ''c32'' must be convertible to numeric and non-null.",
+        1.0)'
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 43
+        end_line: 53
+        file: ''
+      - start_line: 74
+        end_line: 76
+        file: ''
+      uid: f0d51e54-fb0c-4df1-9bd2-82b7615e7a14
+    - text: 'The calculations for `val3` (grade stability) and `risk2` (grade risk)
+        from ''c26'' and ''c32'' imply specific expected ranges for their combined
+        values. It is assumed that the absolute difference `abs(c26 - c32)` is typically
+        less than or equal to 6.0, and the average `(c26 + c32) / 2.0` is typically
+        less than or equal to 20.0. Exceeding these thresholds would result in `val3`
+        or `risk2` being clipped to their boundary values (0.0 or 1.0), indicating
+        that the input data falls outside the intended operational range for these
+        derived features and potentially losing crucial information about the magnitude
+        of difference or average.
+
+        Deequ constraint examples:
+
+        .satisfies("ABS(c26 - c32) <= 6.0", "The absolute difference between ''c26''
+        and ''c32'' should typically not exceed 6.0.", 0.95)
+
+        .satisfies("((c26 + c32) / 2.0) <= 20.0", "The average of ''c26'' and ''c32''
+        should typically not exceed 20.0.", 0.95)'
+      sources:
+      - start_line: 43
+        end_line: 53
+        file: ''
+      - start_line: 74
+        end_line: 76
+        file: ''
+      uid: 36dee86f-5da4-4a58-9164-aac732462611
+column_data_flow_locations:
+  '["c23","c24"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 33
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 39
+    end_line: 39
+    file: ''
+  - start_line: 40
+    end_line: 40
+    file: ''
+  - start_line: 44
+    end_line: 44
+    file: ''
+  - start_line: 45
+    end_line: 45
+    file: ''
+  - start_line: 71
+    end_line: 71
+    file: ''
+  - start_line: 72
+    end_line: 72
+    file: ''
+  - start_line: 87
+    end_line: 87
+    file: ''
+  - start_line: 88
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 120
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 123
+    file: ''
+  - start_line: 124
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 126
+    file: ''
+  - start_line: 127
+    end_line: 127
+    file: ''
+  '["c24","c25"]':
+  - start_line: 9
+    end_line: 12
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 16
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 33
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 39
+    end_line: 45
+    file: ''
+  - start_line: 48
+    end_line: 53
+    file: ''
+  - start_line: 56
+    end_line: 61
+    file: ''
+  - start_line: 64
+    end_line: 66
+    file: ''
+  - start_line: 68
+    end_line: 68
+    file: ''
+  - start_line: 70
+    end_line: 72
+    file: ''
+  - start_line: 74
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 79
+    file: ''
+  - start_line: 81
+    end_line: 83
+    file: ''
+  - start_line: 85
+    end_line: 85
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 108
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  '["c26","c32"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 33
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 43
+    end_line: 43
+    file: ''
+  - start_line: 48
+    end_line: 53
+    file: ''
+  - start_line: 74
+    end_line: 76
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  '["c13","c7"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 33
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 56
+    end_line: 56
+    file: ''
+  - start_line: 57
+    end_line: 57
+    file: ''
+  - start_line: 58
+    end_line: 58
+    file: ''
+  - start_line: 59
+    end_line: 59
+    file: ''
+  - start_line: 60
+    end_line: 60
+    file: ''
+  - start_line: 61
+    end_line: 61
+    file: ''
+  - start_line: 78
+    end_line: 78
+    file: ''
+  - start_line: 79
+    end_line: 79
+    file: ''
+  - start_line: 87
+    end_line: 87
+    file: ''
+  - start_line: 88
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 123
+    file: ''
+  - start_line: 124
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 126
+    file: ''
+  - start_line: 127
+    end_line: 127
+    file: ''
+  '["c17","c19"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 33
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 65
+    end_line: 66
+    file: ''
+  - start_line: 81
+    end_line: 83
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  '["c23","c24","c25","c27"]':
+  - start_line: 9
+    end_line: 12
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 16
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 36
+    file: ''
+  - start_line: 39
+    end_line: 42
+    file: ''
+  - start_line: 44
+    end_line: 45
+    file: ''
+  - start_line: 48
+    end_line: 53
+    file: ''
+  - start_line: 56
+    end_line: 61
+    file: ''
+  - start_line: 64
+    end_line: 66
+    file: ''
+  - start_line: 68
+    end_line: 68
+    file: ''
+  - start_line: 70
+    end_line: 72
+    file: ''
+  - start_line: 74
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 79
+    file: ''
+  - start_line: 81
+    end_line: 83
+    file: ''
+  - start_line: 85
+    end_line: 85
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 108
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  '["c16","c17","c19"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 64
+    end_line: 66
+    file: ''
+  - start_line: 81
+    end_line: 83
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 108
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  '["c13","c16","c17","c19","c23","c24","c25","c26","c27","c3","c32","c7"]':
+  - start_line: 9
+    end_line: 10
+    file: ''
+  - start_line: 12
+    end_line: 12
+    file: ''
+  - start_line: 16
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 33
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 39
+    end_line: 43
+    file: ''
+  - start_line: 44
+    end_line: 45
+    file: ''
+  - start_line: 48
+    end_line: 48
+    file: ''
+  - start_line: 49
+    end_line: 49
+    file: ''
+  - start_line: 50
+    end_line: 53
+    file: ''
+  - start_line: 56
+    end_line: 57
+    file: ''
+  - start_line: 58
+    end_line: 61
+    file: ''
+  - start_line: 64
+    end_line: 66
+    file: ''
+  - start_line: 68
+    end_line: 68
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  - start_line: 74
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 79
+    file: ''
+  - start_line: 81
+    end_line: 83
+    file: ''
+  - start_line: 85
+    end_line: 85
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 108
+    end_line: 109
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c23:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 36
+    file: ''
+  - start_line: 39
+    end_line: 39
+    file: ''
+  - start_line: 44
+    end_line: 44
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c24:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 22
+    end_line: 22
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 40
+    end_line: 40
+    file: ''
+  - start_line: 44
+    end_line: 45
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c27:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 37
+    file: ''
+  - start_line: 41
+    end_line: 41
+    file: ''
+  - start_line: 70
+    end_line: 72
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 108
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 120
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 123
+    file: ''
+  - start_line: 124
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 126
+    file: ''
+  - start_line: 127
+    end_line: 127
+    file: ''
+  c25:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''
+  - start_line: 35
+    end_line: 36
+    file: ''
+  - start_line: 42
+    end_line: 42
+    file: ''
+  - start_line: 45
+    end_line: 45
+    file: ''
+  - start_line: 71
+    end_line: 71
+    file: ''
+  - start_line: 87
+    end_line: 87
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 112
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c26:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 36
+    file: ''
+  - start_line: 43
+    end_line: 43
+    file: ''
+  - start_line: 48
+    end_line: 48
+    file: ''
+  - start_line: 50
+    end_line: 51
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c32:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 26
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 49
+    end_line: 53
+    file: ''
+  - start_line: 103
+    end_line: 103
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c13:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 36
+    file: ''
+  - start_line: 56
+    end_line: 56
+    file: ''
+  - start_line: 58
+    end_line: 61
+    file: ''
+  - start_line: 78
+    end_line: 79
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 97
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c7:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 20
+    end_line: 36
+    file: ''
+  - start_line: 57
+    end_line: 61
+    file: ''
+  - start_line: 78
+    end_line: 79
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c16:
+  - start_line: 32
+    end_line: 32
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 64
+    end_line: 64
+    file: ''
+  - start_line: 81
+    end_line: 81
+    file: ''
+  - start_line: 87
+    end_line: 87
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  - start_line: 115
+    end_line: 116
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c17:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 65
+    end_line: 65
+    file: ''
+  - start_line: 81
+    end_line: 82
+    file: ''
+  - start_line: 91
+    end_line: 106
+    file: ''
+  - start_line: 118
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  c19:
+  - start_line: 17
+    end_line: 36
+    file: ''
+  - start_line: 66
+    end_line: 66
+    file: ''
+  - start_line: 82
+    end_line: 82
+    file: ''
+  - start_line: 87
+    end_line: 88
+    file: ''
+  - start_line: 91
+    end_line: 127
+    file: ''
+  c3:
+  - start_line: 17
+    end_line: 36
+    file: ''
+  - start_line: 68
+    end_line: 87
+    file: ''
+  - start_line: 91
+    end_line: 127
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.0
+    total_tokens: 11572
+    prompt_tokens: 9824
+    completion_tokens: 1748
+  data_flow_inspection:
+    cost: 0.0
+    total_tokens: 111075
+    prompt_tokens: 36406
+    completion_tokens: 74669
+  column_correlation_discovery:
+    cost: 0.0
+    total_tokens: 12301
+    prompt_tokens: 3415
+    completion_tokens: 8886
+  multi_column_data_flow_inspection:
+    cost: 0.0
+    total_tokens: 99761
+    prompt_tokens: 30572
+    completion_tokens: 69189
+  multi_column_assumption_generation:
+    cost: 0.0
+    total_tokens: 108294
+    prompt_tokens: 35889
+    completion_tokens: 72405
+  multi_column_code_generation:
+    cost: 0.0
+    total_tokens: 77145
+    prompt_tokens: 41771
+    completion_tokens: 35374
+  single_column_assumption_generation:
+    cost: 0.0
+    total_tokens: 129367
+    prompt_tokens: 48011
+    completion_tokens: 81356
+  single_column_code_generation:
+    cost: 0.0
+    total_tokens: 122895
+    prompt_tokens: 84510
+    completion_tokens: 38385

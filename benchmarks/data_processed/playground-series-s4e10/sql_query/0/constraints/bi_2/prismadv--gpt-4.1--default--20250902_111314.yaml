@@ -1,0 +1,93 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column must not contain null values,
+        as the code directly compares its values to ''Y'' without any null handling.
+        Presence of nulls could result in incorrect default counts or rates (since
+        NULL = ''Y'' evaluates to false in SQL, but may mask data issues). We could
+        represent this assumption as a deequ constraint like this: .isComplete(''cb_person_default_on_file'')'
+      sources:
+      - start_line: 4
+        end_line: 6
+        file: ''
+    - text: 'The ''cb_person_default_on_file'' column should only contain the values
+        ''Y'' and ''N''. The code assumes these are the only possible values when
+        counting defaults (cb_person_default_on_file = ''Y'') and non-defaults (else).
+        Any other value would be treated as non-default, potentially corrupting default
+        rates. We could represent this assumption as a deequ constraint like this:
+        .hasDistinctValues(''cb_person_default_on_file'', [''Y'', ''N''])'
+      sources:
+      - start_line: 4
+        end_line: 6
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column must not contain any null values. This is required
+        because the SQL query groups by 'loan_intent' and expects every row to have
+        a non-null value for grouping. Null values in 'loan_intent' would cause those
+        rows to be excluded from the results or lead to incorrect aggregation.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' column should contain only the known set of categories
+        observed in the training data: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'',
+        ''DEBTCONSOLIDATION'', ''MEDICAL'', and ''VENTURE''. The code assumes these
+        are the only valid values for grouping and reporting default rates. Unexpected
+        or novel values could lead to misleading or meaningless results.'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''

@@ -1,0 +1,107 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_default_on_file' column should be complete (i.e., contain
+        no NULL values), since the code compares its values directly to the string
+        'Y' without handling missing data. Any NULL values would cause the SUM(CASE...)
+        expression to evaluate to 0 for those rows, potentially biasing the default
+        rate calculation.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+    - text: The 'cb_person_default_on_file' column should only contain the values
+        'Y' or 'N', as the code logic explicitly checks for equality to 'Y' and assumes
+        all other values mean non-default. The dataset's histogram confirms these
+        are the only present values. Any new or unexpected value (e.g., 'Yes', 'No',
+        or blanks) could cause incorrect default rate calculations.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_intent', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column must not contain any null values, as it is
+        used directly in the GROUP BY clause. Any nulls would result in such records
+        being grouped under a NULL group or possibly dropped, which may not be desired.
+        Thus, all records in the test data must have non-null values for ''loan_intent''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("loan_intent IS NOT NULL", "No Null Loan Intents", lambda x: x
+        == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain one of the six known categories:
+        EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, or VENTURE.
+        Introducing any other values could create unexpected groups or dilute metrics
+        in the output.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("loan_intent IN (''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'',
+        ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'')", "Valid Loan Intents", lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The ''loan_intent'' column should be of string type, as it is used as
+        a categorical variable in the GROUP BY and matches the documented categories.
+        Non-string types may cause errors or unexpected results in grouping.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("loan_intent", ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 4
+    end_line: 4
+    file: ''

@@ -1,0 +1,182 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: warning
+    - suggestion: '.isContainedIn(''cb_person_default_on_file'', [''N'',''Y''], lambda
+        x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: .hasDataType('cb_person_default_on_file', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    - suggestion: '.satisfies("cb_person_default_on_file = ''N''", ''At least one
+        N'', lambda x: x > 0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("cb_person_default_on_file = ''Y''", ''At least one
+        Y'', lambda x: x > 0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The cb_person_default_on_file column must be non-null for all rows; NULLs
+        would be counted as non-approvals in the CASE expression and bias approval_rate.
+        Deequ example: .hasCompleteness(''cb_person_default_on_file'', lambda x: x
+        == 1.0). Great Expectations: expect_column_values_to_not_be_null(''cb_person_default_on_file'').'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The cb_person_default_on_file column should contain only the categorical
+        values ''N'' or ''Y'' (uppercase, trimmed) so the equality check to ''N''
+        correctly identifies approvals. Deequ example: .satisfies("CASE WHEN TRIM(UPPER(cb_person_default_on_file))
+        IN (''N'',''Y'') THEN 1 ELSE 0 END", "Valid default flags", lambda x: x ==
+        1.0). Great Expectations: expect_column_values_to_be_in_set(''cb_person_default_on_file'',
+        [''N'',''Y'']).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The cb_person_default_on_file column should be of STRING/VARCHAR type
+        to support comparison to the literal ''N'' without implicit casting issues.
+        Deequ example: .hasDataType(''cb_person_default_on_file'', ConstrainableDataTypes.String).
+        Great Expectations: expect_column_values_to_be_in_type_list(''cb_person_default_on_file'',
+        [''STRING'', ''VARCHAR'', ''TEXT'']).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'There should be at least one ''N'' in cb_person_default_on_file so approval_rate
+        is not trivially 0 for all groups. Deequ example: .satisfies("CASE WHEN cb_person_default_on_file
+        = ''N'' THEN 1 ELSE 0 END", "At least one N", lambda x: x > 0).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 11
+        end_line: 11
+        file: ''
+    - text: 'There should be at least one ''Y'' in cb_person_default_on_file so approval_rate
+        is not trivially 1 for all groups. Deequ example: .satisfies("CASE WHEN cb_person_default_on_file
+        = ''Y'' THEN 1 ELSE 0 END", "At least one Y", lambda x: x > 0).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 11
+        end_line: 11
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: '.hasCompleteness(''person_home_ownership'', lambda v: v == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT','MORTGAGE','OWN','OTHER'])
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''(person_home_ownership = upper(trim(person_home_ownership)))
+        AND length(trim(person_home_ownership)) > 0'', ''Normalized homeownership'',
+        lambda r: r == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''person_home_ownership'', lambda n:
+        n <= 5)'
+      validity: false
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership <> ''OTHER'' THEN 1
+        ELSE 0 END", ''Non-OTHER share'', lambda r: r >= 0.95)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The person_home_ownership column must be present and non-null for all
+        rows used by the query to avoid a NULL group and ensure meaningful grouping.
+        Example validations: Deequ -> .hasCompleteness("person_home_ownership", lambda
+        v: v == 1.0); Great Expectations -> expect_column_values_to_not_be_null("person_home_ownership").'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'Values in person_home_ownership should be restricted to the controlled
+        vocabulary {RENT, MORTGAGE, OWN, OTHER} to keep the GROUP BY categories stable.
+        Example validations: Deequ -> .isContainedIn("person_home_ownership", ["RENT","MORTGAGE","OWN","OTHER"]);
+        Great Expectations -> expect_column_values_to_be_in_set("person_home_ownership",
+        ["RENT","MORTGAGE","OWN","OTHER"]).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'Values should be normalized (uppercase and trimmed) and not be empty
+        strings so logically identical categories do not split into multiple groups.
+        Example validations: Deequ -> .satisfies("(person_home_ownership = upper(trim(person_home_ownership)))
+        AND length(trim(person_home_ownership)) > 0", "Normalized homeownership",
+        lambda r: r == 1.0); Great Expectations -> expect_column_values_to_match_regex("^(RENT|MORTGAGE|OWN|OTHER)$").'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'The number of distinct person_home_ownership categories should remain
+        small (<= 5) to prevent category explosion in the GROUP BY results. Example
+        validations: Deequ -> .hasNumberOfDistinctValues("person_home_ownership",
+        lambda n: n <= 5); Great Expectations -> expect_column_unique_value_count_to_be_between("person_home_ownership",
+        min_value=1, max_value=5).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'The share of ''OTHER'' should be small so most records fall into the
+        primary categories; for example, at least 95% of values should be in {RENT,
+        MORTGAGE, OWN}. Example validations: Deequ -> .satisfies("CASE WHEN person_home_ownership
+        <> ''OTHER'' THEN 1 ELSE 0 END", "Non-OTHER share", lambda r: r >= 0.95);
+        Great Expectations -> expect_column_proportion_of_values_to_be_in_set("person_home_ownership",
+        ["RENT","MORTGAGE","OWN"], min_value=0.95).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 10
+    end_line: 10
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 11
+    end_line: 11
+    file: ''

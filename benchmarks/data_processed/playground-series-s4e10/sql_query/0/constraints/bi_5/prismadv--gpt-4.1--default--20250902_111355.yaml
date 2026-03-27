@@ -1,0 +1,178 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasApproxQuantile(''loan_amnt'', 0.5, lambda x: expected_median_lower
+        <= x <= expected_median_upper)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_amnt'' column must not contain any null values, since AVG(loan_amnt)
+        is computed directly without handling missing values. This means all rows
+        used in the aggregation must have non-null loan_amnt values in the input data.
+        We could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_amnt'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral (whole number)
+        values, as the column''s dataType is Integral and the code expects it to be
+        numeric for averaging. Any non-integer or non-numeric values in the input
+        data would cause errors or incorrect results. We could represent this assumption
+        as a deequ constraint like this: .isNonNegative(''loan_amnt'') and .isIntegral(''loan_amnt'')'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'The distribution of ''loan_amnt'' values in the input data should be
+        similar to the training set, as the code computes average loan amounts for
+        income and grade segments. Significant shifts in the distribution (e.g., new
+        extreme values or a drastically different range) could affect the interpretation
+        of the results. We could represent this assumption as a deequ constraint like
+        this: .approxQuantile(''loan_amnt'', 0.5, lambda x: expected_median_lower
+        <= x <= expected_median_upper)'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: '.hasDistinctness([''loan_grade''], lambda x: x > 0.01 and x < 1.0)'
+      validity: false
+      level: warning
+    - suggestion: '.hasMax(''loan_grade'', lambda x: x <= 0.95)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_grade'' column must not contain any null values, as it is
+        used directly in GROUP BY and SELECT statements. Null values in ''loan_grade''
+        would lead to incomplete or misleading groupings and results. The dataset
+        description confirms that completeness is 1.0, so this assumption is satisfied
+        in the provided data, but must be enforced for incoming test data as well.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN loan_grade IS NOT NULL THEN 1 ELSE 0 END", "Loan grade
+        completeness", lambda x: x == 1.0)'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+    - text: "The 'loan_grade' column is expected to contain only a finite set of string\
+        \ values representing loan grades (A, B, C, D, E, F, G), as indicated by the\
+        \ dataset histogram and the use of loan_grade as a grouping and ordering key.\
+        \ Values outside this set would likely be erroneous and could result in meaningless\
+        \ groupings or reporting. \nWe could represent this assumption as a deequ\
+        \ constraint like this:\n.satisfies(\"CASE WHEN loan_grade IN ('A', 'B', 'C',\
+        \ 'D', 'E', 'F', 'G') THEN 1 ELSE 0 END\", \"Valid loan grades\", lambda x:\
+        \ x == 1.0)"
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 16
+        file: ''
+    - text: 'The ''loan_grade'' column should have reasonable distribution across
+        its categories to ensure that the GROUP BY and ORDER BY operations return
+        meaningful and non-trivial segments. If almost all values are concentrated
+        in one category, the segmentation would be uninformative. Based on the provided
+        histogram, the distribution is reasonably spread, but future test data should
+        not have extreme skew (e.g., more than 95% in a single grade).
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .forAllValues("loan_grade", lambda value, ratio: ratio <= 0.95)'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 16
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isPositive('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasMax(''person_income'', lambda x: x <= 1000000)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_income' column must not contain null values, as the code uses
+        the column directly in CASE statements for segmentation without handling nulls.
+        Null values would cause the CASE statement to return NULL, leading to missing
+        segments or errors in aggregation.
+      sources:
+      - start_line: 3
+        end_line: 6
+        file: ''
+    - text: All values in the 'person_income' column must be of integral (integer)
+        data type, as the code compares these values numerically in range conditions
+        (e.g., '< 50000', 'BETWEEN 50000 AND 100000'). Non-integer values would cause
+        errors or incorrect segment assignments.
+      sources:
+      - start_line: 3
+        end_line: 6
+        file: ''
+    - text: All values in the 'person_income' column must be within a reasonable and
+        positive income range for the segmentation to be meaningful. Negative or extremely
+        high values (e.g., negative incomes or outliers far above expected maximums)
+        could distort the segmentation and aggregations.
+      sources:
+      - start_line: 3
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 3
+    end_line: 4
+    file: ''
+  loan_grade:
+  - start_line: 8
+    end_line: 8
+    file: ''
+  - start_line: 15
+    end_line: 16
+    file: ''
+  loan_amnt:
+  - start_line: 12
+    end_line: 12
+    file: ''
