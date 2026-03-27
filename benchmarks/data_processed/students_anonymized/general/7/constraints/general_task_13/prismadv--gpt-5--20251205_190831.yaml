@@ -1,0 +1,3817 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: No specific description provided. The script can
+      be used for any task.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  c20:
+    code:
+    - suggestion: .isComplete('c20')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: f857b91c-5ab9-441c-acbd-cff478b46412
+      source_assumptions:
+      - c0390287-31c1-4195-a16d-18a9aefaf779
+    - suggestion: '.satisfies(''CAST(`c20` AS DOUBLE) IS NOT NULL'', ''c20 is numeric'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d1eddbaf-7c3b-49d1-89bf-e51789204323
+      source_assumptions:
+      - c0390287-31c1-4195-a16d-18a9aefaf779
+    - suggestion: '.satisfies(''`c20` >= 0 AND `c20` <= 100'', ''Age in plausible
+        range (0-100)'', lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: be165568-0792-47c1-af5c-4ec800e86149
+      source_assumptions:
+      - c6a32f0e-3b76-407e-b9fd-e462e29a24a1
+    assumptions:
+    - text: 'The ''c20'' column must exist in the input data, be fully non-null, and
+        be numeric (parsable to float), because the code directly casts it with astype(float)
+        and performs arithmetic on it to compute risk and the final score. We could
+        represent this assumption as Deequ constraints like: .hasCompleteness(''c20'',
+        lambda x: x == 1.0) and .satisfies(''CASE WHEN cast(`c20` AS double) IS NOT
+        NULL THEN 1 ELSE 0 END'', ''c20 is numeric'', lambda x: x == 1.0).'
+      sources:
+      - start_line: 138
+        end_line: 139
+        file: ''
+      - start_line: 142
+        end_line: 149
+        file: ''
+      uid: c0390287-31c1-4195-a16d-18a9aefaf779
+    - text: 'The ''c20'' column represents age in years and should be within a plausible
+        human range so the (c20 - 25)/20 scaling behaves as intended. Recommend enforcing
+        that at least 99% of values lie between 0 and 100 (inclusive). We could represent
+        this as a Deequ constraint: .satisfies(''CASE WHEN `c20` BETWEEN 0 AND 100
+        THEN 1 ELSE 0 END'', ''Age in plausible range'', lambda x: x >= 0.99).'
+      sources:
+      - start_line: 137
+        end_line: 139
+        file: ''
+      uid: c6a32f0e-3b76-407e-b9fd-e462e29a24a1
+  c31:
+    code:
+    - suggestion: '.hasDataType(''c31'', ''Numeric'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c31'', ''Numeric'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: c056cac8-cc65-4d93-92af-b0016b1b8db0
+      source_assumptions:
+      - 95a7ca8d-541e-418b-8a0a-92b6c01660de
+    - suggestion: '.isNonNegative(''c31'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 637627a4-66a0-4b1a-a127-3c1566795314
+      source_assumptions:
+      - 98772a5b-ef73-4b3e-98eb-95d938cd04d6
+    - suggestion: '.satisfies(''(c29 <> 0) OR (c31 = 0)'', ''c31_zero_when_c29_zero'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 263167b8-df39-4fcf-bb3d-a4147a31f3a7
+      source_assumptions:
+      - 11478311-117c-4794-964b-7328f0c79daa
+    - suggestion: '.satisfies(''(c29 <= 0) OR (c31 >= 0 AND c31 <= c29)'', ''c31_within_denominator'',
+        lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: d8e3aa66-4e13-464e-9302-88970985c1fd
+      source_assumptions:
+      - 6022e38e-a9d9-4a13-930a-2cb986a7f057
+    assumptions:
+    - text: 'Column c31 must be numeric (parseable to float); non-numeric values would
+        cause the cast to fail. We could represent this as a Deequ constraint like:
+        .satisfies("c31 IS NULL OR CAST(c31 AS DOUBLE) IS NOT NULL", "c31_numeric",
+        lambda x: x == 1) or a Great Expectations rule like: expect_column_values_to_be_in_type_list(column="c31",
+        type_list=["int64", "float64"]).'
+      sources:
+      - start_line: 108
+        end_line: 108
+        file: ''
+      uid: 95a7ca8d-541e-418b-8a0a-92b6c01660de
+    - text: 'Column c31 should contain non-negative values (it represents a count
+        used as the numerator of a rate). We could represent this as a Deequ constraint
+        like: .satisfies("c31 >= 0", "c31_non_negative", lambda x: x == 1) or a Great
+        Expectations rule: expect_column_values_to_be_between(column="c31", min_value=0,
+        max_value=None).'
+      sources:
+      - start_line: 108
+        end_line: 108
+        file: ''
+      - start_line: 112
+        end_line: 112
+        file: ''
+      uid: 98772a5b-ef73-4b3e-98eb-95d938cd04d6
+    - text: 'When c29 (the denominator) equals 0, c31 should be 0 (no approvals without
+        evaluations). We could represent this as a Deequ constraint like: .satisfies("CASE
+        WHEN c29 = 0 THEN c31 = 0 ELSE 1 END", "c31_zero_when_e2_zero", lambda x:
+        x == 1) or a Great Expectations rule using a row condition: expect_column_values_to_be_in_set(column="c31",
+        value_set=[0], row_condition="c29 == 0").'
+      sources:
+      - start_line: 110
+        end_line: 113
+        file: ''
+      uid: 11478311-117c-4794-964b-7328f0c79daa
+    - text: 'For rows where c29 > 0, c31 should be at most c29 (the approval count
+        cannot exceed the number of evaluations) and at least 0. We could represent
+        this as a Deequ constraint like: .satisfies("CASE WHEN c29 > 0 THEN (c31 >=
+        0 AND c31 <= c29) ELSE 1 END", "c31_within_denominator", lambda x: x >= 0.99)
+        or Great Expectations: expect_column_pair_values_A_to_be_between(column_A="c31",
+        column_B="c29", min_value=0, max_value="B", row_condition="c29 > 0").'
+      sources:
+      - start_line: 110
+        end_line: 113
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 6022e38e-a9d9-4a13-930a-2cb986a7f057
+  c16:
+    code:
+    - suggestion: .isComplete('c16')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 1b058afb-0e57-41d4-99f8-84df0ceddbcf
+      source_assumptions:
+      - c9e3fad7-1cfb-487a-9ea7-72dcb3aa4815
+    - suggestion: '.satisfies(''CAST(c16 AS INT) IS NOT NULL'', ''c16_int_castable'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 0cd98b64-785e-47e9-94ee-01144f4b6941
+      source_assumptions:
+      - 2cfcc44b-0fc4-4a88-b639-b20d72b3fcae
+    - suggestion: '.satisfies(''CAST(c16 AS INT) IN (0, 1)'', ''c16_binary_0_1'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 03eb6650-42a1-415c-80bc-bc2464c92e08
+      source_assumptions:
+      - 86f55174-2424-44b2-b338-3fb8be32d311
+    assumptions:
+    - text: 'The ''c16'' column must be complete (no nulls). This is required because
+        the code casts the column to int and uses it in arithmetic and comparisons,
+        which would fail or behave unpredictably if nulls were present. We could represent
+        this as: Deequ -> isComplete(''c16''); Great Expectations -> expect_column_values_to_not_be_null(''c16'').'
+      sources:
+      - start_line: 69
+        end_line: 69
+        file: ''
+      - start_line: 73
+        end_line: 73
+        file: ''
+      - start_line: 161
+        end_line: 161
+        file: ''
+      uid: c9e3fad7-1cfb-487a-9ea7-72dcb3aa4815
+    - text: 'The ''c16'' column must be a binary indicator encoded as 0 or 1, where
+        1 denotes ''debtor'' and 0 denotes ''not debtor''. Values outside {0,1} would
+        distort the fee-risk computation and the urgent fee flag logic. We could represent
+        this as: Deequ -> isContainedIn(''c16'', [0, 1]); Great Expectations -> expect_column_values_to_be_in_set([0,
+        1]).'
+      sources:
+      - start_line: 73
+        end_line: 73
+        file: ''
+      - start_line: 161
+        end_line: 161
+        file: ''
+      uid: 86f55174-2424-44b2-b338-3fb8be32d311
+    - text: 'The ''c16'' column must be integral/numeric or coercible to integer without
+        error, since the code applies .astype(int). We could represent this as: Deequ
+        -> hasDataType(''c16'', ConstrainableDataTypes.Integral) or satisfies(''CAST(c16
+        AS INT) IS NOT NULL'', ''c16_int_castable'', lambda x: x == 1); Great Expectations
+        -> expect_column_values_to_be_of_type(''c16'', ''IntegerType'') or expect_column_values_to_match_regex_list([''^(0|1)$'']).'
+      sources:
+      - start_line: 69
+        end_line: 69
+        file: ''
+      uid: 2cfcc44b-0fc4-4a88-b639-b20d72b3fcae
+  c17:
+    code:
+    - suggestion: .isComplete('c17')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 42610787-03a2-4683-bcfd-b5299143983e
+      source_assumptions:
+      - f702b3fc-be32-4f20-bb68-afc3452bde11
+      - b7a0b033-bc76-4826-8e33-f293b64752c5
+    - suggestion: '.hasDataType(''c17'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c17'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 984130eb-1852-45b7-9be6-17186b189f5e
+      source_assumptions:
+      - e013b0d4-237f-4496-abf7-f946ae0fa206
+    - suggestion: '.isContainedIn(''c17'', [0, 1], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c17',\
+        \ [0, 1], lambda x: x == 1.0)': An error occurred while calling None.None.\
+        \ Trace:\npy4j.Py4JException: Cannot convert java.lang.Integer to java.lang.String\n\
+        \tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\t\
+        at py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: warning
+      uid: 31df2df9-a1c3-4a10-b857-fab156cf76f9
+      source_assumptions:
+      - a2b08de8-9897-4917-b922-5bbca5f88639
+    assumptions:
+    - text: The c17 column must exist in the input CSV because it is referenced multiple
+        times and included in the output.
+      sources:
+      - start_line: 17
+        end_line: 17
+        file: ''
+      - start_line: 37
+        end_line: 37
+        file: ''
+      - start_line: 163
+        end_line: 163
+        file: ''
+      uid: f702b3fc-be32-4f20-bb68-afc3452bde11
+    - text: The c17 column must be complete (no nulls) for all rows; otherwise, df[c17].astype(int)
+        would raise an error. This can be enforced as a completeness constraint (e.g.,
+        Deequ completeness('c17') == 1.0 or Great Expectations expect_column_values_to_not_be_null).
+      sources:
+      - start_line: 70
+        end_line: 70
+        file: ''
+      uid: b7a0b033-bc76-4826-8e33-f293b64752c5
+    - text: The c17 column values must be numeric and castable to integers because
+        the code converts them with astype(int). This can be enforced with a type/parseability
+        check (e.g., Deequ satisfies('cast(c17 as int) is not null', 'c17_int_castable',
+        x => x == 1.0) or Great Expectations expect_column_values_to_match_regex for
+        digits).
+      sources:
+      - start_line: 70
+        end_line: 70
+        file: ''
+      uid: e013b0d4-237f-4496-abf7-f946ae0fa206
+    - text: The c17 column is expected to be a binary indicator with domain {0, 1}
+        (1 = up-to-date, 0 = not up-to-date). The code treats it as an indicator via
+        (1 - v21), comparisons (v21 == 1) and (v21 == 0), and uses it in a flag. Enforce
+        with a set-membership rule (e.g., Deequ isContainedIn('c17', [0, 1]) or Great
+        Expectations expect_column_values_to_be_in_set).
+      sources:
+      - start_line: 70
+        end_line: 70
+        file: ''
+      - start_line: 73
+        end_line: 74
+        file: ''
+      - start_line: 161
+        end_line: 161
+        file: ''
+      uid: a2b08de8-9897-4917-b922-5bbca5f88639
+  c19:
+    code:
+    - suggestion: '.hasCompleteness("c19", lambda v: v == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 75fb5db9-1caf-4854-8cec-563f2204ad5f
+      source_assumptions:
+      - f101a31f-900d-4263-9881-79ae54c57e46
+    - suggestion: '.hasDataType("c19", ConstrainableDataTypes.Integral, lambda v:
+        v == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType("c19", ConstrainableDataTypes.Integral,
+        lambda v: v == 1.0)'
+      level: error
+      uid: badbe047-426d-4523-b3a3-fd891e2416f9
+      source_assumptions:
+      - 9c92ee06-3493-41ab-9886-3d0b5357f3b3
+    - suggestion: '.isContainedIn("c19", [0, 1], lambda v: v == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn(\"c19\"\
+        , [0, 1], lambda v: v == 1.0)': An error occurred while calling None.None.\
+        \ Trace:\npy4j.Py4JException: Cannot convert java.lang.Integer to java.lang.String\n\
+        \tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\t\
+        at py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: warning
+      uid: f6c4c49f-2960-46a1-a319-1ccac3e20777
+      source_assumptions:
+      - 9c92ee06-3493-41ab-9886-3d0b5357f3b3
+    - suggestion: '.hasMin("c19", lambda m: m == 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 59a49db2-792e-4c20-a524-d1caf1953ed4
+      source_assumptions:
+      - bf17de7e-28b7-4142-b08b-dafe1955c692
+    - suggestion: '.hasMax("c19", lambda M: M == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: ec05363e-3bff-47f1-97b2-0208b736d913
+      source_assumptions:
+      - bf17de7e-28b7-4142-b08b-dafe1955c692
+    - suggestion: '.satisfies("CASE WHEN c19 = 1 THEN 1 ELSE 0 END", "Share of scholarship
+        holders", lambda x: x >= 0.10 and x <= 0.50)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 60214f34-cd6f-4adf-8053-bc62ca04a35e
+      source_assumptions:
+      - b7911b8a-b997-47c2-b5de-205c60260039
+    assumptions:
+    - text: 'The ''c19'' column must be present and contain no null values. The code
+        casts this column to int without any null handling and uses it in conditional
+        logic, so any nulls would raise an error. Possible validations: Deequ .hasCompleteness("c19",
+        lambda v: v == 1.0); Great Expectations expect_column_values_to_not_be_null.'
+      sources:
+      - start_line: 71
+        end_line: 71
+        file: ''
+      - start_line: 163
+        end_line: 163
+        file: ''
+      uid: f101a31f-900d-4263-9881-79ae54c57e46
+    - text: 'The ''c19'' column must be a binary indicator encoded as integers, with
+        allowed values strictly in {0, 1}. The code compares it to 1 and expects integer
+        semantics. Possible validations: Deequ .isContainedIn("c19", [0, 1]) and .hasDataType("c19",
+        ConstrainableDataTypes.Integral); Great Expectations expect_column_values_to_be_in_set
+        with values [0, 1] and expect_column_values_to_be_of_type in an integer family
+        (e.g., int64).'
+      sources:
+      - start_line: 71
+        end_line: 71
+        file: ''
+      - start_line: 74
+        end_line: 74
+        file: ''
+      uid: 9c92ee06-3493-41ab-9886-3d0b5357f3b3
+    - text: 'Semantic encoding assumption for ''c19'': 1 means the student has a scholarship;
+        0 means no scholarship. The risk adjustment applies only when c19 == 1 and
+        fees are up-to-date. Sanity validations to support this encoding: Deequ .hasMin("c19",
+        lambda m: m == 0) and .hasMax("c19", lambda M: M == 1).'
+      sources:
+      - start_line: 72
+        end_line: 74
+        file: ''
+      uid: bf17de7e-28b7-4142-b08b-dafe1955c692
+    - text: 'The share of 1s in ''c19'' should be non-degenerate to keep the scholarship-based
+        adjustment meaningful. Based on current data (~0.25 are 1), a reasonable monitoring
+        range is 0.10 <= share_of_1s <= 0.50. Possible validation: Deequ .satisfies("CASE
+        WHEN c19 = 1 THEN 1 ELSE 0 END", "Share of scholarship holders", lambda x:
+        x >= 0.10 and x <= 0.50).'
+      sources:
+      - start_line: 74
+        end_line: 74
+        file: ''
+      - start_line: 132
+        end_line: 132
+        file: ''
+      uid: b7911b8a-b997-47c2-b5de-205c60260039
+  c22:
+    code:
+    - suggestion: '.hasCompleteness("c22", lambda v: v >= 0.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 29105355-be58-424d-a352-dd08d3d7e5a1
+      source_assumptions:
+      - a7c4377a-7fd9-483e-a71f-fa6dd87801dc
+    - suggestion: '.satisfies("CASE WHEN `c22` IS NULL THEN 1 WHEN CAST(`c22` AS DOUBLE)
+        IS NOT NULL THEN 1 ELSE 0 END", "c22 numeric or null", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3197fcb6-f04f-4c1c-8d41-526cbd6069be
+      source_assumptions:
+      - 560eda24-e903-4a2f-88fc-6d1122bdb844
+    - suggestion: '.hasCompleteness("c22", lambda v: v >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: abf59499-3a99-4d1a-bb6f-2e684a822a9c
+      source_assumptions:
+      - b3a36aa2-2dc2-4275-9751-f3f5b801563f
+    - suggestion: '.satisfies("CASE WHEN `c22` IS NULL THEN 1 WHEN CAST(`c22` AS DOUBLE)
+        = CAST(CAST(`c22` AS DOUBLE) AS BIGINT) THEN 1 ELSE 0 END", "c22 integer-like",
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 3c33d4f9-3237-4dea-9a19-b485b30a927c
+      source_assumptions:
+      - d8d2a3f9-8aef-4d66-a230-5797845b1518
+    - suggestion: '.hasNumberOfDistinctValues("c22", lambda v: v >= 10 and v <= 40)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues("c22",
+        lambda v: v >= 10 and v <= 40)'': Check.hasNumberOfDistinctValues() missing
+        2 required positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: 1267ab52-5048-41ce-a5fc-2f58130dcebf
+      source_assumptions:
+      - 539ea86d-92b5-450b-9efb-99016457037b
+    assumptions:
+    - text: 'The input must contain the column ''c22'' because it is referenced and
+        used (cast) in the script. This can be represented as a Great Expectations
+        rule: expect_table_columns_to_contain_set(column_set=[''c22'']).'
+      sources:
+      - start_line: 17
+        end_line: 17
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+      - start_line: 98
+        end_line: 98
+        file: ''
+      uid: a7c4377a-7fd9-483e-a71f-fa6dd87801dc
+    - text: 'All non-null values in ''c22'' must be numeric (parsable as float), otherwise
+        the cast will fail. Deequ example: .satisfies("CASE WHEN `c22` IS NULL THEN
+        1 WHEN CAST(`c22` AS DOUBLE) IS NOT NULL THEN 1 ELSE 0 END", "c22 numeric
+        or null", lambda x: x == 1.0). Great Expectations example: expect_column_values_to_be_in_type_list(column="c22",
+        type_list=["int64", "float64", "int32", "float32"]).'
+      sources:
+      - start_line: 98
+        end_line: 98
+        file: ''
+      uid: 560eda24-e903-4a2f-88fc-6d1122bdb844
+    - text: 'The ''c22'' column is expected to be nearly complete (no or very few
+        nulls); target completeness >= 0.99, consistent with the provided dataset
+        characteristics. Deequ example: .hasCompleteness("c22", lambda v: v >= 0.99).
+        Great Expectations example: expect_column_values_to_not_be_null(column="c22",
+        mostly=0.99).'
+      sources:
+      - start_line: 98
+        end_line: 98
+        file: ''
+      uid: b3a36aa2-2dc2-4275-9751-f3f5b801563f
+    - text: 'Although cast to float in code, ''c22'' semantically represents integral
+        values; therefore, all non-null numeric values should be whole numbers (no
+        fractional part). Deequ example: .satisfies("CASE WHEN `c22` IS NULL THEN
+        1 WHEN CAST(`c22` AS DOUBLE) = CAST(CAST(`c22` AS DOUBLE) AS BIGINT) THEN
+        1 ELSE 0 END", "c22 integer-like", lambda x: x == 1.0).'
+      sources:
+      - start_line: 98
+        end_line: 98
+        file: ''
+      uid: d8d2a3f9-8aef-4d66-a230-5797845b1518
+    - text: 'The number of distinct values in ''c22'' should remain within a narrow
+        range (reflecting a discrete, bounded measure); expect approx. distinct count
+        between 10 and 40 (dataset indicates ~21). Deequ example: .hasApproxCountDistinct("c22",
+        lambda v: v >= 10 and v <= 40).'
+      sources:
+      - start_line: 26
+        end_line: 26
+        file: ''
+      - start_line: 98
+        end_line: 98
+        file: ''
+      uid: 539ea86d-92b5-450b-9efb-99016457037b
+  c23:
+    code:
+    - suggestion: '.satisfies(''CAST(c23 AS DOUBLE) IS NOT NULL'', ''c23 is numeric
+        (castable to DOUBLE)'', lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d3a84319-ea2a-486d-acec-d94c16148a04
+      source_assumptions:
+      - ddae1982-9e39-4f39-9312-14a5e78c1d5f
+    - suggestion: '.hasCompleteness(''c23'', lambda d: d == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: d40e398b-e11c-45d1-881d-1a2409becc36
+      source_assumptions:
+      - 204996c5-4257-4546-ab78-82c9e1659560
+    - suggestion: '.isNonNegative(''c23'', lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 526eee9a-349a-44ec-942f-c683150285cc
+      source_assumptions:
+      - d4026ebe-9748-42a3-9427-cac4ec028656
+    - suggestion: '.satisfies(''c25 <= c23 AND c27 <= c23'', ''c25 and c27 do not
+        exceed c23'', lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 79144a33-8939-4af8-a095-3fa7b81df6c9
+      source_assumptions:
+      - 33787716-111b-4b0e-b4ee-01549cbdf6fe
+    - suggestion: '.satisfies(''c23 = CAST(c23 AS INT)'', ''c23 is integer-like'',
+        lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 4e27b674-20f9-4751-abb8-ef297b66dc9c
+      source_assumptions:
+      - 2b6fc0f1-055b-4b41-9b4f-1260b72ee060
+    assumptions:
+    - text: 'Column c23 must exist in the input and be numeric (parsable to float).
+        If non-numeric strings are present, the astype(float) conversion will fail.
+        Example validations: Great Expectations: expect_column_values_to_be_in_type_list(column=''c23'',
+        type_list=[''int64'', ''float64'']); Deequ: .satisfies(''CAST(c23 AS DOUBLE)
+        IS NOT NULL'', ''c23 is numeric'', lambda x: x == 1).'
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+      - start_line: 96
+        end_line: 96
+        file: ''
+      - start_line: 163
+        end_line: 163
+        file: ''
+      uid: ddae1982-9e39-4f39-9312-14a5e78c1d5f
+    - text: 'Column c23 should be complete (no nulls) for all rows, consistent with
+        the dataset''s stated completeness of 1.0 and because it is exported as-is.
+        Example validations: Great Expectations: expect_column_values_to_not_be_null(''c23'');
+        Deequ: .hasCompleteness(''c23'', lambda d: d == 1.0).'
+      sources:
+      - start_line: 163
+        end_line: 163
+        file: ''
+      uid: 204996c5-4257-4546-ab78-82c9e1659560
+    - text: 'Values in c23 must be non-negative counts; zero is allowed and is treated
+        as a missing denominator in downstream rate calculations. Negative values
+        would produce nonsensical ratios. Example validations: Great Expectations:
+        expect_column_values_to_be_between(''c23'', min_value=0, strict_min=False);
+        Deequ: .satisfies(''c23 >= 0'', ''c23 non-negative'', lambda x: x == 1).'
+      sources:
+      - start_line: 96
+        end_line: 96
+        file: ''
+      - start_line: 100
+        end_line: 102
+        file: ''
+      uid: d4026ebe-9748-42a3-9427-cac4ec028656
+    - text: 'c23 should be at least as large as the related first-semester counts
+        c25 (assessments) and c27 (no-evaluations) on each row, since c23 is used
+        as the denominator for those rates (a1/e1 and ne1/e1). Example validations:
+        Deequ: .satisfies(''c25 <= c23 AND c27 <= c23'', ''c25,c27 do not exceed c23'',
+        lambda x: x == 1); Great Expectations: expect_multicolumn_condition to enforce
+        c25 <= c23 and c27 <= c23.'
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      uid: 33787716-111b-4b0e-b4ee-01549cbdf6fe
+    - text: 'c23 should represent whole-number counts (no fractional values). Example
+        validations: Deequ: .satisfies(''c23 = CAST(c23 AS INT)'', ''c23 is integer-like'',
+        lambda x: x == 1); Great Expectations: expect_column_values_to_be_in_type_list(''c23'',
+        [''int64'']) or expect_column_values_to_be_in_set of integer-casted values.'
+      sources:
+      - start_line: 96
+        end_line: 96
+        file: ''
+      uid: 2b6fc0f1-055b-4b41-9b4f-1260b72ee060
+  c32:
+    code:
+    - suggestion: .isComplete('c32')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 4a222dc2-90fe-4832-b1df-4647609cc193
+      source_assumptions:
+      - e4cd6b0c-0a1f-4b8b-a2cf-e7ef01286a98
+    - suggestion: .hasDataType('c32', ConstrainableDataTypes.Numeric)
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c32'', ConstrainableDataTypes.Numeric)'
+      level: error
+      uid: dc88ef97-68b7-4dd3-9463-07c64b7c0b62
+      source_assumptions:
+      - 90a71762-27db-4ce1-9916-083443375027
+    - suggestion: '.satisfies("(`c32` >= 0 AND `c32` <= 20)", "c32 in [0,20]", lambda
+        x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 1865e673-cf58-4ab6-8f5a-3f373a29b8ee
+      source_assumptions:
+      - 726802f0-f8ce-4cbd-b996-660921976041
+      - 472e41b3-6eef-4613-8bbe-972c3876f67b
+    - suggestion: '.satisfies("NOT isnan(`c32`)", "c32 not NaN", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 883084bc-9071-4539-85ff-9e7e95ed1ee7
+      source_assumptions:
+      - 472e41b3-6eef-4613-8bbe-972c3876f67b
+    assumptions:
+    - text: 'The c32 column must be complete (no nulls). The code casts it and uses
+        it directly in arithmetic without any fillna; missing values would propagate
+        to NaNs and lead to NaN risk_score/priority. A suitable rule would be: Deequ
+        isComplete(''c32'') or Great Expectations expect_column_values_to_not_be_null(''c32'').'
+      sources:
+      - start_line: 34
+        end_line: 34
+        file: ''
+      - start_line: 106
+        end_line: 106
+        file: ''
+      - start_line: 114
+        end_line: 114
+        file: ''
+      - start_line: 158
+        end_line: 158
+        file: ''
+      - start_line: 161
+        end_line: 161
+        file: ''
+      uid: e4cd6b0c-0a1f-4b8b-a2cf-e7ef01286a98
+    - text: 'The c32 column must be numeric and parseable to float for all rows (no
+        non-numeric strings). A suitable rule would be: Deequ hasDataType(''c32'',
+        ConstrainableDataTypes.Numeric) or Great Expectations expect_column_values_to_be_in_type_list(''c32'',
+        [''float'', ''double'', ''int64'']).'
+      sources:
+      - start_line: 106
+        end_line: 106
+        file: ''
+      uid: 90a71762-27db-4ce1-9916-083443375027
+    - text: "The c32 values should lie within the grading scale 0 to 20 inclusive.\
+        \ The code interprets c32 as a grade via (20.0 - c32) / 20.0, implying an\
+        \ expected 0\u201320 range. A suitable rule would be: Deequ satisfies('c32\
+        \ >= 0 AND c32 <= 20', 'c32 in [0,20]', lambda x: x == 1) or Great Expectations\
+        \ expect_column_values_to_be_between('c32', min_value=0, max_value=20, allow_cross_type_comparisons=True)."
+      sources:
+      - start_line: 114
+        end_line: 114
+        file: ''
+      uid: 726802f0-f8ce-4cbd-b996-660921976041
+    - text: 'The c32 column must contain only finite numeric values (no +/- infinity
+        or NaN representations). This follows from its direct use in arithmetic and
+        downstream scoring/cutting, which assume finite values. This can be enforced
+        by the same range check (0 <= c32 <= 20) or, in Deequ, an additional satisfies(''is_finite(c32)'',
+        ''c32 finite'', lambda x: x == 1) if such a predicate is available; in Great
+        Expectations, expect_column_values_to_be_between with strict bounds also guards
+        against infinities.'
+      sources:
+      - start_line: 106
+        end_line: 106
+        file: ''
+      - start_line: 114
+        end_line: 114
+        file: ''
+      uid: 472e41b3-6eef-4613-8bbe-972c3876f67b
+  c25:
+    code:
+    - suggestion: '.satisfies("(`c25` IS NULL) OR (CAST(`c25` AS DOUBLE) IS NOT NULL)",
+        "c25 numeric-or-null", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 611ea9a6-7197-48b2-affa-e6d13a4010e7
+      source_assumptions:
+      - 62b84210-ec20-4eb6-b409-ec309574f362
+    - suggestion: '.satisfies("(`c25` IS NULL) OR (CAST(`c25` AS DOUBLE) >= 0)", "c25
+        non-negative (mostly)", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: f77e1183-57e0-410b-9ee5-d4d557647229
+      source_assumptions:
+      - 360e2838-24f3-46cc-9fe6-9366fb028e7b
+    - suggestion: '.satisfies("(`c25` IS NULL) OR (`c23` IS NULL) OR (CAST(`c25` AS
+        DOUBLE) <= CAST(`c23` AS DOUBLE))", "c25 <= c23 (mostly)", lambda x: x >=
+        0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: a0b027fb-6700-41b0-9297-04105808a5c5
+      source_assumptions:
+      - 0b024c06-4ac8-4750-af4d-d517db88b056
+    - suggestion: '.satisfies("(CAST(`c23` AS DOUBLE) != 0) OR (COALESCE(CAST(`c25`
+        AS DOUBLE), 0) = 0)", "if c23 == 0 then c25 == 0 (mostly)", lambda x: x >=
+        0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 4d5c1869-7fdb-4e56-9da3-51f7db5a955e
+      source_assumptions:
+      - 88d861c5-b4b7-4fb8-a43b-fe480dccacc0
+    - suggestion: '.hasCompleteness("c25", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6a7ed78c-04e6-4dd5-b4ea-6acff4f8d5bb
+      source_assumptions:
+      - b0db0e67-df35-4587-a9b5-53c5f7335f42
+    - suggestion: '.satisfies("(`c25` IS NULL) OR (CAST(`c25` AS DOUBLE) = CAST(CAST(`c25`
+        AS DOUBLE) AS BIGINT))", "c25 integer-like (mostly)", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: d90b137b-2de8-4493-8646-f70989c4d09f
+      source_assumptions:
+      - 487f134d-aec9-4047-b57f-47f925d77bdc
+    assumptions:
+    - text: c25 must be present and its non-null values must be numeric (parseable
+        to float), since the code casts it to float and uses it in arithmetic.
+      sources:
+      - start_line: 97
+        end_line: 97
+        file: ''
+      - start_line: 101
+        end_line: 101
+        file: ''
+      uid: 62b84210-ec20-4eb6-b409-ec309574f362
+    - text: c25 should be greater than or equal to 0 for almost all rows, as it represents
+        a count used as the numerator of a rate.
+      sources:
+      - start_line: 97
+        end_line: 101
+        file: ''
+      uid: 360e2838-24f3-46cc-9fe6-9366fb028e7b
+    - text: c25 should be less than or equal to c23 for the vast majority of rows
+        (e.g., at least 95%), because it is used as the numerator when computing the
+        rate c25/c23 and is expected not to exceed its denominator.
+      sources:
+      - start_line: 96
+        end_line: 101
+        file: ''
+      uid: 0b024c06-4ac8-4750-af4d-d517db88b056
+    - text: When c23 is 0 (or treated as missing via replacement), c25 should be 0
+        in almost all rows (e.g., at least 99%), reflecting that there cannot be approvals/assessments
+        when there were zero evaluations.
+      sources:
+      - start_line: 100
+        end_line: 101
+        file: ''
+      uid: 88d861c5-b4b7-4fb8-a43b-fe480dccacc0
+    - text: Although the code can tolerate nulls by turning the resulting rate into
+        0, the input data for c25 is expected to be essentially complete (e.g., at
+        least 99% non-null), aligning with the provided dataset characteristics.
+      sources:
+      - start_line: 97
+        end_line: 101
+        file: ''
+      uid: b0db0e67-df35-4587-a9b5-53c5f7335f42
+    - text: Values in c25 should be whole numbers (integers) in nearly all rows (e.g.,
+        at least 99%), as it functions like a count used to form a rate.
+      sources:
+      - start_line: 97
+        end_line: 101
+        file: ''
+      uid: 487f134d-aec9-4047-b57f-47f925d77bdc
+  c26:
+    code:
+    - suggestion: .hasDataType('c26', ConstrainableDataTypes.Numeric)
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c26'', ConstrainableDataTypes.Numeric)'
+      level: error
+      uid: e077530b-12ed-4e3b-a2a6-0ff131872d48
+      source_assumptions:
+      - 68b8c810-aa72-4c41-a694-348408c6c4bf
+    - suggestion: .isComplete('c26')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 030fa41d-0917-46d3-a9a1-bbed22921134
+      source_assumptions:
+      - 4f960bc8-ee7f-4322-a433-a47677f9832b
+    - suggestion: '.satisfies(''`c26` >= 0 AND `c26` <= 20'', ''c26 in [0,20]'', lambda
+        x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6d353f1e-7acf-40ed-b3be-18166a85e586
+      source_assumptions:
+      - 672f78f4-0f73-4a7e-9b61-6bce38433a08
+    assumptions:
+    - text: 'c26 must be numeric (parsable to float) for all rows, since the code
+        casts it with astype(float) and uses it in arithmetic. Representations: Deequ
+        -> hasDataType(''c26'', ConstrainableDataTypes.Numeric); Great Expectations
+        -> expect_column_values_to_be_in_type_list(''c26'', [''int64'', ''float64'']).'
+      sources:
+      - start_line: 95
+        end_line: 95
+        file: ''
+      - start_line: 103
+        end_line: 103
+        file: ''
+      uid: 68b8c810-aa72-4c41-a694-348408c6c4bf
+    - text: 'c26 should be complete (no nulls), because no fill or imputation is applied
+        and nulls would propagate to NaNs in risk components and outputs. Representations:
+        Deequ -> completeness(''c26'') >= 1.0; Great Expectations -> expect_column_values_to_not_be_null(''c26'').'
+      sources:
+      - start_line: 95
+        end_line: 95
+        file: ''
+      - start_line: 103
+        end_line: 103
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      - start_line: 142
+        end_line: 149
+        file: ''
+      - start_line: 153
+        end_line: 166
+        file: ''
+      uid: 4f960bc8-ee7f-4322-a433-a47677f9832b
+    - text: "c26 values should lie within the 0\u201320 grading scale (inclusive).\
+        \ The code transforms it as (20 - c26)/20 without clipping, implying a 20-point\
+        \ scale; out-of-range values would distort risk before clipping. Representations:\
+        \ Deequ -> minimum('c26') >= 0 and maximum('c26') <= 20; Great Expectations\
+        \ -> expect_column_values_to_be_between('c26', min_value=0, max_value=20,\
+        \ allow_cross_type_comparisons=True)."
+      sources:
+      - start_line: 103
+        end_line: 103
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 672f78f4-0f73-4a7e-9b61-6bce38433a08
+  c27:
+    code:
+    - suggestion: '.satisfies(''CASE WHEN c27 IS NULL OR CAST(c27 AS DOUBLE) IS NOT
+        NULL THEN 1 ELSE 0 END'', ''c27 numeric-castable'', lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 99abc9f5-a074-4948-bff8-98b714237ed0
+      source_assumptions:
+      - aabcc26c-14aa-46b1-a2c4-a44f25eb8f33
+    - suggestion: '.hasCompleteness(''c27'', lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: fcc5f0cd-ebd2-4e2a-afff-d50fde9ce461
+      source_assumptions:
+      - aabcc26c-14aa-46b1-a2c4-a44f25eb8f33
+    - suggestion: '.satisfies(''CASE WHEN CAST(c27 AS DOUBLE) >= 0 AND CAST(c27 AS
+        DOUBLE) = FLOOR(CAST(c27 AS DOUBLE)) THEN 1 ELSE 0 END'', ''c27 non-negative
+        integer'', lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: c5d8fc0e-0ffb-4f29-84cd-59c0bcb16a91
+      source_assumptions:
+      - 892d97f3-ab63-4632-9aa1-5e02e0fa3ef7
+    - suggestion: '.satisfies(''CASE WHEN CAST(c23 AS DOUBLE) > 0 THEN CASE WHEN CAST(c27
+        AS DOUBLE) BETWEEN 0 AND CAST(c23 AS DOUBLE) THEN 1 ELSE 0 END ELSE CASE WHEN
+        CAST(c27 AS DOUBLE) = 0 THEN 1 ELSE 0 END END'', ''c27 bounded by c23'', lambda
+        x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 188da12d-cf17-49d6-aee7-6db175b78335
+      source_assumptions:
+      - 7dfd17b4-467f-437d-baa3-e645c42143f2
+    - suggestion: '.satisfies(''CASE WHEN CAST(c27 AS DOUBLE) = 0 THEN 1 ELSE 0 END'',
+        ''c27 zero share'', lambda x: x >= 0.85)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 5402979a-6078-4fc6-937b-baa35b5a809c
+      source_assumptions:
+      - 1cb46917-8e0e-4e22-b7eb-27d94fdc49d3
+    - suggestion: '.satisfies(''CASE WHEN CAST(c27 AS DOUBLE) IN (0,1,2,3,4,5,6,7,8,9,10)
+        THEN 1 ELSE 0 END'', ''c27 in typical set'', lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 2ca8dda4-fd5d-4f0c-953d-6fc5d20a8df1
+      source_assumptions:
+      - 9da1a85a-bc3b-4c55-afe5-918bf8d5e022
+    assumptions:
+    - text: 'Column c27 must be numeric (castable to float) for all non-null values,
+        because the code unconditionally casts it to float. Also, c27 is expected
+        to be nearly complete to avoid silent conversion of missing values into 0
+        downstream (via the ratio fillna). Example Deequ-style checks: .satisfies("CASE
+        WHEN c27 IS NULL OR CAST(c27 AS DOUBLE) IS NOT NULL THEN 1 ELSE 0 END", "c27
+        numeric-castable", lambda x: x == 1) and .completeness("c27", lambda x: x
+        >= 0.99).'
+      sources:
+      - start_line: 99
+        end_line: 99
+        file: ''
+      - start_line: 102
+        end_line: 102
+        file: ''
+      uid: aabcc26c-14aa-46b1-a2c4-a44f25eb8f33
+    - text: 'c27 represents a count and should be non-negative and integer-like. Example
+        Deequ-style check: .satisfies("CASE WHEN c27 >= 0 AND c27 = FLOOR(c27) THEN
+        1 ELSE 0 END", "c27 non-negative integer", lambda x: x >= 0.99).'
+      sources:
+      - start_line: 99
+        end_line: 99
+        file: ''
+      - start_line: 102
+        end_line: 102
+        file: ''
+      uid: 892d97f3-ab63-4632-9aa1-5e02e0fa3ef7
+    - text: 'Logical bound relative to c23 (the denominator used for the ratio): for
+        rows where c23 > 0, 0 <= c27 <= c23; for rows where c23 = 0, c27 should be
+        0. This keeps the ratio c27/c23 in [0,1] without relying on clipping. Example
+        Deequ-style check: .satisfies("CASE WHEN c23 > 0 THEN CASE WHEN c27 BETWEEN
+        0 AND c23 THEN 1 ELSE 0 END ELSE CASE WHEN c27 = 0 THEN 1 ELSE 0 END END",
+        "c27 bounded by c23", lambda x: x >= 0.99).'
+      sources:
+      - start_line: 96
+        end_line: 96
+        file: ''
+      - start_line: 100
+        end_line: 100
+        file: ''
+      - start_line: 102
+        end_line: 102
+        file: ''
+      uid: 7dfd17b4-467f-437d-baa3-e645c42143f2
+    - text: 'Sparsity/drift expectation: historically c27 is 0 for the vast majority
+        of rows (about 94%), so the share of zeros should remain high; large deviations
+        indicate drift. Example Deequ-style check: .satisfies("CASE WHEN c27 = 0 THEN
+        1 ELSE 0 END", "c27 zero share", lambda x: x >= 0.85).'
+      sources:
+      - start_line: 99
+        end_line: 102
+        file: ''
+      uid: 1cb46917-8e0e-4e22-b7eb-27d94fdc49d3
+    - text: 'Typical value range: historically c27 takes small integer values in {0,1,2,3,4,5,6,7,8,9,10};
+        values outside this set should be rare. Example Deequ-style check: .satisfies("CASE
+        WHEN c27 IN (0,1,2,3,4,5,6,7,8,9,10) THEN 1 ELSE 0 END", "c27 in typical set",
+        lambda x: x >= 0.99).'
+      sources:
+      - start_line: 99
+        end_line: 99
+        file: ''
+      uid: 9da1a85a-bc3b-4c55-afe5-918bf8d5e022
+  c28:
+    code:
+    - suggestion: '.satisfies("(c28 IS NULL) OR (CAST(c28 AS DOUBLE) IS NOT NULL)",
+        "c28 numeric-parseable when non-null", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 6edf94a8-88f5-4ea7-9ca3-6b8739ab7d43
+      source_assumptions:
+      - 910d1a39-ec70-4e37-83d8-5b51faa6d6c4
+    - suggestion: '.hasCompleteness("c28", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 7e08048a-4c4c-4e13-b4a4-f5879e24ac39
+      source_assumptions:
+      - 786fb4c1-59e5-49a6-b223-d5ce6514a425
+    - suggestion: '.satisfies("c28 IS NULL OR (CAST(c28 AS DOUBLE) IS NOT NULL AND
+        CAST(c28 AS DOUBLE) >= 0 AND CAST(CAST(c28 AS DOUBLE) AS BIGINT) = CAST(c28
+        AS DOUBLE))", "c28 non-negative integer-like counts", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: ba1f660f-a326-4789-9705-fd96a2bc2344
+      source_assumptions:
+      - e61aa62d-07c9-4409-9f3f-56435d7e20f4
+    - suggestion: '.hasNumberOfDistinctValues("c28", lambda n: n <= 50)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues("c28",
+        lambda n: n <= 50)'': Check.hasNumberOfDistinctValues() missing 2 required
+        positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: efa5bb59-7481-4013-aae5-09497a59f846
+      source_assumptions:
+      - 40dbb791-df00-4ae2-8ca3-f942d3673be8
+    assumptions:
+    - text: 'c28 must be numeric: all non-null values should be parseable to float
+        (no non-numeric tokens such as empty strings, ''NA'', etc.). This follows
+        from the code casting c28 with astype(float) without coercion.'
+      sources:
+      - start_line: 109
+        end_line: 109
+        file: ''
+      uid: 910d1a39-ec70-4e37-83d8-5b51faa6d6c4
+    - text: c28 should be effectively complete (no or negligible nulls). The current
+        dataset shows 100% completeness; to preserve this characteristic, enforce
+        completeness >= 0.99 so the cast and downstream processing remain stable.
+      sources:
+      - start_line: 109
+        end_line: 109
+        file: ''
+      uid: 786fb4c1-59e5-49a6-b223-d5ce6514a425
+    - text: c28 should contain non-negative, integer-like counts (no fractional part).
+        It is grouped with other second-semester academic count measures (enrolled/approved/not-evaluated),
+        which are inherently non-negative counts.
+      sources:
+      - start_line: 105
+        end_line: 114
+        file: ''
+      - start_line: 109
+        end_line: 109
+        file: ''
+      uid: e61aa62d-07c9-4409-9f3f-56435d7e20f4
+    - text: c28 should have limited cardinality consistent with count-like data. Based
+        on the current profile (~19 distinct values), cap the number of distinct values
+        at a tolerant upper bound (e.g., <= 50) to detect schema drift.
+      sources:
+      - start_line: 109
+        end_line: 109
+        file: ''
+      uid: 40dbb791-df00-4ae2-8ca3-f942d3673be8
+  c29:
+    code:
+    - suggestion: '.satisfies("c29 IS NULL OR CAST(c29 AS DOUBLE) IS NOT NULL", "c29
+        numeric or null", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 7e32007d-0fe5-4fb0-b0a3-e3a75420e444
+      source_assumptions:
+      - 25a87ed1-b809-4224-9e8d-c18eb192d616
+    - suggestion: '.satisfies("c29 IS NULL OR CAST(c29 AS DOUBLE) >= 0", "c29 non-negative
+        (counts)", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 5891c8cb-75b0-46d9-abd7-12bbef807b8b
+      source_assumptions:
+      - aec62f91-5d4a-4a28-aa90-9a08ce743590
+    - suggestion: '.satisfies("c29 IS NULL OR CAST(c29 AS DOUBLE) = CAST(CAST(c29
+        AS DOUBLE) AS INT)", "c29 integer-like (counts)", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 77c0adf3-6109-4cff-aa21-a3b0fe037e09
+      source_assumptions:
+      - aec62f91-5d4a-4a28-aa90-9a08ce743590
+    - suggestion: '.satisfies("c29 IS NULL OR (CAST(c31 AS DOUBLE) <= CAST(c29 AS
+        DOUBLE) AND CAST(c33 AS DOUBLE) <= CAST(c29 AS DOUBLE))", "c31,c33 numerators
+        do not exceed c29", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6aacdc22-7716-4dc4-92fb-a0e62117768f
+      source_assumptions:
+      - a0f119ac-b327-45fa-bc79-329a836ec9ef
+    - suggestion: '.satisfies("c29 IS NULL OR (CAST(c29 AS DOUBLE) <> 0 OR (CAST(c31
+        AS DOUBLE) = 0 AND CAST(c33 AS DOUBLE) = 0))", "zero-denominator coherence
+        for c29 with c31,c33", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 4bd8151b-3277-4603-a868-d2b1a0be9b4b
+      source_assumptions:
+      - 42e51273-46c8-4c36-97dc-6fd936d9a3e5
+    assumptions:
+    - text: 'The ''c29'' column must be present and numeric-parsable. Non-null values
+        must successfully cast to a floating-point number; nulls are tolerated and
+        handled downstream. We could represent this assumption as a deequ constraint
+        like this: .satisfies("c29 IS NULL OR CAST(c29 AS DOUBLE) IS NOT NULL", "c29
+        numeric or null", lambda x: x == 1)'
+      sources:
+      - start_line: 30
+        end_line: 30
+        file: ''
+      - start_line: 107
+        end_line: 107
+        file: ''
+      uid: 25a87ed1-b809-4224-9e8d-c18eb192d616
+    - text: 'The ''c29'' column represents a count of units for 2nd semester and should
+        be non-negative and integer-like. Zero values are allowed and are treated
+        as missing in denominators during rate calculations. We could represent this
+        with deequ constraints like: .satisfies("c29 IS NULL OR c29 >= 0", "c29 non-negative",
+        lambda x: x == 1) and .satisfies("c29 IS NULL OR c29 = CAST(c29 AS INT)",
+        "c29 integer-like", lambda x: x == 1)'
+      sources:
+      - start_line: 107
+        end_line: 107
+        file: ''
+      - start_line: 111
+        end_line: 111
+        file: ''
+      uid: aec62f91-5d4a-4a28-aa90-9a08ce743590
+    - text: 'Denominator consistency: when computing rates a2/e2 and ne2/e2, the ''c29''
+        value should be at least as large as the corresponding numerators. For every
+        row with non-null c29, enforce c31 <= c29 and c33 <= c29 to keep ratios within
+        [0,1] without relying on clipping. Deequ example: .satisfies("c29 IS NULL
+        OR (c31 <= c29 AND c33 <= c29)", "numerators do not exceed c29", lambda x:
+        x == 1)'
+      sources:
+      - start_line: 108
+        end_line: 113
+        file: ''
+      uid: a0f119ac-b327-45fa-bc79-329a836ec9ef
+    - text: 'Zero-denominator coherence: if ''c29'' equals 0 (no enrolled/evaluable
+        units), then both c31 (approvals) and c33 (no-evaluations) should be 0 as
+        well. This avoids inconsistent records where outcomes exist without any enrolled
+        units. Deequ example: .satisfies("CASE WHEN c29 = 0 THEN CASE WHEN c31 = 0
+        AND c33 = 0 THEN 1 ELSE 0 END ELSE 1 END", "zero-denominator consistency",
+        lambda x: x == 1)'
+      sources:
+      - start_line: 108
+        end_line: 113
+        file: ''
+      uid: 42e51273-46c8-4c36-97dc-6fd936d9a3e5
+  c33:
+    code:
+    - suggestion: .hasColumn('c33')
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasColumn(''c33'')'':
+        ''Check'' object has no attribute ''hasColumn'''
+      level: error
+      uid: e48b4201-b3fd-4534-8654-c3b80b1608c3
+      source_assumptions:
+      - c3a9b604-5794-4335-8731-290a966e63f9
+    - suggestion: '.hasDataType(''c33'', ConstrainableDataTypes.Numeric, lambda x:
+        x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c33'', ConstrainableDataTypes.Numeric,
+        lambda x: x == 1.0)'
+      level: error
+      uid: 0f4fde98-60e9-4a0e-96fd-0a6c0f92c126
+      source_assumptions:
+      - c3a9b604-5794-4335-8731-290a966e63f9
+    - suggestion: .isComplete('c33')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: e8934f1d-9010-40e4-988d-8612a76780e2
+      source_assumptions:
+      - 283107b7-1dde-435c-bde9-435778b0b71e
+    - suggestion: '.satisfies(''c33 = 0'', ''c33_zero_share_at_least_90pct'', lambda
+        x: x >= 0.90)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: dbce730d-df2b-44d8-802b-1cfc7e810b44
+      source_assumptions:
+      - 6809b0d1-4033-4085-b0da-999948e76888
+    - suggestion: '.isNonNegative(''c33'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 75f89fda-b2cd-4cfa-a8c8-4063d74d70f9
+      source_assumptions:
+      - 6ca6feca-d28a-4920-ba9a-98d68f6d8035
+    - suggestion: '.hasDataType(''c33'', ConstrainableDataTypes.Integral, lambda x:
+        x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c33'', ConstrainableDataTypes.Integral,
+        lambda x: x == 1.0)'
+      level: error
+      uid: 62c3d1b0-7d57-4274-98f6-1b5d5cd47c50
+      source_assumptions:
+      - 6ca6feca-d28a-4920-ba9a-98d68f6d8035
+    - suggestion: '.satisfies(''CASE WHEN c29 > 0 THEN (c33 >= 0 AND c33 <= c29) ELSE
+        TRUE END'', ''c33_within_enrollments_when_c29_positive'', lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: dbce5f8b-d2e8-40cf-8185-78175d565080
+      source_assumptions:
+      - c3fb59fc-3306-42d0-9833-7bf14aacc2f2
+    - suggestion: '.satisfies(''c33 <= 8'', ''c33_max_bound_8_with_1pct_tolerance'',
+        lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: b63effb4-d652-4f4a-8592-6e27abf4aa8c
+      source_assumptions:
+      - 96b999be-cb9a-4d41-9722-711ea4835c9d
+    assumptions:
+    - text: 'Column c33 must exist in the input and be numeric-parsable (castable
+        to float) for all rows. We could validate with: hasColumn(''c33'') and hasDataType(''c33'',
+        Numeric) or GE expect_column_values_to_be_of_type(''c33'', ''int64'' or ''float64'').'
+      sources:
+      - start_line: 33
+        end_line: 33
+        file: ''
+      - start_line: 110
+        end_line: 110
+        file: ''
+      uid: c3a9b604-5794-4335-8731-290a966e63f9
+    - text: 'c33 should have no nulls. Nulls would be treated as non-zero in the (c33
+        == 0).mean() computation and can cause a math domain error later. Validate
+        with: completeness(''c33'') == 1.0.'
+      sources:
+      - start_line: 110
+        end_line: 110
+        file: ''
+      - start_line: 117
+        end_line: 118
+        file: ''
+      uid: 283107b7-1dde-435c-bde9-435778b0b71e
+    - text: 'At least 90% of c33 values must be 0. The code computes sqrt(0.10 - (1
+        - share_of_zeros)), which requires share_of_zeros >= 0.90 to avoid a domain
+        error. Validate with: fraction of rows where c33 = 0 is >= 0.90.'
+      sources:
+      - start_line: 117
+        end_line: 118
+        file: ''
+      uid: 6809b0d1-4033-4085-b0da-999948e76888
+    - text: 'c33 represents a count, so values should be non-negative and integer-like.
+        Validate with: isNonNegative(''c33'') and satisfies(''c33 % 1 = 0'', ''integer_like'',
+        lambda p: p == 1.0) or GE expect_column_values_to_be_in_type_list([''IntegerType'']).'
+      sources:
+      - start_line: 110
+        end_line: 110
+        file: ''
+      - start_line: 113
+        end_line: 113
+        file: ''
+      - start_line: 117
+        end_line: 117
+        file: ''
+      uid: 6ca6feca-d28a-4920-ba9a-98d68f6d8035
+    - text: 'Consistency with enrollments: when c29 (second-semester enrollments)
+        > 0, c33 should satisfy 0 <= c33 <= c29. This keeps the ratio c33/c29 within
+        [0, 1] without relying on clipping. Validate with a conditional rule: satisfies(''CASE
+        WHEN c29 > 0 THEN (c33 >= 0 AND c33 <= c29) ELSE TRUE END'', ''c33_within_enrollments'',
+        lambda p: p >= 0.99).'
+      sources:
+      - start_line: 110
+        end_line: 113
+        file: ''
+      uid: c3fb59fc-3306-42d0-9833-7bf14aacc2f2
+    - text: 'Based on current data, c33 values are typically small counts in the range
+        [0, 8], with approximately 94% zeros. As a drift/quality expectation, flag
+        if more than 1% of rows exceed 8 or if the zero share drops materially below
+        historical (e.g., below 0.90 already required above). Validate with: satisfies(''c33
+        <= 8'', ''c33_max_bound'', lambda p: p >= 0.99) and fraction where c33 = 0
+        >= 0.90.'
+      sources:
+      - start_line: 110
+        end_line: 110
+        file: ''
+      uid: 96b999be-cb9a-4d41-9722-711ea4835c9d
+  c34:
+    code:
+    - suggestion: .isComplete('c34')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 253f6436-8c3e-43f1-acaa-dd64c7a3b941
+      source_assumptions:
+      - 9dc1ad68-d58f-4dc7-a7e6-c5d1533a42f6
+    - suggestion: .isContainedIn('c34', [7.6, 8.9, 9.4, 10.8, 11.1, 12.4, 12.7, 13.9,
+        15.5, 16.2])
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c34',\
+        \ [7.6, 8.9, 9.4, 10.8, 11.1, 12.4, 12.7, 13.9, 15.5, 16.2])': An error occurred\
+        \ while calling None.None. Trace:\npy4j.Py4JException: Cannot convert java.lang.Double\
+        \ to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: 8338dd1e-3f4c-430c-911e-e9495b493f45
+      source_assumptions:
+      - 470510bd-fcf4-4ea8-8068-419101ee7104
+    - suggestion: .hasDataType('c34', ConstrainableDataTypes.Fractional)
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c34'', ConstrainableDataTypes.Fractional)'
+      level: error
+      uid: b460eab7-f31b-4d16-aae6-4fda8975b653
+      source_assumptions:
+      - 57e3fe8a-d685-4cf8-9dac-1dff5ae9484d
+    - suggestion: '.hasMin(''c34'', lambda m: m >= 7.6)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 4f3822d8-0692-47f3-9fb9-90a344782682
+      source_assumptions:
+      - dc635f10-963b-480c-b9a6-e9f05d051a4d
+    - suggestion: '.hasMax(''c34'', lambda m: m <= 16.2)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: beff5ed8-c9a3-4e9c-855d-f839868acbe6
+      source_assumptions:
+      - dc635f10-963b-480c-b9a6-e9f05d051a4d
+    assumptions:
+    - text: 'The c34 column must be present and complete (no nulls). The code maps
+        c34 through a dictionary and immediately casts the result to int; any null
+        in c34 (or any unmapped value producing NaN) would cause .astype(int) to fail.
+        Deequ: .hasCompleteness(''c34'', lambda x: x == 1.0). Great Expectations:
+        expect_column_values_to_not_be_null.'
+      sources:
+      - start_line: 41
+        end_line: 41
+        file: ''
+      - start_line: 86
+        end_line: 86
+        file: ''
+      uid: 9dc1ad68-d58f-4dc7-a7e6-c5d1533a42f6
+    - text: 'All c34 values must be exactly one of the enumerated numeric values {7.6,
+        8.9, 9.4, 10.8, 11.1, 12.4, 12.7, 13.9, 15.5, 16.2}. The mapping uses these
+        exact values as keys; any value outside this set (or approximate rounded variants
+        that do not equal these values exactly) will map to NaN and break the int
+        cast. Deequ: .isContainedIn(''c34'', [7.6, 8.9, 9.4, 10.8, 11.1, 12.4, 12.7,
+        13.9, 15.5, 16.2]). Great Expectations: expect_column_values_to_be_in_set
+        with the same set.'
+      sources:
+      - start_line: 78
+        end_line: 78
+        file: ''
+      - start_line: 82
+        end_line: 82
+        file: ''
+      - start_line: 86
+        end_line: 86
+        file: ''
+      uid: 470510bd-fcf4-4ea8-8068-419101ee7104
+    - text: 'The c34 column must be numeric (fractional) rather than string-coded.
+        The dictionary used for mapping has numeric keys; if c34 contains strings
+        like ''10.8'' instead of the float 10.8, mapping will fail and .astype(int)
+        will raise. Deequ: .hasDataType(''c34'', ConstrainableDataTypes.Fractional).
+        Great Expectations: expect_column_values_to_be_in_type_list with numeric types
+        (e.g., float, int, decimal).'
+      sources:
+      - start_line: 82
+        end_line: 82
+        file: ''
+      - start_line: 86
+        end_line: 86
+        file: ''
+      uid: 57e3fe8a-d685-4cf8-9dac-1dff5ae9484d
+    - text: 'The c34 values should lie within the closed interval [7.6, 16.2], consistent
+        with the enumerated domain used by the code. Deequ: .hasMin(''c34'', lambda
+        m: m >= 7.6) and .hasMax(''c34'', lambda m: m <= 16.2). Great Expectations:
+        expect_column_min_to_be_between(min_value=7.6) and expect_column_max_to_be_between(max_value=16.2).'
+      sources:
+      - start_line: 78
+        end_line: 78
+        file: ''
+      - start_line: 82
+        end_line: 82
+        file: ''
+      uid: dc635f10-963b-480c-b9a6-e9f05d051a4d
+  c35:
+    code:
+    - suggestion: '.isContainedIn(''c35'', [-0.8, -0.3, 0.3, 0.5, 0.6, 1.4, 2.6, 2.8,
+        3.7], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c35',\
+        \ [-0.8, -0.3, 0.3, 0.5, 0.6, 1.4, 2.6, 2.8, 3.7], lambda x: x == 1.0)': An\
+        \ error occurred while calling None.None. Trace:\npy4j.Py4JException: Cannot\
+        \ convert java.lang.Double to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: 0df85d27-c3a5-4077-ab93-6d565459a79d
+      source_assumptions:
+      - e9e2750d-e013-43dd-8e5d-35ab3d6f906e
+    - suggestion: '.hasCompleteness(''c35'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3bd38638-b22d-450c-a69e-c13eab1b0c4c
+      source_assumptions:
+      - 21bebe66-5f49-4a02-b514-8ac991af435c
+    - suggestion: '.hasDataType(''c35'', ConstrainableDataTypes.Numeric, lambda x:
+        x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c35'', ConstrainableDataTypes.Numeric,
+        lambda x: x == 1.0)'
+      level: error
+      uid: cf123ab5-3efb-4a82-bb9a-4c85557195fe
+      source_assumptions:
+      - 6dccb108-6ea4-416a-b99c-78e635c72cc2
+    - suggestion: '.hasNumberOfDistinctValues(''c35'', lambda d: d <= 9)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''c35'',
+        lambda d: d <= 9)'': Check.hasNumberOfDistinctValues() missing 2 required
+        positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: df52e09a-502f-4b30-9f5d-25cff7e8c086
+      source_assumptions:
+      - cabccf4a-b514-458e-8957-af2ee84a66da
+    assumptions:
+    - text: 'The c35 column must contain only the nine predefined numeric values [-0.8,
+        -0.3, 0.3, 0.5, 0.6, 1.4, 2.6, 2.8, 3.7]. Every row must match one of these
+        values exactly; otherwise the dict mapping will produce nulls and the subsequent
+        astype(int) will fail. Possible validations: Deequ isContainedIn(''c35'',
+        [-0.8, -0.3, 0.3, 0.5, 0.6, 1.4, 2.6, 2.8, 3.7]) or satisfies(''CASE WHEN
+        c35 IN (-0.8,-0.3,0.3,0.5,0.6,1.4,2.6,2.8,3.7) THEN 1 ELSE 0 END'', ''c35_in_allowed_set'',
+        lambda x: x == 1.0); Great Expectations expect_column_values_to_be_in_set([...])
+        with mostly=1.0.'
+      sources:
+      - start_line: 77
+        end_line: 83
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: e9e2750d-e013-43dd-8e5d-35ab3d6f906e
+    - text: 'The c35 column must be complete (no nulls) for all rows. Nulls would
+        map to NaN and cause df[c35].map(...).astype(int) to raise. Possible validations:
+        Deequ hasCompleteness(''c35'', lambda x: x == 1.0); Great Expectations expect_column_values_to_not_be_null.'
+      sources:
+      - start_line: 87
+        end_line: 87
+        file: ''
+      - start_line: 90
+        end_line: 92
+        file: ''
+      uid: 21bebe66-5f49-4a02-b514-8ac991af435c
+    - text: 'The c35 column must be parsed as numeric (floating point) values, not
+        strings or string-formatted numbers (e.g., with symbols or extra text). Mapping
+        uses float keys, so a non-numeric or string-typed column would fail to match
+        and produce NaNs. Possible validations: Deequ hasDataType(''c35'', ConstrainableDataTypes.Numeric);
+        Great Expectations expect_column_values_to_be_of_type in [''float64'', ''double'']
+        or expect_column_values_to_be_in_type_list([''float64'', ''float32'', ''double'']).'
+      sources:
+      - start_line: 79
+        end_line: 79
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: 6dccb108-6ea4-416a-b99c-78e635c72cc2
+    - text: 'The number of distinct values in c35 should be at most 9 (since values
+        are restricted to the fixed set), which can help detect unexpected new values.
+        Possible validations: Deequ approxCountDistinct(''c35'', lambda d: d <= 9);
+        Great Expectations expect_column_unique_value_count_to_be_between(min_value=1,
+        max_value=9).'
+      sources:
+      - start_line: 79
+        end_line: 83
+        file: ''
+      uid: cabccf4a-b514-458e-8957-af2ee84a66da
+  c36:
+    code:
+    - suggestion: .isComplete('c36')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: ba38796b-7338-4d76-8372-95f36065e048
+      source_assumptions:
+      - 7d2e719e-a831-4ee0-83fb-1a1bc92eea62
+    - suggestion: '.hasDataType(''c36'', ''Fractional'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c36'', ''Fractional'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: d87f7488-1abb-48fd-9f8d-98c7cdb8a017
+      source_assumptions:
+      - e1119ebf-8f9e-4c24-b78a-4febb59a01ab
+    - suggestion: .isContainedIn('c36', [-4.06, -3.12, -1.7, -0.92, 0.32, 0.79, 1.74,
+        1.79, 2.02, 3.51])
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c36',\
+        \ [-4.06, -3.12, -1.7, -0.92, 0.32, 0.79, 1.74, 1.79, 2.02, 3.51])': An error\
+        \ occurred while calling None.None. Trace:\npy4j.Py4JException: Cannot convert\
+        \ java.lang.Double to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: e7601243-80f5-4db0-be8f-a778f59bc578
+      source_assumptions:
+      - 25fe8d27-e298-42d5-84fd-cb5b88d0f8a3
+    - suggestion: '.hasNumberOfDistinctValues(''c36'', lambda x: x <= 10)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''c36'',
+        lambda x: x <= 10)'': Check.hasNumberOfDistinctValues() missing 2 required
+        positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: 7962ee56-299b-451a-ad5d-92594de6cd1c
+      source_assumptions:
+      - 6cfe7b22-f2ff-45a1-a5b1-6fa1a70ca0d9
+    assumptions:
+    - text: Column c36 must be present and 100% non-null. The code maps its values
+        via a dictionary and immediately casts the result to int; any null or unmapped
+        value would produce NaN and make astype(int) fail. This can be validated with
+        a completeness check of 1.0 (e.g., expect_column_values_to_not_be_null).
+      sources:
+      - start_line: 85
+        end_line: 85
+        file: ''
+      uid: 7d2e719e-a831-4ee0-83fb-1a1bc92eea62
+    - text: All c36 values must be exactly in the fixed allowed set {-4.06, -3.12,
+        -1.7, -0.92, 0.32, 0.79, 1.74, 1.79, 2.02, 3.51}. The code builds a mapping
+        dictionary from precisely these 10 values and uses Series.map; any value outside
+        this set will map to NaN and break the subsequent int cast. This can be enforced
+        with an 'in set' rule (e.g., expect_column_values_to_be_in_set).
+      sources:
+      - start_line: 77
+        end_line: 82
+        file: ''
+      - start_line: 85
+        end_line: 85
+        file: ''
+      uid: 25fe8d27-e298-42d5-84fd-cb5b88d0f8a3
+    - text: c36 must be parsed as numeric (float) values so they match the float keys
+        in the mapping dictionary. If c36 is read as strings (e.g., '0.32' or using
+        a comma decimal separator), mapping will fail and the int cast will error.
+        This can be validated with a type check (e.g., expect_column_values_to_be_in_type_list
+        with numeric types).
+      sources:
+      - start_line: 77
+        end_line: 82
+        file: ''
+      - start_line: 85
+        end_line: 85
+        file: ''
+      uid: e1119ebf-8f9e-4c24-b78a-4febb59a01ab
+    - text: The number of distinct values in c36 should be at most 10, aligning with
+        the fixed 10-value vocabulary used for mapping. This can be validated with
+        a distinct count check (e.g., hasNumberOfDistinctValues <= 10).
+      sources:
+      - start_line: 77
+        end_line: 82
+        file: ''
+      - start_line: 85
+        end_line: 85
+        file: ''
+      uid: 6cfe7b22-f2ff-45a1-a5b1-6fa1a70ca0d9
+  c37:
+    code:
+    - suggestion: '.hasCompleteness("c37", lambda v: v >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 96ed876a-1f75-4313-a362-f914d1b6f2c9
+      source_assumptions:
+      - 52dbb105-31ea-4004-ad15-cd142641d648
+    - suggestion: '.isContainedIn("c37", ["Graduate", "Dropout", "Enrolled"], lambda
+        v: v >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: d1f75b5d-f415-46bd-8bc2-cfaa9e9c0237
+      source_assumptions:
+      - bf8ac181-46fe-4d35-b4f3-949ab1186c83
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Dropout'' THEN 1 ELSE 0 END", "At
+        least one Dropout", lambda x: x > 0.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 4af12c6a-b0bf-4d57-8f0c-f90a52a791f5
+      source_assumptions:
+      - be752232-a863-4698-bd71-9db5420b164c
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Dropout'' THEN 1 ELSE 0 END", "Dropout
+        share lower bound (>= 1%)", lambda x: x >= 0.01)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: b52f69cc-3a78-42da-af12-8d93a9dd47cb
+      source_assumptions:
+      - c8c9ba50-bb11-4762-9911-b4e18f3115e7
+    - suggestion: '.satisfies("CASE WHEN c37 <> ''Dropout'' THEN 1 ELSE 0 END", "Dropout
+        share upper bound (<= 99%)", lambda x: x >= 0.01)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: c096e068-bfee-4e32-8066-2c5611bd0331
+      source_assumptions:
+      - c8c9ba50-bb11-4762-9911-b4e18f3115e7
+    assumptions:
+    - text: 'c37 should be present and non-null for almost all rows so that the computed
+        class proportions are representative. A reasonable threshold is at least 99%
+        completeness. We could represent this assumption as a deequ constraint like
+        this: .hasCompleteness("c37", lambda v: v >= 0.99)'
+      sources:
+      - start_line: 45
+        end_line: 48
+        file: ''
+      uid: 52dbb105-31ea-4004-ad15-cd142641d648
+    - text: 'c37 should only contain the expected status labels: ''Graduate'', ''Dropout'',
+        or ''Enrolled'' (case-sensitive), covering at least 99% of rows. We could
+        represent this assumption as a deequ constraint like this: .isContainedIn("c37",
+        ["Graduate", "Dropout", "Enrolled"], lambda v: v >= 0.99)'
+      sources:
+      - start_line: 46
+        end_line: 48
+        file: ''
+      uid: bf8ac181-46fe-4d35-b4f3-949ab1186c83
+    - text: 'There must be at least one ''Dropout'' value in c37 so that the dropout
+        prior proportion (val3) is greater than 0; otherwise math.log(val3/(1-val3))
+        will raise a math domain error. We could represent this assumption as a deequ
+        constraint like this: .satisfies("CASE WHEN c37 = ''Dropout'' THEN 1 ELSE
+        0 END", "At least one Dropout", lambda x: x > 0)'
+      sources:
+      - start_line: 47
+        end_line: 47
+        file: ''
+      - start_line: 51
+        end_line: 51
+        file: ''
+      uid: be752232-a863-4698-bd71-9db5420b164c
+    - text: 'For numerical stability of the logit transform, the ''Dropout'' proportion
+        in c37 should be bounded away from 0 and 1 (e.g., between 0.01 and 0.99).
+        We could represent this as two deequ constraints like these: .satisfies("CASE
+        WHEN c37 = ''Dropout'' THEN 1 ELSE 0 END", "Dropout share lower bound", lambda
+        x: x >= 0.01) and .satisfies("CASE WHEN c37 <> ''Dropout'' THEN 1 ELSE 0 END",
+        "Dropout share upper bound", lambda x: x >= 0.01)'
+      sources:
+      - start_line: 49
+        end_line: 51
+        file: ''
+      uid: c8c9ba50-bb11-4762-9911-b4e18f3115e7
+  c3:
+    code:
+    - suggestion: '.hasDataType(''c3'', ConstrainableDataTypes.Integral, lambda x:
+        x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c3'', ConstrainableDataTypes.Integral,
+        lambda x: x == 1.0)'
+      level: error
+      uid: c8ac0af9-6048-4c24-82f8-269b972e5a2f
+      source_assumptions:
+      - 091d0059-842f-45f6-812e-8a93e02cc12a
+    - suggestion: '.satisfies(''c3 = 1'', ''share_first_choice >= 0.60'', lambda x:
+        x >= 0.60)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: dadc4bfb-94b7-432e-bbc7-1d26ce245199
+      source_assumptions:
+      - 9f21087f-41a1-4de2-a795-9aeba6c2d549
+    - suggestion: '.satisfies(''c3 IN (1, 2, 3, 4, 5, 6)'', ''c3 in {1..6} >= 0.95'',
+        lambda x: x >= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 5fb13b80-0a75-4338-80b8-ba55d27b5c14
+      source_assumptions:
+      - 75b570bf-5a8f-4746-9cde-2ae173513d9a
+    - suggestion: .isComplete('c3')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: edd64d83-883d-4d41-8638-6b7d899e5924
+      source_assumptions:
+      - 1c767cb1-450e-47ef-ac98-efb099c36bf0
+    assumptions:
+    - text: 'The c3 column must be numeric (integer-coded) so that equality checks,
+        clipping, and arithmetic work without type errors. We could represent this
+        as: Deequ.hasDataType(''c3'', ConstrainableDataTypes.Integral) and/or Great
+        Expectations expect_column_values_to_be_in_type_list([''int64'', ''int32'']).'
+      sources:
+      - start_line: 60
+        end_line: 66
+        file: ''
+      - start_line: 22
+        end_line: 22
+        file: ''
+      uid: 091d0059-842f-45f6-812e-8a93e02cc12a
+    - text: 'At least 60% of rows should have c3 == 1 (first-choice share >= 0.60);
+        otherwise math.sqrt(val10 - 0.60) would be invalid. We could represent this
+        as: Deequ.satisfies("CASE WHEN c3 = 1 THEN 1 ELSE 0 END", "share_first_choice
+        >= 0.60", lambda x: x >= 0.60) or Great Expectations expect_column_proportion_of_unique_values_to_be_between
+        on a boolean derived column (c3 == 1) with min_value 0.60.'
+      sources:
+      - start_line: 61
+        end_line: 61
+        file: ''
+      - start_line: 64
+        end_line: 64
+        file: ''
+      - start_line: 129
+        end_line: 129
+        file: ''
+      uid: 9f21087f-41a1-4de2-a795-9aeba6c2d549
+    - text: 'At least 95% of c3 values should be in the set {1, 2, 3, 4, 5, 6}; otherwise
+        math.sqrt(val11 - 0.95) would be invalid. We could represent this as: Deequ.satisfies("CASE
+        WHEN c3 IN (1,2,3,4,5,6) THEN 1 ELSE 0 END", "c3_in_1_to_6 >= 0.95", lambda
+        x: x >= 0.95) or Great Expectations expect_column_values_to_be_in_set with
+        mostly >= 0.95.'
+      sources:
+      - start_line: 62
+        end_line: 62
+        file: ''
+      - start_line: 65
+        end_line: 65
+        file: ''
+      - start_line: 126
+        end_line: 126
+        file: ''
+      uid: 75b570bf-5a8f-4746-9cde-2ae173513d9a
+    - text: 'The c3 column should be non-null for all rows (or at least not produce
+        NaNs in arithmetic), since NaNs propagate through clip/np.where and lead to
+        NaN risk scores. We could represent this as: Deequ.completeness(''c3'') >=
+        1.0 or Great Expectations expect_column_values_to_not_be_null.'
+      sources:
+      - start_line: 60
+        end_line: 66
+        file: ''
+      - start_line: 126
+        end_line: 129
+        file: ''
+      uid: 1c767cb1-450e-47ef-ac98-efb099c36bf0
+  c5:
+    code:
+    - suggestion: .isComplete('c5')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a4352386-ccee-44ca-bef2-239b7e724b9f
+      source_assumptions:
+      - 6d22b92d-cfd8-453d-bc50-87b8ebfc4ec6
+    - suggestion: '.hasDataType(''c5'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c5'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: ae706d1f-0b92-44ac-bd53-40d8b8ff239e
+      source_assumptions:
+      - 8f3a367c-3348-4689-bed7-7720a9bae841
+    - suggestion: '.isContainedIn(''c5'', [0, 1], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c5', [0,\
+        \ 1], lambda x: x == 1.0)': An error occurred while calling None.None. Trace:\n\
+        py4j.Py4JException: Cannot convert java.lang.Integer to java.lang.String\n\
+        \tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\t\
+        at py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: e870b64b-1971-482c-bcec-87424c1408e7
+      source_assumptions:
+      - 6514ce50-64a6-4b0d-9b1d-5cd142e6bacb
+    assumptions:
+    - text: Column c5 must be complete (no nulls). The code does not handle missing
+        values and performs mean(), arithmetic (1 - c5), and float casting; any nulls
+        would propagate into risk5/score and into the diagnostics JSON.
+      sources:
+      - start_line: 54
+        end_line: 58
+        file: ''
+      - start_line: 129
+        end_line: 129
+        file: ''
+      - start_line: 173
+        end_line: 180
+        file: ''
+      uid: 6d22b92d-cfd8-453d-bc50-87b8ebfc4ec6
+    - text: Column c5 must be numeric (integer/boolean) so that mean() and the expression
+        (1 - c5) are valid. Non-numeric representations (e.g., strings) would raise
+        errors or produce invalid results. A suitable rule would be to ensure all
+        values are castable to numbers.
+      sources:
+      - start_line: 55
+        end_line: 55
+        file: ''
+      - start_line: 57
+        end_line: 57
+        file: ''
+      uid: 8f3a367c-3348-4689-bed7-7720a9bae841
+    - text: Column c5 should be a binary indicator with allowed values {0, 1}, where
+        1 denotes day students and 0 denotes evening students. This is implied by
+        using (1 - c5) as the nighttime factor and by the comment that nighttime students
+        (0) add more risk. This can be validated with a domain constraint that all
+        values are in {0,1}.
+      sources:
+      - start_line: 56
+        end_line: 56
+        file: ''
+      - start_line: 57
+        end_line: 57
+        file: ''
+      - start_line: 129
+        end_line: 129
+        file: ''
+      uid: 6514ce50-64a6-4b0d-9b1d-5cd142e6bacb
+  '["c16","c17"]':
+    code: []
+    assumptions:
+    - text: 'Both c16 (debtor flag) and c17 (fees up-to-date flag) are complete binary
+        indicators with values only in {0,1}. They are safe to cast to integers and
+        used in arithmetic such as (1 - c17). This can be captured with Deequ constraints
+        like: .hasCompleteness(''c16'', 1.0), .hasCompleteness(''c17'', 1.0), and
+        .satisfies(''(c16 IN (0,1)) AND (c17 IN (0,1))'', ''forall'').'
+      sources:
+      - start_line: 36
+        end_line: 37
+        file: ''
+      - start_line: 69
+        end_line: 70
+        file: ''
+      - start_line: 73
+        end_line: 73
+        file: ''
+      - start_line: 161
+        end_line: 161
+        file: ''
+      uid: a6c3faad-e32f-44fc-a3b3-3e0b1cb31f7d
+    - text: 'Scholarship discount applies only when the student is compliant (up-to-date).
+        Therefore, whenever c19 == 1 (has scholarship), c17 must be 1 (fees up-to-date).
+        Representable as a Deequ multi-column rule: .satisfies(''(c19 != 1) OR (c17
+        == 1)'', ''forall'').'
+      sources:
+      - start_line: 71
+        end_line: 74
+        file: ''
+      uid: 170f8c54-d505-4034-96df-10c8a6589585
+    - text: 'Urgent fee outreach depends on the joint state of c16 and c17: if c16
+        == 1 (debtor) and c17 == 0 (not up-to-date), then urgent_fee_flag must be
+        1 regardless of the risk score. This can be enforced on the output frame with:
+        .satisfies(''NOT ((c16 == 1) AND (c17 == 0)) OR (urgent_fee_flag == 1)'',
+        ''forall'').'
+      sources:
+      - start_line: 161
+        end_line: 166
+        file: ''
+      uid: 35292d50-ca74-454f-afeb-f614a14cd9a2
+  '["c16","c17","c19"]':
+    code: []
+    assumptions:
+    - text: 'c16, c17, and c19 are complete, binary indicator columns that must be
+        castable to integers and restricted to the domain {0,1} simultaneously. This
+        is required because the code performs arithmetic like (1 - c17) and uses these
+        fields in additive risk formulas. Suggested constraint: satisfies("(c16 IN
+        (0,1)) AND (c17 IN (0,1)) AND (c19 IN (0,1))", assertion=1.0).'
+      sources:
+      - start_line: 36
+        end_line: 38
+        file: ''
+      - start_line: 69
+        end_line: 74
+        file: ''
+      uid: 15deaf70-e406-4613-8d94-fdd908cbb8b6
+    - text: 'Debtor status (c16) and fee up-to-date status (c17) are intended to be
+        near-complements for most records; i.e., in the vast majority of rows, c16
+        + c17 = 1. This aligns with using (1 - c17) alongside c16 and with the urgent
+        flag rule keyed to (c16=1 and c17=0). Suggested constraint: satisfies("c16
+        + c17 = 1", name="debtor_vs_up_to_date_complement", assertedFraction >= 0.90).'
+      sources:
+      - start_line: 73
+        end_line: 73
+        file: ''
+      - start_line: 161
+        end_line: 161
+        file: ''
+      uid: c1c63ab2-dc7e-413c-9432-508a641b4c35
+    - text: 'Scholarship (c19=1) should coincide with being up-to-date on fees (c17=1)
+        in most cases, because the scholarship bonus is only applied under that condition.
+        The share of scholarship holders who are up-to-date should be high. Suggested
+        constraint: satisfies("c17 = 1", where="c19 = 1", name="scholarship_implies_up_to_date",
+        assertedFraction >= 0.85).'
+      sources:
+      - start_line: 74
+        end_line: 74
+        file: ''
+      - start_line: 132
+        end_line: 132
+        file: ''
+      uid: fab864c8-db24-4876-b8e8-07fd4c7f5d09
+    - text: 'Rows with (c16=1 and c17=0) represent delinquent fee cases and must be
+        consistently identifiable, as they trigger immediate outreach regardless of
+        the score. The conditional relationship should hold in most debtor rows. Suggested
+        constraint: satisfies("c17 = 0", where="c16 = 1", name="debtor_implies_not_up_to_date",
+        assertedFraction >= 0.90).'
+      sources:
+      - start_line: 161
+        end_line: 161
+        file: ''
+      - start_line: 73
+        end_line: 73
+        file: ''
+      uid: f2080a1e-3c19-46f5-a3e8-6eb3c092cbd0
+  '["c17","c19"]':
+    code: []
+    assumptions:
+    - text: 'Columns c17 and c19 are complete, numeric, and binary indicators sharing
+        the same domain {0,1}. This is required because the code performs arithmetic
+        with (1 - c17) and logical checks on both columns. We could represent this
+        as a Deequ constraint like: check.areComplete([''c17'',''c19'']).satisfies(''c17
+        IN (0,1) AND c19 IN (0,1)'', ''c17_c19_binary'', lambda c: c == 1.0).'
+      sources:
+      - start_line: 70
+        end_line: 74
+        file: ''
+      uid: 764fc57a-1693-4d1f-a0e9-ff81dcd9cdbc
+    - text: "There should be a non-trivial overlap between c19 = 1 and c17 = 1 so\
+        \ the scholarship moderation actually engages. Given the observed marginals\
+        \ (c19\u22480.251, c17\u22480.888), enforce that the share of rows with c19\
+        \ = 1 AND c17 = 1 lies within [0.15, 0.30]. As a Deequ-style constraint: check.satisfies('c19\
+        \ = 1 AND c17 = 1', 'scholarship_and_compliant_share', lambda compliance:\
+        \ 0.15 <= compliance <= 0.30)."
+      sources:
+      - start_line: 74
+        end_line: 74
+        file: ''
+      - start_line: 132
+        end_line: 132
+        file: ''
+      uid: cd73772e-cad5-4bf6-96fc-73f4ea9dd5f6
+  '["c22","c23"]':
+    code: []
+    assumptions:
+    - text: "Counts used to compute first\u2011semester rates must be internally consistent:\
+        \ approved (c25) and not_evaluated (c27) are non\u2011negative and cannot\
+        \ exceed evaluations (c23). This prevents clipped ratios (a1/e1, ne1/e1) from\
+        \ masking invalid data. In Deequ: .satisfies(\"c25 >= 0 AND c27 >= 0 AND c25\
+        \ <= c23 AND c27 <= c23\", \"counts_within_evaluations\")"
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: d76b9792-130b-4d37-9968-6317338846d2
+    - text: "When evaluations (c23) are zero, all dependent first\u2011semester counts\
+        \ must also be zero: approved (c25) = 0, not_evaluated (c27) = 0, and credited/related\
+        \ count (c22) = 0. Otherwise, the code\u2019s NaN\u21920 fallback would hide\
+        \ impossible positive numerators with a zero denominator. In Deequ: .satisfies(\"\
+        (c23 = 0 AND c25 = 0 AND c27 = 0 AND c22 = 0) OR (c23 > 0)\", \"no_positive_counts_when_zero_evaluations\"\
+        )"
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      uid: a2a16c79-8c6e-4894-8d37-5793f1ae2885
+    - text: "Credited/related first\u2011semester count (c22) should only be positive\
+        \ when evaluations (c23) are positive: if c22 > 0 then c23 > 0. This enforces\
+        \ basic consistency between related semester counts. In Deequ: .satisfies(\"\
+        (c22 <= 0) OR (c23 > 0)\", \"credited_implies_evaluations\")"
+      sources:
+      - start_line: 96
+        end_line: 98
+        file: ''
+      - start_line: 100
+        end_line: 102
+        file: ''
+      uid: a3c1b6f6-5196-4112-8a88-faa52c68d2d2
+  '["c22","c23","c25","c27"]':
+    code: []
+    assumptions:
+    - text: 'First-semester counts are coherent: c23 (enrolled) is the denominator
+        for both c25 (approved) and c27 (without evaluations). For every record: if
+        c23 > 0 then 0 <= c25 <= c23 and 0 <= c27 <= c23; if c23 = 0 then c25 = 0
+        and c27 = 0. This ensures the derived proportions (c25/c23 and c27/c23) are
+        true rates in [0,1] without relying on clipping/fillna. Deequ-style constraint:
+        Compliance(''enrolled_bounds_1st'', ''(c23 > 0 AND c25 >= 0 AND c25 <= c23
+        AND c27 >= 0 AND c27 <= c23) OR (c23 = 0 AND c25 = 0 AND c27 = 0)'')'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: b8d8d016-950f-49fd-bcea-8c5aa7c25304
+    - text: 'Mass conservation for first-semester outcome components: the sum of approved
+        and without evaluations cannot exceed enrolled. For each record, c25 + c27
+        <= c23; when c23 = 0, both c25 and c27 must be 0. Deequ-style constraint:
+        Compliance(''components_le_enrolled_1st'', ''(c25 + c27) <= c23 AND NOT (c23
+        = 0 AND (c25 <> 0 OR c27 <> 0))'')'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 96
+        end_line: 102
+        file: ''
+      uid: 88b1871f-0cbf-44fc-b563-d4cc1c9e8022
+    - text: 'Credits vs. enrollment consistency (1st semester): credited units c22
+        must not exceed enrolled units c23, and cannot be negative. If c23 = 0 then
+        c22 must be 0. Deequ-style constraint: Compliance(''credits_le_enrolled_1st'',
+        ''(c23 > 0 AND c22 >= 0 AND c22 <= c23) OR (c23 = 0 AND c22 = 0)'')'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 96
+        end_line: 99
+        file: ''
+      uid: 69a18320-7be7-43f3-acfa-ad7c83eec285
+  '["c23","c25"]':
+    code: []
+    assumptions:
+    - text: 'For each row with c23 > 0, the proportion c25/c23 must lie in [0, 1].
+        Practically, c25 must satisfy 0 <= c25 <= c23. This can be enforced as a Deequ
+        compliance constraint such as: Compliance(''c25_within_c23'', ''c23 > 0 =>
+        (c25 >= 0 AND c25 <= c23)'').'
+      sources:
+      - start_line: 96
+        end_line: 101
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 3e58735f-4493-452e-88a3-a625ea1f3023
+    - text: 'If c23 == 0 (no evaluations/denominator), then c25 must be 0 (no approvals).
+        This avoids undefined ratios being silently coerced to 0 by the fillna and
+        preserves semantic consistency. Deequ example: Compliance(''no_approvals_when_no_evals'',
+        ''CASE WHEN c23 = 0 THEN c25 = 0 ELSE true END'').'
+      sources:
+      - start_line: 100
+        end_line: 101
+        file: ''
+      uid: 3918bb6c-28bb-417d-9187-3548dc4e6e10
+    - text: 'The counts that share c23 as a common denominator should not jointly
+        exceed it: c25 + c27 <= c23 and both c25, c27 are non-negative. This reflects
+        that both rates (c25/c23 and c27/c23) are bounded by 1 and their sum cannot
+        exceed 1. Deequ example: Compliance(''approved_plus_noeval_le_eval'', ''c25
+        >= 0 AND c27 >= 0 AND c25 + c27 <= c23'').'
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 122
+        file: ''
+      uid: 29e71501-5351-4cb8-895a-4ac5565b2856
+  '["c23","c25","c27"]':
+    code: []
+    assumptions:
+    - text: 'Counts consistency across c23 (e1), c25 (a1), and c27 (ne1): For each
+        row, these three columns represent counts of the same unit and must be non-negative
+        integers with c25 <= c23 and c27 <= c23. This ensures the derived rates a1/e1
+        and ne1/e1 are naturally within [0,1] without relying on clipping. Suggested
+        Deequ constraints: .satisfies(''c23 >= 0 AND c25 >= 0 AND c27 >= 0'', ''non_negative_counts''),
+        .satisfies(''c25 <= c23 AND c27 <= c23'', ''numerators_not_exceeding_denominator'').'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 56fc1d57-3b78-4605-9063-4beb3a5d3121
+    - text: 'Zero-denominator coherence: If c23 (e1) is zero, then both c25 (a1) and
+        c27 (ne1) must be zero. This aligns with replacing e1==0 by NaN for division
+        and later filling NaNs with 0.0, implying that when there are zero evaluations,
+        the success and no-evaluation counts cannot be positive. Suggested Deequ constraint:
+        .satisfies(''CASE WHEN c23 = 0 THEN (c25 = 0 AND c27 = 0) ELSE true END'',
+        ''zero_denominator_implies_zero_numerators'').'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 100
+        end_line: 102
+        file: ''
+      uid: eff21d0f-37bc-469e-bc3c-d8425a188f13
+    - text: 'Mutual feasibility of partial counts: The combined counts of c25 (a1)
+        and c27 (ne1) must not exceed c23 (e1), i.e., c25 + c27 <= c23. This ensures
+        that the two partials correspond to disjoint subsets that are bounded by the
+        same total, preventing inflated rates even after clipping. Suggested Deequ
+        constraint: .satisfies(''c25 + c27 <= c23'', ''partials_do_not_exceed_total'').'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: e5758f57-96f4-4d45-a092-b2f95cef95e3
+  '["c23","c25","c27","c29","c31","c33"]':
+    code: []
+    assumptions:
+    - text: '1st-semester evaluation counts are coherent by row: c25 and c27 are component
+        counts bounded by the total evaluations c23. Specifically: for rows with c23
+        > 0, 0 <= c25 <= c23 and 0 <= c27 <= c23; for rows with c23 == 0, c25 == 0
+        and c27 == 0. This ensures the computed rates (c25/c23 and c27/c23) stay within
+        [0,1] without relying on clipping/fillna. Example Deequ compliance: hasCompliance("(c23
+        > 0 AND c25 BETWEEN 0 AND c23 AND c27 BETWEEN 0 AND c23) OR (c23 = 0 AND c25
+        = 0 AND c27 = 0)").'
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 3bdae3d1-2d4f-4cbf-9ce2-c72a28d6a84c
+    - text: '2nd-semester evaluation counts are coherent by row: c31 and c33 are component
+        counts bounded by the total evaluations c29. Specifically: for rows with c29
+        > 0, 0 <= c31 <= c29 and 0 <= c33 <= c29; for rows with c29 == 0, c31 == 0
+        and c33 == 0. This keeps the derived rates (c31/c29 and c33/c29) within [0,1]
+        without relying on clipping/fillna. Example Deequ compliance: hasCompliance("(c29
+        > 0 AND c31 BETWEEN 0 AND c29 AND c33 BETWEEN 0 AND c29) OR (c29 = 0 AND c31
+        = 0 AND c33 = 0)").'
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: fcc60c5a-caca-45c3-bef0-2964e19a3eab
+    - text: '1st-semester component-count sum does not exceed the total: c25 + c27
+        <= c23 for every row. This guards against component counts exceeding the total
+        when computing c25/c23 and c27/c23. Example Deequ compliance: hasCompliance("c25
+        + c27 <= c23").'
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 54ae0a68-f6d2-4da4-a50a-3099027aefc8
+    - text: '2nd-semester component-count sum does not exceed the total: c31 + c33
+        <= c29 for every row. This guards against component counts exceeding the total
+        when computing c31/c29 and c33/c29. Example Deequ compliance: hasCompliance("c31
+        + c33 <= c29").'
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 033fd226-54fb-4614-b56a-729b7e42ad11
+  '["c23","c27"]':
+    code: []
+    assumptions:
+    - text: 'Counts consistency (semester 1): ''c23'' is used as the denominator for
+        rates, while ''c27'' (no-evaluations) and ''c25'' (approvals) serve as numerators.
+        Therefore, per record: c23, c27, and c25 are non-negative, and c27 <= c23
+        and c25 <= c23. Example Deequ: .hasSatisfyingRows("c23 >= 0 AND c27 >= 0 AND
+        c25 >= 0 AND c27 <= c23 AND c25 <= c23", 1.0)'
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 48a61ff0-01f8-4173-a5a8-f0c8422b9157
+    - text: 'Zero-denominator rule: If c23 == 0 (no evaluations), then both c27 and
+        c25 must be 0 (no no-evaluations or approvals can occur without evaluations).
+        Example Deequ: .hasSatisfyingRows("CASE WHEN c23 = 0 THEN (c27 = 0 AND c25
+        = 0) ELSE TRUE END", 1.0)'
+      sources:
+      - start_line: 100
+        end_line: 102
+        file: ''
+      uid: cd81eeab-9b76-40de-8a8f-71733030e948
+    - text: 'Disjoint outcomes bound: No-evaluations and approvals are mutually exclusive
+        outcomes relative to the same denominator, so c25 + c27 must not exceed c23.
+        Example Deequ: .hasSatisfyingRows("c25 + c27 <= c23", 1.0)'
+      sources:
+      - start_line: 96
+        end_line: 102
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 11471225-819a-4a5c-a5f6-5c16fba3625d
+  '["c26","c32"]':
+    code: []
+    assumptions:
+    - text: "Columns 'c26' and 'c32' are numeric grades measured on the same 0\u2013\
+        20 scale for every record. This is implied by converting both to float and\
+        \ transforming them via (20 - grade) / 20 to produce components in [0,1].\
+        \ We could validate this with a multi-column constraint such as: .satisfies(\"\
+        c26 >= 0 AND c26 <= 20 AND c32 >= 0 AND c32 <= 20\", \"grades_in_0_20_range\"\
+        )."
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+      - start_line: 34
+        end_line: 34
+        file: ''
+      - start_line: 95
+        end_line: 95
+        file: ''
+      - start_line: 103
+        end_line: 103
+        file: ''
+      - start_line: 106
+        end_line: 106
+        file: ''
+      - start_line: 114
+        end_line: 114
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 0f42411c-8eab-4117-91cb-ba3cc6c92b73
+    - text: 'Both ''c26'' and ''c32'' must be simultaneously present (non-null) and
+        parsable as numeric for all rows, since they are cast to float and used in
+        arithmetic without null handling. This can be enforced as a joint completeness
+        check: .satisfies("c26 IS NOT NULL AND c32 IS NOT NULL", "both_grades_present").'
+      sources:
+      - start_line: 95
+        end_line: 95
+        file: ''
+      - start_line: 106
+        end_line: 106
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: a8fd93e9-18b4-48d2-9f9f-e2fb435f6079
+  '["c28","c29"]':
+    code: []
+    assumptions:
+    - text: 'Second-semester approved and not-evaluated counts must be bounded by
+        the total second-semester enrolled/evaluated count: enforce 0 <= c31 <= c29
+        and 0 <= c33 <= c29. This ensures the derived rates a2/e2 and ne2/e2 are naturally
+        in [0,1] without relying on clipping.'
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      uid: 8fc89241-f751-40ce-8eaf-f9bc59274c6e
+    - text: 'Zero-enrollment rows must not show approvals or no-evaluations: if c29
+        == 0 then c31 == 0 and c33 == 0. Conversely, any row with c31 > 0 or c33 >
+        0 must have c29 > 0.'
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      uid: 26858759-c842-4799-b059-3743c399c180
+    - text: 'Second-semester credited/related count c28 should be a non-negative integer
+        that does not exceed the total second-semester enrolled/evaluated count c29:
+        enforce 0 <= c28 <= c29.'
+      sources:
+      - start_line: 107
+        end_line: 109
+        file: ''
+      uid: 88cbe099-8280-447f-9679-90ed09e66a03
+  '["c28","c29","c31","c33"]':
+    code: []
+    assumptions:
+    - text: "For second\u2011semester metrics, when 'c29' (e2) > 0, both 'c31' (a2)\
+        \ and 'c33' (ne2) are bounded by the denominator: 0 <= c31 <= c29 and 0 <=\
+        \ c33 <= c29. Basis: the code forms rates a2/e2 and ne2/e2 and clips them\
+        \ to [0,1], implying numerators should not exceed the denominator when the\
+        \ denominator is positive. Deequ example: .where(\"c29 > 0\").satisfies(\"\
+        c31 >= 0 AND c31 <= c29 AND c33 >= 0 AND c33 <= c29\", \"a2_ne2_bounded_by_e2_when_positive\"\
+        )"
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: 9d611951-e827-401c-adeb-555be0a3fea3
+    - text: "Across all rows, the combined count of 'c31' (a2) and 'c33' (ne2) should\
+        \ not exceed 'c29' (e2): c31 + c33 <= c29. This keeps the two components from\
+        \ over\u2011counting beyond the total used as the denominator for both ratios.\
+        \ Deequ example: .satisfies(\"c31 + c33 <= c29\", \"a2_plus_ne2_le_e2\")"
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      uid: b24edbf4-eba3-44df-806a-cb0b6def9282
+    - text: 'If ''c29'' (e2) == 0, then both numerators are structural zeros: c31
+        == 0 AND c33 == 0. Rationale: the code replaces zero denominators with NaN
+        and then fillna(0) on the derived ratios; consistency requires the underlying
+        counts to be zero when no evaluations exist. Deequ example: .satisfies("(c29
+        = 0) => (c31 = 0 AND c33 = 0)", "no_numerators_when_denominator_zero")'
+      sources:
+      - start_line: 111
+        end_line: 113
+        file: ''
+      uid: b1dbb804-3e98-493a-85be-5adbfbe33b0e
+    - text: 'If either numerator is positive, the denominator must be positive: (c31
+        > 0 OR c33 > 0) => c29 > 0. This avoids undefined or masked ratios when numerators
+        exist but the denominator is zero. Deequ example: .satisfies("(c31 > 0 OR
+        c33 > 0) => (c29 > 0)", "positive_numerator_requires_positive_denominator")'
+      sources:
+      - start_line: 111
+        end_line: 113
+        file: ''
+      uid: 69b0e242-973a-4807-8e0c-5250cea83516
+    - text: "Within the second\u2011semester metric group, 'c28' (cr2) should not\
+        \ exceed the total used as denominator 'c29' (e2): c28 <= c29; and when c29\
+        \ == 0 then c28 == 0. This keeps the related count aligned with the total\
+        \ volume that anchors a2 and ne2. Deequ examples: .satisfies(\"c28 <= c29\"\
+        , \"cr2_le_e2\") and .satisfies(\"(c29 = 0) => (c28 = 0)\", \"cr2_zero_when_e2_zero\"\
+        )"
+      sources:
+      - start_line: 105
+        end_line: 110
+        file: ''
+      uid: 4c00fbb9-9c58-4e01-ac87-3d2f59d4b7cf
+  '["c29","c31"]':
+    code: []
+    assumptions:
+    - text: 'c31 (2nd-sem approved units) must be a subset of c29 (2nd-sem enrolled
+        units): both are non-negative counts and for every row 0 <= c31 <= c29. Additionally,
+        there cannot be approvals without enrollment (if c29 = 0 then c31 = 0). This
+        ensures the derived rate2 = c31 / c29 is well-defined and in [0,1] without
+        relying on clipping/fillna. Example Deequ constraints: .satisfies(''c31 >=
+        0 AND c29 >= 0 AND c31 <= c29'', ''approved_not_exceed_enrolled'') and .satisfies(''CASE
+        WHEN c29 = 0 THEN c31 = 0 ELSE TRUE END'', ''no_approvals_without_enrollment'').'
+      sources:
+      - start_line: 30
+        end_line: 31
+        file: ''
+      - start_line: 107
+        end_line: 113
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: e27a674a-b8cb-45f4-b42c-e5387ae8f2cf
+    - text: 'If all enrolled units are approved in 2nd semester (c31 = c29 > 0), then
+        the 2nd-sem ''not evaluated'' count (c33) must be zero; equivalently, if c33
+        > 0 then c31 < c29. This keeps rate2 = c31/c29 and ratio2 = c33/c29 logically
+        consistent. Example Deequ constraint: .satisfies(''CASE WHEN c29 = c31 AND
+        c29 > 0 THEN c33 = 0 ELSE TRUE END'', ''no_not_evaluated_when_all_approved'').'
+      sources:
+      - start_line: 30
+        end_line: 31
+        file: ''
+      - start_line: 110
+        end_line: 113
+        file: ''
+      uid: d95f0b0c-7ff8-451f-a028-ad841adad3b7
+  '["c29","c31","c33"]':
+    code: []
+    assumptions:
+    - text: "Second\u2011semester approved counts (c31) and no\u2011evaluation counts\
+        \ (c33) are bounded by the second\u2011semester total evaluations (c29) for\
+        \ each record. In other words, c31 <= c29 and c33 <= c29. We could represent\
+        \ this as a Deequ constraint like: .forAllRows(\"c31 <= c29 and c33 <= c29\"\
+        )."
+      sources:
+      - start_line: 30
+        end_line: 33
+        file: ''
+      - start_line: 107
+        end_line: 113
+        file: ''
+      uid: f0b6c7e2-3b87-42b3-9473-ea6f2a750a0a
+    - text: "If the total evaluations for the second semester is zero (c29 == 0),\
+        \ then both approved (c31) and no\u2011evaluation (c33) counts must be zero\
+        \ for that record. This prevents logically inconsistent states (e.g., approvals\
+        \ with zero evaluations) that are currently masked by replacing 0 denominators\
+        \ with NaN and filling with 0. We could represent this as a Deequ constraint\
+        \ like: .forAllRows(\"(c29 != 0) or (c31 == 0 and c33 == 0)\")."
+      sources:
+      - start_line: 30
+        end_line: 33
+        file: ''
+      - start_line: 111
+        end_line: 113
+        file: ''
+      uid: 767c4f7e-2f70-4f04-a01c-5dee216832b8
+    - text: "When the denominator is positive (c29 > 0), the derived second\u2011\
+        semester rates must be valid proportions: c31 / c29 <= 1.0 and c33 / c29 <=\
+        \ 1.0. This follows from the expectation that both are sub\u2011counts of\
+        \ the same total. We could represent this as a Deequ constraint like: .forAllRows(\"\
+        (c29 <= 0) or ((c31 / c29) <= 1.0 and (c33 / c29) <= 1.0)\")."
+      sources:
+      - start_line: 30
+        end_line: 33
+        file: ''
+      - start_line: 107
+        end_line: 113
+        file: ''
+      uid: 3e21d808-d02a-41a4-98d7-51bf8ecfa04c
+    - text: "The combined second\u2011semester sub\u2011counts do not exceed the total:\
+        \ approved plus no\u2011evaluation is at most total evaluations, i.e., c31\
+        \ + c33 <= c29. This enforces cross\u2011category consistency for counts derived\
+        \ from the same term. We could represent this as a Deequ constraint like:\
+        \ .forAllRows(\"c31 + c33 <= c29\")."
+      sources:
+      - start_line: 30
+        end_line: 33
+        file: ''
+      - start_line: 107
+        end_line: 113
+        file: ''
+      uid: 29d7a9f7-6045-44b1-9559-09157c704069
+  '["c29","c33"]':
+    code: []
+    assumptions:
+    - text: 'Non-negativity and dominance: The 2nd-semester ''no evaluations'' count
+        (c33) must be between 0 and the total evaluations count (c29) for every row
+        (0 <= c33 <= c29). This ensures the computed ratio c33/c29 is naturally within
+        [0,1] without relying on clipping. Example Deequ: Compliance(''c33_leq_c29_and_nonneg'',
+        ''c29 >= 0 AND c33 >= 0 AND c33 <= c29'').'
+      sources:
+      - start_line: 107
+        end_line: 113
+        file: ''
+      - start_line: 121
+        end_line: 123
+        file: ''
+      uid: a90cc010-df0a-4bd2-b3e0-5340d0080b6f
+    - text: 'Zero-denominator consistency: If the 2nd-semester evaluations count (c29)
+        is zero, then ''no evaluations'' (c33) must also be zero; equivalently, any
+        row with c33 > 0 must have c29 > 0. This prevents undefined or misleading
+        ratios when e2 is replaced with NaN for zeros. Example Deequ: Compliance(''zero_e2_implies_zero_ne2'',
+        ''NOT (c29 = 0 AND c33 > 0)'').'
+      sources:
+      - start_line: 111
+        end_line: 113
+        file: ''
+      uid: 1c9c44e4-16c1-42e0-881a-0dcb05d77b3f
+    - text: 'Sparsity of no-evaluations relative to evaluations: Among rows with a
+        positive evaluations count (c29 > 0), at least 90% should have c33 = 0. This
+        aligns with the later sqrt-based scaling that assumes very sparse ''no evaluations''
+        and avoids taking the square root of a negative number. Example Deequ: where(''c29
+        > 0'').hasCompliance(''ne2_zero_given_e2_positive'', ''c33 = 0'', lowerBound=0.90).'
+      sources:
+      - start_line: 107
+        end_line: 107
+        file: ''
+      - start_line: 117
+        end_line: 118
+        file: ''
+      - start_line: 135
+        end_line: 135
+        file: ''
+      uid: c21a71a0-5bfb-4417-9207-d6afcdaa9580
+  '["c3","c5"]':
+    code: []
+    assumptions:
+    - text: 'Both c5 (attendance) and c3 (application order) must be present (non-null)
+        for every row because they are used directly in arithmetic, in dataset-level
+        scaling that mixes both columns (risk5), and are exported together. This can
+        be enforced as a multi-column completeness constraint such as: .satisfies(''c5
+        IS NOT NULL AND c3 IS NOT NULL'', ''=='', 1.0).'
+      sources:
+      - start_line: 54
+        end_line: 57
+        file: ''
+      - start_line: 60
+        end_line: 66
+        file: ''
+      - start_line: 126
+        end_line: 129
+        file: ''
+      - start_line: 163
+        end_line: 166
+        file: ''
+      uid: 3ad6aa0a-36b4-4ad2-824d-bfcdeb9a82a9
+    - text: 'Joint domain assumption: c5 is a binary indicator in {0,1} and c3 is
+        an integer application-rank that should mostly fall within [1,6]. The code
+        treats c3=1 specially and normalizes (c3-1)/5.0, which assumes c3 in 1..6
+        for the vast majority of rows; values beyond 6 are tolerated only as rare
+        outliers. Enforce a combined predicate with high compliance, for example:
+        .satisfies(''(c5 IN (0,1)) AND (c3 >= 1 AND c3 <= 6)'', ''>='', 0.95).'
+      sources:
+      - start_line: 54
+        end_line: 57
+        file: ''
+      - start_line: 60
+        end_line: 66
+        file: ''
+      - start_line: 126
+        end_line: 126
+        file: ''
+      - start_line: 129
+        end_line: 129
+        file: ''
+      - start_line: 163
+        end_line: 166
+        file: ''
+      uid: efb26aae-50e9-482d-a945-89db79fe5b64
+    - text: 'Cross-column scaling assumption for risk5 and risk4: since risk5 multiplies
+        (1 - c5) by a factor derived from the dataset-level share of c3==1, and risk4
+        uses a factor derived from the share of c3 in [1..6], the following dataset-level
+        conditions must hold to avoid invalid sqrt() inputs and NaNs: share(c3 ==
+        1) >= 0.60 and share(c3 IN [1..6]) >= 0.95. These can be expressed as compliance
+        constraints such as: .hasCompliance(''c3_eq_1_share'', ''c3 = 1'', greaterThanOrEqualTo
+        = 0.60) and .hasCompliance(''c3_in_1_to_6_share'', ''c3 >= 1 AND c3 <= 6'',
+        greaterThanOrEqualTo = 0.95).'
+      sources:
+      - start_line: 60
+        end_line: 66
+        file: ''
+      - start_line: 126
+        end_line: 129
+        file: ''
+      uid: 70aa5d90-ccc2-4d7c-9378-d104ec2734a8
+  '["c34","c35","c36"]':
+    code: []
+    assumptions:
+    - text: "The macroeconomic triplet (c36, c34, c35) must be jointly complete and\
+        \ each value must belong to the fixed enumerations hard-coded in the script\
+        \ so that the dictionary mappings return valid integer ranks for every row\
+        \ and risk2 can be computed. Concretely: c36 \u2208 {-4.06, -3.12, -1.7, -0.92,\
+        \ 0.32, 0.79, 1.74, 1.79, 2.02, 3.51}, c34 \u2208 {7.6, 8.9, 9.4, 10.8, 11.1,\
+        \ 12.4, 12.7, 13.9, 15.5, 16.2}, c35 \u2208 {-0.8, -0.3, 0.3, 0.5, 0.6, 1.4,\
+        \ 2.6, 2.8, 3.7}. This can be enforced as a single multi-column compliance\
+        \ constraint (e.g., in Deequ): .isCompliance(\"c36 IN (-4.06,-3.12,-1.7,-0.92,0.32,0.79,1.74,1.79,2.02,3.51)\
+        \ AND c34 IN (7.6,8.9,9.4,10.8,11.1,12.4,12.7,13.9,15.5,16.2) AND c35 IN (-0.8,-0.3,0.3,0.5,0.6,1.4,2.6,2.8,3.7)\"\
+        , 1.0)."
+      sources:
+      - start_line: 40
+        end_line: 42
+        file: ''
+      - start_line: 77
+        end_line: 83
+        file: ''
+      - start_line: 85
+        end_line: 87
+        file: ''
+      - start_line: 90
+        end_line: 92
+        file: ''
+      uid: 3f5e1b58-b483-4c1c-83eb-caf6660607ce
+    - text: 'The enumerated macro domains are intended to be exhaustive for the dataset:
+        c34 should have exactly 10 distinct values, c35 exactly 9, and c36 exactly
+        10 (matching the lengths of their respective enumerations). This ensures stable
+        ordinal indexing and normalization by (len - 1). This can be represented as
+        a set of constraints verified together: .hasNumberOfDistinctValues("c34",
+        equalTo=10), .hasNumberOfDistinctValues("c35", equalTo=9), .hasNumberOfDistinctValues("c36",
+        equalTo=10).'
+      sources:
+      - start_line: 77
+        end_line: 79
+        file: ''
+      - start_line: 81
+        end_line: 83
+        file: ''
+      - start_line: 85
+        end_line: 87
+        file: ''
+      uid: 8e7ac7b0-95ea-4560-8bfc-68b880c18abc
+    - text: "The ordinal rank mapping derived from (c36, c34, c35) must be fully defined\
+        \ and within bounds for every row: after mapping, val16 \u2208 [0, 9], val17\
+        \ \u2208 [0, 9], val18 \u2208 [0, 8], implying the normalized ranks val16/(10-1),\
+        \ val17/(10-1), val18/(9-1) are all within [0, 1]. This can be enforced as\
+        \ a multi-column compliance check that reconstructs the indices via CASE/WHEN\
+        \ over the three columns and asserts each derived rank is between 0 and 1\
+        \ (no nulls)."
+      sources:
+      - start_line: 77
+        end_line: 83
+        file: ''
+      - start_line: 85
+        end_line: 87
+        file: ''
+      - start_line: 90
+        end_line: 92
+        file: ''
+      uid: 8dcaa94b-2d51-4d9e-815e-a56a636f7b53
+column_data_flow_locations:
+  '["c23","c25"]':
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 96
+    end_line: 97
+    file: ''
+  - start_line: 99
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 150
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c23","c27"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''
+  - start_line: 27
+    end_line: 27
+    file: ''
+  - start_line: 96
+    end_line: 96
+    file: ''
+  - start_line: 99
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c22","c23"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  - start_line: 96
+    end_line: 96
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 100
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c23","c25","c27"]':
+  - start_line: 24
+    end_line: 24
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  - start_line: 27
+    end_line: 27
+    file: ''
+  - start_line: 96
+    end_line: 97
+    file: ''
+  - start_line: 99
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c22","c23","c25","c27"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 24
+    end_line: 27
+    file: ''
+  - start_line: 96
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c29","c31"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 31
+    file: ''
+  - start_line: 107
+    end_line: 113
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c29","c33"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 107
+    end_line: 107
+    file: ''
+  - start_line: 110
+    end_line: 113
+    file: ''
+  - start_line: 117
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c28","c29"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  - start_line: 107
+    end_line: 107
+    file: ''
+  - start_line: 109
+    end_line: 109
+    file: ''
+  - start_line: 111
+    end_line: 113
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c29","c31","c33"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 31
+    end_line: 31
+    file: ''
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 107
+    end_line: 113
+    file: ''
+  - start_line: 117
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c28","c29","c31","c33"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 33
+    file: ''
+  - start_line: 107
+    end_line: 113
+    file: ''
+  - start_line: 117
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 170
+    file: ''
+  '["c16","c17"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 36
+    end_line: 37
+    file: ''
+  - start_line: 69
+    end_line: 70
+    file: ''
+  - start_line: 73
+    end_line: 74
+    file: ''
+  - start_line: 132
+    end_line: 132
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c17","c19"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 37
+    end_line: 38
+    file: ''
+  - start_line: 70
+    end_line: 74
+    file: ''
+  - start_line: 132
+    end_line: 132
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c16","c17","c19"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 36
+    end_line: 38
+    file: ''
+  - start_line: 69
+    end_line: 74
+    file: ''
+  - start_line: 132
+    end_line: 132
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 166
+    file: ''
+  - start_line: 168
+    end_line: 170
+    file: ''
+  '["c34","c35","c36"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 40
+    end_line: 42
+    file: ''
+  - start_line: 77
+    end_line: 83
+    file: ''
+  - start_line: 85
+    end_line: 87
+    file: ''
+  - start_line: 90
+    end_line: 92
+    file: ''
+  - start_line: 116
+    end_line: 119
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 152
+    end_line: 153
+    file: ''
+  - start_line: 156
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 170
+    file: ''
+  '["c3","c5"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 21
+    end_line: 22
+    file: ''
+  - start_line: 54
+    end_line: 55
+    file: ''
+  - start_line: 57
+    end_line: 57
+    file: ''
+  - start_line: 60
+    end_line: 62
+    file: ''
+  - start_line: 64
+    end_line: 66
+    file: ''
+  - start_line: 126
+    end_line: 126
+    file: ''
+  - start_line: 129
+    end_line: 129
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 152
+    end_line: 153
+    file: ''
+  - start_line: 156
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 169
+    end_line: 170
+    file: ''
+  - start_line: 173
+    end_line: 180
+    file: ''
+  '["c23","c25","c27","c29","c31","c33"]':
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 24
+    end_line: 27
+    file: ''
+  - start_line: 30
+    end_line: 33
+    file: ''
+  - start_line: 96
+    end_line: 102
+    file: ''
+  - start_line: 107
+    end_line: 113
+    file: ''
+  - start_line: 117
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  '["c26","c32"]':
+  - start_line: 28
+    end_line: 28
+    file: ''
+  - start_line: 34
+    end_line: 34
+    file: ''
+  - start_line: 95
+    end_line: 95
+    file: ''
+  - start_line: 103
+    end_line: 103
+    file: ''
+  - start_line: 106
+    end_line: 106
+    file: ''
+  - start_line: 114
+    end_line: 114
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 156
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 168
+    end_line: 170
+    file: ''
+  c37:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 45
+    end_line: 48
+    file: ''
+  - start_line: 51
+    end_line: 51
+    file: ''
+  - start_line: 152
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  - start_line: 177
+    end_line: 177
+    file: ''
+  - start_line: 180
+    end_line: 180
+    file: ''
+  c5:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 54
+    end_line: 55
+    file: ''
+  - start_line: 57
+    end_line: 58
+    file: ''
+  - start_line: 129
+    end_line: 129
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  - start_line: 173
+    end_line: 178
+    file: ''
+  - start_line: 179
+    end_line: 180
+    file: ''
+  c3:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 22
+    end_line: 22
+    file: ''
+  - start_line: 60
+    end_line: 62
+    file: ''
+  - start_line: 64
+    end_line: 66
+    file: ''
+  - start_line: 126
+    end_line: 126
+    file: ''
+  - start_line: 129
+    end_line: 129
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 152
+    end_line: 153
+    file: ''
+  - start_line: 156
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 169
+    end_line: 170
+    file: ''
+  - start_line: 173
+    end_line: 178
+    file: ''
+  - start_line: 179
+    end_line: 180
+    file: ''
+  c16:
+  - start_line: 69
+    end_line: 69
+    file: ''
+  - start_line: 73
+    end_line: 73
+    file: ''
+  - start_line: 132
+    end_line: 132
+    file: ''
+  - start_line: 144
+    end_line: 144
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c17:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 73
+    end_line: 74
+    file: ''
+  - start_line: 132
+    end_line: 132
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c19:
+  - start_line: 38
+    end_line: 38
+    file: ''
+  - start_line: 71
+    end_line: 71
+    file: ''
+  - start_line: 74
+    end_line: 74
+    file: ''
+  - start_line: 132
+    end_line: 132
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c36:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 85
+    end_line: 85
+    file: ''
+  - start_line: 90
+    end_line: 92
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 165
+    end_line: 167
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c34:
+  - start_line: 86
+    end_line: 86
+    file: ''
+  - start_line: 90
+    end_line: 92
+    file: ''
+  - start_line: 136
+    end_line: 136
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c35:
+  - start_line: 87
+    end_line: 87
+    file: ''
+  - start_line: 90
+    end_line: 92
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c26:
+  - start_line: 28
+    end_line: 28
+    file: ''
+  - start_line: 95
+    end_line: 95
+    file: ''
+  - start_line: 103
+    end_line: 103
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 170
+    file: ''
+  c23:
+  - start_line: 96
+    end_line: 96
+    file: ''
+  - start_line: 100
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 150
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 163
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c25:
+  - start_line: 97
+    end_line: 97
+    file: ''
+  - start_line: 101
+    end_line: 101
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  - start_line: 123
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c22:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  c27:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 99
+    end_line: 99
+    file: ''
+  - start_line: 102
+    end_line: 102
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c32:
+  - start_line: 34
+    end_line: 34
+    file: ''
+  - start_line: 106
+    end_line: 106
+    file: ''
+  - start_line: 114
+    end_line: 114
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c29:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 30
+    end_line: 30
+    file: ''
+  - start_line: 107
+    end_line: 107
+    file: ''
+  - start_line: 111
+    end_line: 113
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 163
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c31:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 108
+    end_line: 108
+    file: ''
+  - start_line: 112
+    end_line: 112
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c28:
+  - start_line: 109
+    end_line: 109
+    file: ''
+  c33:
+  - start_line: 17
+    end_line: 17
+    file: ''
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 110
+    end_line: 110
+    file: ''
+  - start_line: 113
+    end_line: 113
+    file: ''
+  - start_line: 117
+    end_line: 118
+    file: ''
+  - start_line: 121
+    end_line: 123
+    file: ''
+  - start_line: 135
+    end_line: 135
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+  c20:
+  - start_line: 138
+    end_line: 139
+    file: ''
+  - start_line: 142
+    end_line: 149
+    file: ''
+  - start_line: 153
+    end_line: 153
+    file: ''
+  - start_line: 158
+    end_line: 158
+    file: ''
+  - start_line: 161
+    end_line: 161
+    file: ''
+  - start_line: 164
+    end_line: 166
+    file: ''
+  - start_line: 170
+    end_line: 170
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.014012499999999999
+    total_tokens: 10371
+    prompt_tokens: 9346
+    completion_tokens: 1025
+  data_flow_inspection:
+    cost: 0.9950289999999999
+    total_tokens: 162600
+    prompt_tokens: 68260
+    completion_tokens: 94340
+  column_correlation_discovery:
+    cost: 0.07938125000000001
+    total_tokens: 12433
+    prompt_tokens: 5137
+    completion_tokens: 7296
+  multi_column_data_flow_inspection:
+    cost: 0.69200275
+    total_tokens: 122678
+    prompt_tokens: 60887
+    completion_tokens: 61791
+  multi_column_assumption_generation:
+    cost: 1.00959125
+    total_tokens: 161629
+    prompt_tokens: 69337
+    completion_tokens: 92292
+  multi_column_code_generation:
+    cost: 0.5770937500000001
+    total_tokens: 142902
+    prompt_tokens: 93907
+    completion_tokens: 48995
+  single_column_assumption_generation:
+    cost: 1.0092787499999998
+    total_tokens: 179558
+    prompt_tokens: 89863
+    completion_tokens: 89695
+  single_column_code_generation:
+    cost: 0.6856457499999999
+    total_tokens: 204079
+    prompt_tokens: 146859
+    completion_tokens: 57220

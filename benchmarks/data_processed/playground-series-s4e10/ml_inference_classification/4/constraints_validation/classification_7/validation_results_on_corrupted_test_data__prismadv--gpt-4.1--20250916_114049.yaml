@@ -1,0 +1,73 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: '.hasCompleteness(''loan_int_rate'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: false
+      reason_if_failed: 'Constraint ''.isComplete(''loan_grade'')'' failed on data
+        sample: Value: 0.9000227350233034 does not meet the constraint requirement!'
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isPositive('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_default_on_file","loan_grade"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_grade'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_grade'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'' failed on data sample: Value: 0.9000227350233034 does
+        not meet the constraint requirement!'
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_int_rate'', ''loan_grade''],
+        lambda x: x == 1.0)'' failed on data sample: Value: 0.9000227350233034 does
+        not meet the constraint requirement!'
+      level: error
+    - suggestion: .satisfies("loan_grade IN ('A', 'B', 'C', 'D', 'E', 'F', 'G')",
+        "Loan grade in known categories")
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies("loan_grade IN (''A'', ''B'', ''C'',
+        ''D'', ''E'', ''F'', ''G'')", "Loan grade in known categories")'' failed on
+        data sample: Value: 0.9000227350233034 does not meet the constraint requirement!'
+      level: error

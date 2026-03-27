@@ -1,0 +1,176 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['OTHER', 'OWN', 'MORTGAGE',
+        'RENT'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: false
+      reason_if_failed: 'Constraint ''.isComplete(''loan_grade'')'' failed on data
+        sample: Value: 0.9000227350233034 does not meet the constraint requirement!'
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_intent:
+    code:
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isComplete('loan_intent')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  ? '["cb_person_cred_hist_length","loan_amnt","loan_int_rate","loan_percent_income","person_age","person_emp_length","person_income"]'
+  : code:
+    - suggestion: '.haveCompleteness([''person_age'', ''person_income'', ''person_emp_length'',
+        ''loan_amnt'', ''loan_int_rate'', ''loan_percent_income'', ''cb_person_cred_hist_length''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN person_age IS NOT NULL AND person_income
+        IS NOT NULL AND person_emp_length IS NOT NULL AND loan_amnt IS NOT NULL AND
+        loan_int_rate IS NOT NULL AND loan_percent_income IS NOT NULL AND cb_person_cred_hist_length
+        IS NOT NULL THEN 1 ELSE 0 END", "Complete Numerical Columns", lambda x: x
+        == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveAnyCompleteness([''person_home_ownership'', ''loan_intent'',
+        ''loan_grade'', ''cb_person_default_on_file''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership IS NOT NULL AND loan_intent
+        IS NOT NULL AND loan_grade IS NOT NULL AND cb_person_default_on_file IS NOT
+        NULL THEN 1 ELSE 0 END", "Complete Categorical Columns", lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies("CASE WHEN person_home_ownership
+        IS NOT NULL AND loan_intent IS NOT NULL AND loan_grade IS NOT NULL AND cb_person_default_on_file
+        IS NOT NULL THEN 1 ELSE 0 END", "Complete Categorical Columns", lambda x:
+        x == 1.0)'' failed on data sample: Value: 0.9000227350233034 does not meet
+        the constraint requirement!'
+      level: error
+    - suggestion: '.satisfies("CASE WHEN person_age IS NOT NULL AND person_income
+        IS NOT NULL AND person_emp_length IS NOT NULL AND loan_amnt IS NOT NULL AND
+        loan_int_rate IS NOT NULL AND loan_percent_income IS NOT NULL AND cb_person_cred_hist_length
+        IS NOT NULL AND person_home_ownership IS NOT NULL AND loan_intent IS NOT NULL
+        AND loan_grade IS NOT NULL AND cb_person_default_on_file IS NOT NULL THEN
+        1 ELSE 0 END", "Complete and Consistent Feature Set", lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies("CASE WHEN person_age IS NOT NULL
+        AND person_income IS NOT NULL AND person_emp_length IS NOT NULL AND loan_amnt
+        IS NOT NULL AND loan_int_rate IS NOT NULL AND loan_percent_income IS NOT NULL
+        AND cb_person_cred_hist_length IS NOT NULL AND person_home_ownership IS NOT
+        NULL AND loan_intent IS NOT NULL AND loan_grade IS NOT NULL AND cb_person_default_on_file
+        IS NOT NULL THEN 1 ELSE 0 END", "Complete and Consistent Feature Set", lambda
+        x: x == 1.0)'' failed on data sample: Value: 0.9000227350233034 does not meet
+        the constraint requirement!'
+      level: error
+  '["cb_person_default_on_file","loan_grade","loan_intent","person_home_ownership"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_home_ownership'', ''loan_intent'',
+        ''loan_grade'', ''cb_person_default_on_file''], lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''person_home_ownership'',
+        ''loan_intent'', ''loan_grade'', ''cb_person_default_on_file''], lambda x:
+        x == 1.0)'' failed on data sample: Value: 0.9000227350233034 does not meet
+        the constraint requirement!'
+      level: error
+    - suggestion: .satisfies('person_home_ownership IN ("OTHER", "OWN", "MORTGAGE",
+        "RENT") AND loan_grade IN ("A", "B", "C", "D", "E", "F", "G") AND loan_intent
+        IN ("EDUCATION", "HOMEIMPROVEMENT", "PERSONAL", "DEBTCONSOLIDATION", "MEDICAL",
+        "VENTURE") AND cb_person_default_on_file IN ("Y", "N")', 'Check for unseen
+        categories')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''person_home_ownership IN ("OTHER",
+        "OWN", "MORTGAGE", "RENT") AND loan_grade IN ("A", "B", "C", "D", "E", "F",
+        "G") AND loan_intent IN ("EDUCATION", "HOMEIMPROVEMENT", "PERSONAL", "DEBTCONSOLIDATION",
+        "MEDICAL", "VENTURE") AND cb_person_default_on_file IN ("Y", "N")'', ''Check
+        for unseen categories'')'' failed on data sample: Value: 0.9000227350233034
+        does not meet the constraint requirement!'
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","loan_percent_income","person_income"]':
+    code:
+    - suggestion: '.satisfies(''ABS(`loan_percent_income` - `loan_amnt` / `person_income`)
+        < 0.01'', ''Loan Percent Income Validation'', lambda x: x >= 0.95)'
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''ABS(`loan_percent_income` - `loan_amnt`
+        / `person_income`) < 0.01'', ''Loan Percent Income Validation'', lambda x:
+        x >= 0.95)'' failed on data sample: Value: 0.673866090712743 does not meet
+        the constraint requirement!'
+      level: warning

@@ -1,0 +1,186 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: '.hasDataType("loan_amnt", ConstrainableDataTypes.Numeric, lambda
+        x: x == 1)'
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness("loan_amnt", lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.isPositive("loan_amnt", lambda x: x == 1)'
+      validity: true
+      level: warning
+    - suggestion: '.hasDataType("loan_amnt", ConstrainableDataTypes.Integral, lambda
+        x: x == 1)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The loan_amnt column must exist and be numeric so AVG(loan_amnt) can
+        execute without type errors. This can be enforced with a data type check,
+        for example: Deequ: .hasDataType("loan_amnt", ConstrainableDataTypes.Numeric)
+        or .hasDataType("loan_amnt", ConstrainableDataTypes.Integral); Great Expectations:
+        expect_column_values_to_be_in_type_list with ["IntegerType", "LongType", "FloatType",
+        "DoubleType", "DecimalType"].'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'loan_amnt should be highly complete (non-null) so the average is representative;
+        require at least 99% non-null values. Deequ: .hasCompleteness("loan_amnt",
+        lambda x: x >= 0.99); Great Expectations: expect_column_values_to_not_be_null
+        with mostly >= 0.99.'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'loan_amnt values should be strictly positive (> 0), as loan amounts are
+        non-negative monetary amounts and zeros/negatives would distort the average.
+        Deequ: .satisfies("CASE WHEN loan_amnt > 0 THEN 1 ELSE 0 END", "Positive loan
+        amounts", lambda x: x == 1); Great Expectations: expect_column_values_to_be_between(min_value=0,
+        strict_min=true).'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'loan_amnt should be whole-dollar amounts (no fractional cents), consistent
+        with the current dataset being Integral. Deequ: .satisfies("CASE WHEN loan_amnt
+        = CAST(loan_amnt AS BIGINT) THEN 1 ELSE 0 END", "Whole-dollar loan amounts",
+        lambda x: x == 1); Great Expectations: expect_column_values_to_match_regex_list
+        with a pattern for integers or expect_column_values_to_be_of_type("IntegerType").'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: warning
+    - suggestion: '.isContainedIn(''loan_grade'', [''A'',''B'',''C'',''D'',''E'',''F'',''G''],
+        lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasPattern(''loan_grade'', ''^[A-G]$'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The loan_grade column should be complete (no NULLs), since it is used
+        as a grouping and ordering key; NULLs would create separate NULL buckets and
+        make the segmentation less meaningful. We could represent this as a deequ
+        constraint like: .isComplete(''loan_grade'')'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 16
+        end_line: 16
+        file: ''
+    - text: 'The loan_grade column should only contain the known credit grades {''A'',''B'',''C'',''D'',''E'',''F'',''G''}
+        to ensure consistent grouping and ordering. We could represent this as a deequ
+        constraint like: .satisfies(''CASE WHEN loan_grade IN (\''A\'',\''B\'',\''C\'',\''D\'',\''E\'',\''F\'',\''G\'')
+        THEN 1 ELSE 0 END'', ''Valid Loan Grades'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 16
+        end_line: 16
+        file: ''
+    - text: 'The loan_grade values should be normalized: single-character, uppercase,
+        and without leading/trailing whitespace (e.g., matches the regex ^[A-G]$).
+        This avoids accidental separate groups caused by casing or whitespace differences.
+        We could represent this as a deequ constraint like: .satisfies(''CASE WHEN
+        loan_grade = UPPER(TRIM(loan_grade)) AND length(TRIM(loan_grade)) = 1 AND
+        TRIM(loan_grade) REGEXP \''^[A-G]$\'' THEN 1 ELSE 0 END'', ''Normalized Loan
+        Grade'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 16
+        end_line: 16
+        file: ''
+  person_income:
+    code:
+    - suggestion: '.hasDataType("person_income", ConstrainableDataTypes.Numeric, lambda
+        x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isComplete("person_income")
+      validity: true
+      level: warning
+    - suggestion: '.isNonNegative("person_income", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The person_income column must be non-null for all rows; otherwise NULLs
+        will fall into the ELSE branch and be labeled as ''High Income'', biasing
+        the segmentation. We could represent this as a deequ constraint like: .isComplete("person_income")
+        or .satisfies("CASE WHEN person_income IS NOT NULL THEN 1 ELSE 0 END", "person_income
+        completeness", lambda x: x == 1.0).'
+      sources:
+      - start_line: 2
+        end_line: 6
+        file: ''
+    - text: 'The person_income column must be stored as a numeric type (integer or
+        decimal) so that the < and BETWEEN comparisons execute as numeric comparisons
+        without implicit casts or errors. We could represent this as a deequ constraint
+        like: .hasDataType("person_income", ConstrainableDataTypes.Integral) (or Fractional,
+        depending on the schema).'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: 'The person_income values should be non-negative to keep the income segmentation
+        meaningful (negative incomes would be incorrectly bucketed as ''Low Income'').
+        We could represent this as a deequ constraint like: .satisfies("person_income
+        >= 0", "non-negative income", lambda x: x == 1.0).'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 2
+    end_line: 6
+    file: ''
+  - start_line: 15
+    end_line: 16
+    file: ''
+  loan_grade:
+  - start_line: 8
+    end_line: 8
+    file: ''
+  - start_line: 15
+    end_line: 16
+    file: ''
+  loan_amnt:
+  - start_line: 12
+    end_line: 12
+    file: ''

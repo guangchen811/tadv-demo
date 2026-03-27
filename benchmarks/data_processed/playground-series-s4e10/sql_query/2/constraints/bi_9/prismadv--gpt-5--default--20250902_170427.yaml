@@ -1,0 +1,312 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: '.hasDataType(''loan_amnt'', ConstrainableDataTypes.Numeric, lambda
+        f: f == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: warning
+    - suggestion: .isPositive('loan_amnt')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_amnt'' column must be numeric (integer or decimal) so that
+        AVG() and ROUND() can be applied without type errors. This can be represented
+        as a Deequ constraint like: .hasDataType(''loan_amnt'', ConstrainableDataTypes.Numeric)
+        or a Great Expectations rule like: expect_column_values_to_be_in_type_list
+        with types [''INTEGER'', ''DECIMAL'', ''FLOAT'', ''DOUBLE''].'
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''loan_amnt'' column should be non-null for all rows used by the
+        query to ensure segment averages are computed on actual values (and not return
+        NULL for segments). This can be represented as: Deequ .isComplete(''loan_amnt'')
+        or .satisfies(''loan_amnt IS NOT NULL'', ''Loan amount non-null'', lambda
+        x: x == 1.0).'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''loan_amnt'' values should be strictly positive (> 0) to reflect
+        valid loan sizes and to keep the computed avg_loan_size meaningful. This can
+        be represented as: Deequ .hasMin(''loan_amnt'', lambda m: m > 0) or .satisfies(''loan_amnt
+        > 0'', ''Positive loan amounts'', lambda x: x == 1.0).'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: '.hasCompleteness(''loan_grade'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("loan_grade IS NOT NULL AND UPPER(TRIM(loan_grade))
+        IN (''A'',''B'',''C'',''D'',''E'',''F'',''G'')", "loan_grade_membership",
+        lambda x: x >= 0.995)'
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_grade'', lambda x: x <= 8)'
+      validity: false
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''loan_grade'', lambda x: x >= 2)'
+      validity: false
+      level: warning
+    - suggestion: '.satisfies("loan_grade IS NOT NULL AND TRIM(loan_grade) <> ''''
+        AND loan_grade = UPPER(TRIM(loan_grade))", "loan_grade_normalized", lambda
+        x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_grade'' column should be non-null for essentially all rows
+        to ensure meaningful segmentation by grade (expected completeness >= 0.99;
+        current data shows 1.0). We could represent this as a Deequ constraint like:
+        .satisfies("CASE WHEN loan_grade IS NOT NULL THEN 1 ELSE 0 END", "loan_grade_not_null",
+        lambda x: x >= 0.99)'
+      sources:
+      - start_line: 1
+        end_line: 1
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: "The 'loan_grade' column values should be valid Lending-Club-style grades\
+        \ A\u2013G. At least 99.5% of values should be in this set (case/whitespace-insensitive)\
+        \ to avoid fragmented GROUP BY buckets. Example Deequ constraint: .satisfies(\"\
+        CASE WHEN UPPER(TRIM(loan_grade)) IN ('A','B','C','D','E','F','G') THEN 1\
+        \ ELSE 0 END\", \"loan_grade_membership\", lambda x: x >= 0.995)"
+      sources:
+      - start_line: 1
+        end_line: 1
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'The ''loan_grade'' column should have low cardinality to keep the grouped
+        result set manageable; the number of distinct values should be <= 8 (expected
+        7). Example Deequ constraint: .hasNumberOfDistinctValues("loan_grade", lambda
+        x: x <= 8)'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'For meaningful segmentation across grades, the ''loan_grade'' column
+        should contain at least 2 distinct categories. Example Deequ constraint: .hasNumberOfDistinctValues("loan_grade",
+        lambda x: x >= 2)'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'The ''loan_grade'' values should be normalized strings without leading/trailing
+        whitespace and not empty strings, to avoid creating duplicate-looking groups
+        (e.g., ''A'' vs '' A ''). Example Deequ constraint: .satisfies("CASE WHEN
+        loan_grade IS NOT NULL AND TRIM(loan_grade) <> '''' AND loan_grade = UPPER(TRIM(loan_grade))
+        THEN 1 ELSE 0 END", "loan_grade_normalized", lambda x: x == 1.0)'
+      sources:
+      - start_line: 1
+        end_line: 1
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: '.isContainedIn(''loan_intent'', [''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE''],
+        lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''loan_intent = UPPER(TRIM(loan_intent))'', ''loan_intent
+        normalized'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''loan_intent'', lambda x: x <= 6)'
+      validity: false
+      level: warning
+    - suggestion: '.satisfies(''length(trim(loan_intent)) > 0'', ''no empty loan_intent'',
+        lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_intent'' column must exist in the input table and be non-null
+        for all rows, since it is selected, grouped, and ordered. We could represent
+        this as a Deequ constraint like: .hasCompleteness(''loan_intent'', lambda
+        x: x == 1.0) or a Great Expectations rule: expect_column_values_to_not_be_null(''loan_intent'').'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'The ''loan_intent'' values should be restricted to the known domain:
+        EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, VENTURE.
+        This keeps segments consistent with training data and prevents unexpected
+        categories in GROUP BY/ORDER BY. Deequ example: .isContainedIn(''loan_intent'',
+        [''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE''],
+        lambda x: x == 1.0). Great Expectations: expect_column_values_to_be_in_set(''loan_intent'',
+        [...]).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: "The 'loan_intent' values should be uppercase and trimmed (no leading/trailing\
+        \ whitespace) so case/whitespace differences don\u2019t create unintended\
+        \ extra groups in the aggregation. Deequ example: .satisfies('loan_intent\
+        \ = UPPER(TRIM(loan_intent))', 'loan_intent normalized', lambda x: x == 1.0)."
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'The number of distinct ''loan_intent'' categories in the test data should
+        be no more than 6 (the defined domain), though some categories may be absent.
+        Deequ example: .hasNumberOfDistinctValues(''loan_intent'', lambda x: x <=
+        6). Great Expectations: expect_column_unique_value_count_to_be_between(''loan_intent'',
+        min_value=1, max_value=6).'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: '''loan_intent'' should not contain empty strings; after TRIM, length
+        must be > 0. Deequ example: .satisfies(''length(trim(loan_intent)) > 0'',
+        ''no empty loan_intent'', lambda x: x == 1.0). Great Expectations: expect_column_values_to_not_match_regex(''loan_intent'',
+        ''^\\s*$'').'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+  person_income:
+    code:
+    - suggestion: '.hasDataType(''person_income'', ConstrainableDataTypes.Numeric,
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.isNonNegative(''person_income'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'person_income must be numeric (integral/decimal) so AVG() and ROUND()
+        can be computed without errors. We could represent this assumption as a deequ
+        constraint like this: .hasDataType("person_income", ConstrainableDataTypes.Integral)
+        or .hasDataType("person_income", ConstrainableDataTypes.Fractional). In Great
+        Expectations: expect_column_values_to_be_in_type_list with types such as ["INTEGER",
+        "BIGINT", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE"].'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'person_income should be present (non-null) for the vast majority of rows
+        to produce meaningful averages per segment. We could represent this assumption
+        as a deequ constraint like this: .hasCompleteness("person_income", lambda
+        x: x >= 0.99). In Great Expectations: expect_column_values_to_not_be_null
+        with mostly=0.99.'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'person_income values should be non-negative (no negative incomes) to
+        ensure the averaged results are meaningful. We could represent this assumption
+        as a deequ constraint like this: .satisfies("`person_income` >= 0", "Non-negative
+        income", lambda x: x == 1.0). In Great Expectations: expect_column_values_to_be_between(min_value=0,
+        max_value=None, allow_cross_type_comparisons=True).'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 1
+    end_line: 1
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 12
+    end_line: 13
+    file: ''
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 12
+    end_line: 13
+    file: ''
+  person_income:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 5
+    file: ''
+  - start_line: 9
+    end_line: 9
+    file: ''

@@ -1,0 +1,110 @@
+results:
+  c13:
+    code:
+    - suggestion: .isComplete('c13')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('c13 >= 0 AND c13 <= 200', 'c13 within expected range')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c16:
+    code:
+    - suggestion: .isComplete('c16')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .isContainedIn('c16', ['0', '1'])
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  c17:
+    code:
+    - suggestion: .isComplete('c17')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .isContainedIn('c17', ['0', '1'])
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  c19:
+    code:
+    - suggestion: .satisfies('c19 IN (0, 1)', 'Valid c19 Values')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c23:
+    code:
+    - suggestion: '.satisfies(''CASE WHEN `c23` IS NOT NULL AND `c23` >= 0 THEN 1
+        ELSE 0 END'', ''Valid c23 values'', lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c32:
+    code:
+    - suggestion: .isComplete('c32')
+      status: false
+      reason_if_failed: 'Constraint ''isComplete(''c32'')'' failed on data sample:
+        Value: 0.9915158371040724 does not meet the constraint requirement!'
+      level: error
+  c24:
+    code:
+    - suggestion: .isComplete('c24')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  c25:
+    code:
+    - suggestion: .isComplete('c25')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c26:
+    code:
+    - suggestion: .isComplete('c26')
+      status: false
+      reason_if_failed: 'Constraint ''isComplete(''c26'')'' failed on data sample:
+        Value: 0.9903846153846154 does not meet the constraint requirement!'
+      level: error
+  c27:
+    code:
+    - suggestion: .isComplete('c27')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .isNonNegative('c27')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  c7:
+    code:
+    - suggestion: .isComplete('c7')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c16","c17","c19"]':
+    code:
+    - suggestion: '.haveCompleteness([''c16'', ''c17'', ''c19''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["c23","c24"]':
+    code:
+    - suggestion: .satisfies('CASE WHEN c24 != 0 THEN c23 > 0 ELSE TRUE END', 'No
+        Division by Zero in Ratio1')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''c23'', ''c24''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["c26","c32"]':
+    code:
+    - suggestion: '.satisfies(''c26 IS NOT NULL AND c32 IS NOT NULL AND ABS(c26 -
+        c32) > 1e-6'', ''Non-Zero Difference for val2'', lambda x: x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: error

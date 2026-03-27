@@ -1,0 +1,435 @@
+results:
+  c20:
+    code:
+    - suggestion: '.satisfies("CAST(c20 AS DOUBLE) IS NOT NULL", "c20_numeric_non_null",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CAST(c20 AS DOUBLE) BETWEEN 16 AND 70", "c20_in_expected_range",
+        lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Enrolled'' THEN (CAST(c20 AS DOUBLE)
+        IS NOT NULL AND CAST(c20 AS DOUBLE) BETWEEN 16 AND 70) ELSE TRUE END", "c20_valid_for_enrolled",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c31:
+    code:
+    - suggestion: '.hasCompleteness(''c31'', lambda x: x >= 0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c37` = ''Enrolled'' AND `c29` <> 0 THEN
+        CASE WHEN `c31` IS NOT NULL AND CAST(`c31` AS DOUBLE) IS NOT NULL THEN 1 ELSE
+        0 END ELSE 1 END", "c31 non-null numeric when c29 != 0 for enrolled", lambda
+        x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c29` > 0 AND `c31` IS NOT NULL THEN CASE
+        WHEN `c31` >= 0 AND `c31` <= `c29` THEN 1 ELSE 0 END ELSE 1 END", "c31 within
+        [0, c29] when c29>0", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c31` IS NULL THEN 1 ELSE CASE WHEN `c31`
+        >= 0 AND `c31` = CAST(`c31` AS BIGINT) THEN 1 ELSE 0 END END", "c31 non-negative
+        integer-like", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c29` = 0 THEN CASE WHEN CAST(`c31` AS DOUBLE)
+        = 0 OR `c31` IS NULL THEN 1 ELSE 0 END ELSE 1 END", "c31 zero or null when
+        c29 zero", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c13:
+    code:
+    - suggestion: .isComplete('c13')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("`c13` >= 0 AND `c13` <= 200", "c13_in_range_0_200",
+        lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c16:
+    code:
+    - suggestion: .isComplete('c16')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c17:
+    code:
+    - suggestion: '.satisfies("c37 != ''Enrolled'' OR c17 IS NOT NULL", "c17_not_null_for_enrolled",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("c17 IN (0, 1)", "c17_binary_indicator", lambda x: x
+        == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CAST(c17 AS double) IS NOT NULL", "c17_parseable_numeric_all_rows",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c19:
+    code:
+    - suggestion: .isComplete("c19")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(`c37` != ''Enrolled'') OR (`c19` IS NOT NULL AND CAST(`c19`
+        AS DOUBLE) IS NOT NULL)", "c19 numeric and non-null for Enrolled rows", lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(`c37` != ''Enrolled'') OR (`c19` >= 0 AND `c19` <=
+        1)", "c19 in [0,1] for Enrolled rows", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c22:
+    code:
+    - suggestion: '.satisfies("(NOT(`c37` = ''Enrolled'' AND `c23` != 0)) OR (`c22`
+        IS NOT NULL AND CAST(`c22` AS DOUBLE) IS NOT NULL)", "c22 present and castable
+        when used for enrolled rows with nonzero c23", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isNonNegative(''c22'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("(NOT(`c37` = ''Enrolled'' AND `c23` > 0 AND `c22` IS
+        NOT NULL)) OR (`c22` >= 0 AND `c22` <= `c23`)", "c22 within [0, c23] when
+        denominator positive for enrolled rows", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c23:
+    code:
+    - suggestion: '.satisfies(''c25 <= c23 AND c27 <= c23 AND c22 <= c23'', ''numerators
+        do not exceed denominator'', lambda x: x >= 0.98)'
+      status: false
+      reason_if_failed: 'Constraint ''satisfies(''c25 <= c23 AND c27 <= c23 AND c22
+        <= c23'', ''numerators do not exceed denominator'', lambda x: x >= 0.98)''
+        failed on data sample: Value: 0.9700226244343891 does not meet the constraint
+        requirement!'
+      level: warning
+    - suggestion: '.satisfies(''c23 >= 0'', ''non-negative c23'', lambda x: x == 1)'
+      status: false
+      reason_if_failed: 'Constraint ''satisfies(''c23 >= 0'', ''non-negative c23'',
+        lambda x: x == 1)'' failed on data sample: Value: 0.9700226244343891 does
+        not meet the constraint requirement!'
+      level: warning
+  c32:
+    code:
+    - suggestion: '.hasCompleteness(''c32'', lambda x: x >= 0.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c37` = ''Enrolled'' THEN CASE WHEN CAST(`c32`
+        AS DOUBLE) IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "c32 numeric and non-null
+        for enrolled", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN CAST(`c32` AS DOUBLE) >= 0 AND CAST(`c32`
+        AS DOUBLE) <= 20 THEN 1 ELSE 0 END", "c32 in [0,20]", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c25:
+    code:
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Enrolled'' THEN c25 IS NOT NULL ELSE
+        TRUE END", "c25_not_null_when_enrolled", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Enrolled'' THEN CAST(c25 AS DOUBLE)
+        IS NOT NULL ELSE TRUE END", "c25_numeric_parseable_when_enrolled", lambda
+        x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.isNonNegative(''c25'', lambda f: f == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN c23 IS NULL OR c25 IS NULL THEN TRUE ELSE
+        (c25 >= 0 AND c25 <= c23) END", "c25_between_0_and_c23_when_c23_present",
+        lambda x: x == 1)'
+      status: false
+      reason_if_failed: 'Constraint ''satisfies("CASE WHEN c23 IS NULL OR c25 IS NULL
+        THEN TRUE ELSE (c25 >= 0 AND c25 <= c23) END", "c25_between_0_and_c23_when_c23_present",
+        lambda x: x == 1)'' failed on data sample: Value: 0.9700226244343891 does
+        not meet the constraint requirement!'
+      level: warning
+  c26:
+    code:
+    - suggestion: .isComplete('c26')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CAST(c26 AS DOUBLE) IS NOT NULL'', ''c26_numeric'',
+        lambda v: v == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''c26 >= 0 AND c26 <= 20'', ''c26_in_range'', lambda
+        v: v >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.hasMin(''c26'', lambda m: m >= 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c27:
+    code:
+    - suggestion: '.isNonNegative(''c27'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c37` = ''Enrolled'' AND `c23` > 0 THEN CASE
+        WHEN `c27` IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "c27_not_null_when_scored",
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c23` > 0 THEN CASE WHEN `c27` >= 0 AND `c27`
+        <= `c23` THEN 1 ELSE 0 END ELSE 1 END", "c27_within_denominator", lambda x:
+        x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c23` = 0 THEN CASE WHEN `c27` IS NULL OR
+        `c27` = 0 THEN 1 ELSE 0 END ELSE 1 END", "c27_zero_when_denominator_zero",
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c27` = 0 THEN 1 ELSE 0 END", "c27_zero_share",
+        lambda x: x >= 0.90)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c27` <= 10 THEN 1 ELSE 0 END", "c27_le_10_share",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c28:
+    code:
+    - suggestion: .isComplete('c28')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.isNonNegative(''c28'', lambda v: v == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c29:
+    code:
+    - suggestion: '.satisfies(''CAST(`c29` AS DOUBLE) IS NOT NULL'', ''c29 parsable
+        as numeric'', lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''(`c37` <> \''Enrolled\'') OR (`c29` IS NOT NULL)'',
+        ''c29 not null for enrolled'', lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''(`c29` IS NULL) OR (`c29` >= 0)'', ''c29 non-negative'',
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''(`c29` IS NULL) OR (`c29` <= 0) OR ((`c31` BETWEEN
+        0 AND `c29`) AND (`c28` BETWEEN 0 AND `c29`) AND (`c33` BETWEEN 0 AND `c29`))'',
+        ''bounded counts relative to c29'', lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c33:
+    code:
+    - suggestion: '.hasCompleteness("c33", lambda x: x >= 0.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN c33 IS NULL OR CAST(c33 AS DOUBLE) IS NOT
+        NULL THEN 1 ELSE 0 END", "c33 numeric", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Enrolled'' AND c29 <> 0 THEN CASE
+        WHEN c33 IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "c33 present when needed",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isNonNegative("c33", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN c33 IS NULL OR c29 IS NULL THEN 1 ELSE CASE
+        WHEN c33 <= c29 THEN 1 ELSE 0 END END", "c33 <= c29 mostly", lambda x: x >=
+        0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN c33 IS NULL THEN 1 ELSE CASE WHEN c33 BETWEEN
+        0 AND 8 THEN 1 ELSE 0 END END", "c33 in expected range", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c34:
+    code:
+    - suggestion: '.hasCompleteness(''c34'', lambda x: x >= 0.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN CAST(c34 AS DOUBLE) IS NOT NULL THEN 1 ELSE
+        0 END", "c34_numeric_overall", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN c37 = ''Enrolled'' THEN CASE WHEN CAST(c34
+        AS DOUBLE) IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "c34_numeric_enrolled",
+        lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN CAST(c34 AS DOUBLE) IS NULL THEN 1 WHEN CAST(c34
+        AS DOUBLE) BETWEEN 5 AND 20 THEN 1 ELSE 0 END", "c34_in_expected_range", lambda
+        x: x >= 0.90)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c35:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `c37` = ''Enrolled'' THEN CASE WHEN CAST(`c35`
+        AS DOUBLE) IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END", "c35 numeric and not
+        null for enrolled", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c35` >= -2 AND `c35` <= 5 THEN 1 ELSE 0
+        END", "c35 within expected range [-2, 5]", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c36:
+    code:
+    - suggestion: '.hasCompleteness(''c36'', lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''cast(c36 as double) is not null'', ''c36 numeric castable'',
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("(c37 <> ''Enrolled'') OR (cast(c36 as double) is not
+        null)", ''c36 present for enrolled'', lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''cast(c36 as double) BETWEEN -5 AND 5'', ''c36 in [-5,5]'',
+        lambda x: x >= 0.9)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c37:
+    code:
+    - suggestion: '.satisfies("`c37` IN (''Enrolled'',''Graduate'',''Dropout'')",
+        "Valid c37 domain", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: .isComplete('c37')
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("`c37` = ''Enrolled''", "Has Enrolled rows", lambda
+        x: x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c3:
+    code:
+    - suggestion: '.hasCompleteness(''c3'', lambda x: x >= 0.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(`c37` <> ''Enrolled'') OR (CAST(`c3` AS DOUBLE) IS
+        NOT NULL)", "c3 non-null and numeric for enrolled", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(`c37` <> ''Enrolled'') OR (`c3` >= 1 AND `c3` <= 9)",
+        "c3 in [1,9] when enrolled", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("(`c37` <> ''Enrolled'') OR (pmod(CAST(`c3` AS DOUBLE),
+        1) = 0.0)", "c3 integer-like when enrolled", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c5:
+    code:
+    - suggestion: .isComplete('c5')
+      status: true
+      reason_if_failed: ''
+      level: error
+  c7:
+    code:
+    - suggestion: '.satisfies("CASE WHEN CAST(`c7` AS DOUBLE) IS NOT NULL THEN 1 ELSE
+        0 END", "c7_numeric_parse_rate", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c7` IS NULL OR (CAST(`c7` AS DOUBLE) >=
+        0 AND CAST(`c7` AS DOUBLE) <= 200) THEN 1 ELSE 0 END", "c7_in_expected_range",
+        lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["c16","c17","c19"]':
+    code:
+    - suggestion: '.satisfies("(c16 IN (0,1)) AND (c17 IN (0,1)) AND (c19 IN (0,1))",
+        "fin_flags_binary", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("(c37 <> ''Enrolled'') OR (c16 IS NOT NULL AND c17 IS
+        NOT NULL AND c19 IS NOT NULL)", "fin_flags_nonnull_when_enrolled", lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(c37 <> ''Enrolled'') OR ((c16 IN (0,1)) AND (c17 IN
+        (0,1)) AND (c19 IN (0,1)))", "fin_flags_valid_when_enrolled", lambda x: x
+        == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("(-0.2 <= 0.6*c16 + 0.3*(1 - c17) - 0.2*c19) AND (0.6*c16
+        + 0.3*(1 - c17) - 0.2*c19 <= 0.9)", "fin_risk1_theoretical_bounds", lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning

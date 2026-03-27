@@ -1,0 +1,1072 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: The code is written for ML Inference task. After
+      training a model on the training data, the model would be used to make predictions
+      on the test data. you are asked to generate constraints on the upcoming *test*
+      data to ensure that the code can run without any errors and the predictions
+      are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: '.hasCompleteness(''cb_person_default_on_file'', lambda x: x ==
+        1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: cf0a8c5a-aba1-485f-a6c7-c49a8c6d2ebf
+      source_assumptions:
+      - a8e75996-f673-4abe-a5ca-f50599431bbf
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6703b3e1-1cab-42ed-a464-359c6523baef
+      source_assumptions:
+      - 1eec232a-a8bc-41ae-8b99-dfd11b61e240
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column should be complete with no null
+        values, as the completeness is 1.0. This means all entries in this column
+        must be either ''Y'' or ''N''. We could represent this assumption as a deequ
+        constraint like this: .hasCompleteness(''cb_person_default_on_file'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      uid: a8e75996-f673-4abe-a5ca-f50599431bbf
+    - text: 'The ''cb_person_default_on_file'' column should only contain the distinct
+        values ''Y'' and ''N'', as indicated by the approximate number of distinct
+        values being 2 and the histogram showing only these two values. We could represent
+        this assumption as a deequ constraint like this: .isContainedIn(''cb_person_default_on_file'',
+        [''Y'', ''N''])'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      uid: 1eec232a-a8bc-41ae-8b99-dfd11b61e240
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 694664aa-b396-4ebf-bd19-42d4fb73b297
+      source_assumptions:
+      - 9d419b97-bcff-4852-9c54-f69d34a698b3
+    - suggestion: .satisfies('variance(`cb_person_cred_hist_length`) >= 1e-4', 'Credit
+        History Length Variance')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''variance(`cb_person_cred_hist_length`)
+        >= 1e-4'', ''Credit History Length Variance'')'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [NESTED_AGGREGATE_FUNCTION] It is not allowed to use an aggregate function
+        in the argument of another aggregate function. Please use the inner aggregate
+        function in a sub-query.; line 1 pos 0;
+
+        Aggregate [sum(cast((variance(cast(cb_person_cred_hist_length#37L as double))
+        >= 1.0E-4) as int)) AS sum(CAST((variance(cb_person_cred_hist_length) >= 1.0E-4)
+        AS INT))#93968L, count(1) AS count(1)#93969L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: warning
+      uid: 11ff69de-3466-4f9f-bbfc-7dc80a34b6a0
+      source_assumptions:
+      - df1bd421-27a2-4d9e-8b9d-67b5467dcbb9
+    assumptions:
+    - text: 'The ''cb_person_cred_hist_length'' column should not contain null values,
+        as the column''s completeness is 1.0, indicating that there are no missing
+        values in the training data. This assumption should be maintained for the
+        test data to ensure consistency and avoid errors during model inference. We
+        could represent this assumption as a deequ constraint like this: .hasCompleteness(''cb_person_cred_hist_length'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      uid: 9d419b97-bcff-4852-9c54-f69d34a698b3
+    - text: 'The ''cb_person_cred_hist_length'' column should maintain a reasonable
+        variance to avoid being dropped during the low variance filtering step. The
+        column should not have a variance less than 1e-4, as columns with lower variance
+        are dropped in the preprocessing pipeline. We could represent this assumption
+        as a deequ constraint like this: .satisfies(''variance(`cb_person_cred_hist_length`)
+        >= 1e-4'', ''Credit History Length Variance'', lambda x: x)'
+      sources:
+      - start_line: 62
+        end_line: 71
+        file: ''
+      uid: df1bd421-27a2-4d9e-8b9d-67b5467dcbb9
+  loan_int_rate:
+    code:
+    - suggestion: '.hasStandardDeviation(''loan_int_rate'', lambda x: x > 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: undefined
+      uid: cd0368c2-5f1f-49dc-b5d0-d5191fe24be0
+      source_assumptions:
+      - 3493abf9-c90c-4023-9d3e-ac37be97b254
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''age'', lambda x: abs(x) <=
+        0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''age'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column age!'
+      level: undefined
+      uid: 84737ab7-8aac-4478-b266-fdd96bcc98ca
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''income'', lambda x: abs(x)
+        <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''income'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column income!'
+      level: undefined
+      uid: be738741-2d28-4f26-85b0-d6e7b7bb3a0e
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''emp_length'', lambda x: abs(x)
+        <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''emp_length'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column emp_length!'
+      level: undefined
+      uid: 18092b6c-5bac-4257-9538-5b75ba80b3a1
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''loan_amount'', lambda x: abs(x)
+        <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''loan_amount'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column loan_amount!'
+      level: undefined
+      uid: b6062ef1-bcd1-4bd8-a3cf-6fce889c679f
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''loan_income_ratio'', lambda
+        x: abs(x) <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''loan_income_ratio'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column loan_income_ratio!'
+      level: undefined
+      uid: 51d18e32-5c5f-4591-a79f-56f3b95c4564
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''credit_hist_length'', lambda
+        x: abs(x) <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''credit_hist_length'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column credit_hist_length!'
+      level: undefined
+      uid: 68c07119-3895-4a83-9e95-49cc6f0a6e8b
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    - suggestion: '.hasCorrelation(''loan_int_rate'', ''income_to_loan'', lambda x:
+        abs(x) <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''loan_int_rate'', ''income_to_loan'',
+        lambda x: abs(x) <= 0.95)'' failed on data sample: Input data does not include
+        column income_to_loan!'
+      level: undefined
+      uid: fc6a388a-5433-4025-96e0-f561f69a19f2
+      source_assumptions:
+      - 1010d800-050d-4de0-a017-542183c1fad4
+    assumptions:
+    - text: The 'loan_int_rate' column should have non-zero variance to ensure it
+        is not dropped during the low variance filtering step. This implies that the
+        column should contain a range of different values and not be constant.
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: 3493abf9-c90c-4023-9d3e-ac37be97b254
+    - text: The 'loan_int_rate' column should not be highly correlated with any other
+        numeric column to prevent it from being removed in the step that drops one
+        of each pair of highly correlated columns.
+      sources:
+      - start_line: 80
+        end_line: 100
+        file: ''
+      uid: 1010d800-050d-4de0-a017-542183c1fad4
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 14358f4f-5a9c-4967-b9f1-bdb84871936b
+      source_assumptions:
+      - be84fd33-9a53-4f31-b4e5-f118660d365d
+    - suggestion: .hasMin('loan_percent_income', 0.0001)
+      validity: false
+      reason_if_invalid: "Constraint '.hasMin('loan_percent_income', 0.0001)' failed\
+        \ on data sample: Can't execute the assertion: An exception was raised by\
+        \ the Python Proxy. Return Message: Traceback (most recent call last):\n \
+        \ File \"/Users/haochen/Library/Caches/pypoetry/virtualenvs/prismadv-MP3ihth8-py3.12/lib/python3.12/site-packages/py4j/clientserver.py\"\
+        , line 617, in _call_proxy\n    return_value = getattr(self.pool[obj_id],\
+        \ method)(*params)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\
+        \  File \"/Users/haochen/Library/Caches/pypoetry/virtualenvs/prismadv-MP3ihth8-py3.12/lib/python3.12/site-packages/pydeequ/scala_utils.py\"\
+        , line 38, in apply\n    return self.lambda_function(arg)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n\
+        TypeError: 'float' object is not callable\n!"
+      level: warning
+      uid: e9cc804d-c58c-4ce1-bbd2-73c6280cc2a1
+      source_assumptions:
+      - e8e4a422-5c43-40b0-8739-9baff4c06038
+    assumptions:
+    - text: The 'loan_percent_income' column should have no null values, as the completeness
+        of the column is 1.0, indicating it is fully populated.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      uid: be84fd33-9a53-4f31-b4e5-f118660d365d
+    - text: 'The ''loan_percent_income'' column should have a variance above 0.0001
+        to avoid being dropped due to low variance. This implies that the input data
+        should provide sufficient variability in ''loan_percent_income''. We could
+        represent this assumption as a deequ constraint like this: .hasMinVariance(''loan_percent_income'',
+        0.0001).'
+      sources:
+      - start_line: 62
+        end_line: 71
+        file: ''
+      uid: e8e4a422-5c43-40b0-8739-9baff4c06038
+    - text: The 'loan_percent_income' column should not be highly correlated (correlation
+        > 0.95) with any other numeric columns to avoid being dropped due to high
+        correlation.
+      sources:
+      - start_line: 91
+        end_line: 100
+        file: ''
+      uid: be2d7e4d-9bf2-4617-81f3-79babb50ad4f
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      reason_if_invalid: ''
+      level: undefined
+      uid: 87a24511-51a4-4ce9-8e27-fe0d3ec4373c
+      source_assumptions:
+      - 12f57140-3aa2-4e61-9bda-e857c0c89f94
+    - suggestion: .hasDataType('person_emp_length', 'Fractional')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_emp_length'',
+        ''Fractional'')'
+      level: undefined
+      uid: b529c312-e420-432e-8635-860d62da2370
+      source_assumptions:
+      - b90824ea-cb4a-4274-a491-247fcf013c1c
+    assumptions:
+    - text: The 'person_emp_length' column should not have any null values. In the
+        code, there is no explicit handling for null values in this column, and it
+        is used in variance calculations and transformations. This suggests that null
+        values are not expected.
+      sources:
+      - start_line: 62
+        end_line: 67
+        file: ''
+      - start_line: 108
+        end_line: 114
+        file: ''
+      uid: 12f57140-3aa2-4e61-9bda-e857c0c89f94
+    - text: The 'person_emp_length' column should have sufficient variance. The code
+        drops columns with variance below a specified threshold, indicating that columns,
+        including 'person_emp_length', are expected to have variance above this threshold.
+      sources:
+      - start_line: 62
+        end_line: 71
+        file: ''
+      uid: 9926ab5e-fc72-498c-8f1b-8b53e54b933c
+    - text: The 'person_emp_length' column should be numeric since it is included
+        in the list of numeric columns that undergo scaling and other numeric-specific
+        transformations.
+      sources:
+      - start_line: 108
+        end_line: 114
+        file: ''
+      uid: b90824ea-cb4a-4274-a491-247fcf013c1c
+  person_home_ownership:
+    code:
+    - suggestion: .isContainedIn('person_home_ownership', ['OTHER', 'OWN', 'MORTGAGE',
+        'RENT'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 2ce6e90c-6ee1-4edd-9223-77e2ca4bee82
+      source_assumptions:
+      - 4ac1f8b9-0872-4562-b43c-529aeff0e76e
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 4ab19124-f97d-4593-b04c-80e27ae15c8e
+      source_assumptions:
+      - 77b2381f-a159-401e-802e-6f3be90187b5
+    assumptions:
+    - text: The 'person_home_ownership' column should contain only the categorical
+        values 'OTHER', 'OWN', 'MORTGAGE', and 'RENT'. Any other values should be
+        considered invalid and could lead to errors during the factorization and mapping
+        process.
+      sources:
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 4ac1f8b9-0872-4562-b43c-529aeff0e76e
+    - text: The 'person_home_ownership' column is expected to be complete with no
+        null values. The code does not include any fillna operations for this column,
+        indicating that missing values are not anticipated or handled.
+      sources:
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 77b2381f-a159-401e-802e-6f3be90187b5
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      reason_if_invalid: ''
+      level: undefined
+      uid: 9782c92e-b9e8-482c-a319-0803a5e6865f
+      source_assumptions:
+      - 8fadc99d-b2aa-4b1d-9fac-e4bd7bad8880
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      reason_if_invalid: ''
+      level: undefined
+      uid: 704fa92b-e8af-48f4-9d6b-b4044d8fbf09
+      source_assumptions:
+      - 95497c3e-2f25-459a-868b-02b9fe540930
+    assumptions:
+    - text: The 'loan_grade' column should have no null values, as the completeness
+        of the column is 1.0. This indicates that the code assumes all values in the
+        'loan_grade' column are present and non-null.
+      sources:
+      - start_line: 19
+        end_line: 21
+        file: ''
+      uid: 8fadc99d-b2aa-4b1d-9fac-e4bd7bad8880
+    - text: 'The ''loan_grade'' column is used as a categorical feature and is factorized,
+        implying it should only contain known categories: A, B, C, D, E, F, and G.
+        Any unexpected values should be flagged.'
+      sources:
+      - start_line: 74
+        end_line: 77
+        file: ''
+      uid: 95497c3e-2f25-459a-868b-02b9fe540930
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: f6b62375-7062-46d1-a543-dae7dd841856
+      source_assumptions:
+      - 8c3b3d37-19af-49fc-9229-d6e41eecef6c
+    - suggestion: '.hasMin(''loan_amnt'', lambda x: x > 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 8ceab633-1c3d-4223-b7be-e8f6fa35a984
+      source_assumptions:
+      - 368adaca-f8ef-439a-8e35-921776a8c6f6
+    - suggestion: '.hasVariance(''loan_amnt'', lambda x: x > 1e-4)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasVariance(''loan_amnt'',
+        lambda x: x > 1e-4)'': ''Check'' object has no attribute ''hasVariance'''
+      level: warning
+      uid: 98006bc1-8e4a-479d-97c7-bb0d6b4736d5
+      source_assumptions:
+      - 368adaca-f8ef-439a-8e35-921776a8c6f6
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values. This is inferred
+        from the completeness of the column being 1.0, meaning it is expected to be
+        fully populated in the test data as well.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      uid: 8c3b3d37-19af-49fc-9229-d6e41eecef6c
+    - text: The 'loan_amnt' column is used in numeric operations, such as division,
+        and variance checking. Therefore, it is assumed that the column contains valid
+        numeric values with no extremely low variance in the test data. The variance
+        of 'loan_amnt' should be above the specified threshold (1e-4) to ensure that
+        the feature is informative.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: 368adaca-f8ef-439a-8e35-921776a8c6f6
+    - text: The 'loan_amnt' column should have a reasonable range of values, considering
+        it is involved in the 'income_to_loan' ratio calculation. It is expected to
+        have a distribution similar to the training data to maintain the model's performance.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: fe187fa0-b452-4a79-bd5e-8376c71debc3
+  person_age:
+    code:
+    - suggestion: '.hasCompleteness(''person_age'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 8b37eaa8-468e-4abf-aae4-33e29c72c21b
+      source_assumptions:
+      - 5ed5f34c-ddf0-45b5-8814-5e69b64f281c
+    - suggestion: '.satisfies(''variance(person_age) > 1e-4'', ''Age Variance'', lambda
+        x: x)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''variance(person_age) > 1e-4'',
+        ''Age Variance'', lambda x: x)'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [NESTED_AGGREGATE_FUNCTION] It is not allowed to use an aggregate function
+        in the argument of another aggregate function. Please use the inner aggregate
+        function in a sub-query.; line 1 pos 0;
+
+        Aggregate [sum(cast((variance(cast(person_age#27L as double)) > 1.0E-4) as
+        int)) AS sum(CAST((variance(person_age) > 1.0E-4) AS INT))#93762L, count(1)
+        AS count(1)#93763L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: warning
+      uid: 335f5f80-7c0b-40b3-bf5a-3ce9b40051e3
+      source_assumptions:
+      - 0c4b48c4-2ec9-42d5-b660-6368bc4fa60d
+    assumptions:
+    - text: 'The ''person_age'' column should have non-null values because the code
+        does not perform any fillna operations or null checks on this column. The
+        completeness of the column is 1.0, indicating there are no missing values
+        in the training data, and the same is expected for the test data. We could
+        represent this assumption as a deequ constraint like this: .hasCompleteness(''person_age'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 20
+        end_line: 23
+        file: ''
+      - start_line: 37
+        end_line: 38
+        file: ''
+      uid: 5ed5f34c-ddf0-45b5-8814-5e69b64f281c
+    - text: 'The ''person_age'' column should have a variance above the threshold
+        of 1e-4, as columns with variance below this threshold are dropped. This means
+        the ''person_age'' column is expected to have enough variability in the test
+        data. We could represent this assumption as a deequ constraint like this:
+        .satisfies(''variance(person_age) > 1e-4'', ''Age Variance'', lambda x: x)'
+      sources:
+      - start_line: 62
+        end_line: 71
+        file: ''
+      uid: 0c4b48c4-2ec9-42d5-b660-6368bc4fa60d
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      reason_if_invalid: ''
+      level: undefined
+      uid: db42f182-5c92-4c38-9f2d-1242e733b263
+      source_assumptions:
+      - 83cf785f-d437-4e63-b0fb-e05d041accfb
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_income'',
+        ''Integral'')'
+      level: undefined
+      uid: a7b00580-3d4d-442a-913e-f63ad94576db
+      source_assumptions:
+      - f3e140d9-d6c0-44d2-9f7d-24b75f859e7c
+    - suggestion: .satisfies('variance(`person_income`) > 0.0001', 'Income Variance')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''variance(`person_income`) > 0.0001'',
+        ''Income Variance'')'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [NESTED_AGGREGATE_FUNCTION] It is not allowed to use an aggregate function
+        in the argument of another aggregate function. Please use the inner aggregate
+        function in a sub-query.; line 1 pos 0;
+
+        Aggregate [sum(cast((variance(cast(person_income#28L as double)) > cast(0.0001
+        as double)) as int)) AS sum(CAST((variance(person_income) > 0.0001) AS INT))#94076L,
+        count(1) AS count(1)#94077L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: undefined
+      uid: 940b5024-5dd6-4537-a6e0-8e061f43983e
+      source_assumptions:
+      - afcfe7d2-c061-4d26-bbac-097fe94783d2
+    assumptions:
+    - text: The 'person_income' column should not contain null values because the
+        code expects it to be complete when calculating the income-to-loan ratio and
+        no fillna operation is performed.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: 83cf785f-d437-4e63-b0fb-e05d041accfb
+    - text: The 'person_income' column is expected to be numeric, specifically integral,
+        as it is used in arithmetic operations to create a derived feature (income-to-loan
+        ratio) and is included in the numeric columns for variance calculation and
+        scaling.
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      - start_line: 62
+        end_line: 64
+        file: ''
+      - start_line: 108
+        end_line: 109
+        file: ''
+      - start_line: 113
+        end_line: 115
+        file: ''
+      uid: f3e140d9-d6c0-44d2-9f7d-24b75f859e7c
+    - text: The 'person_income' column should have a variance above the threshold
+        of 0.0001 to avoid being dropped for low variance, as the code drops columns
+        with variance below this threshold.
+      sources:
+      - start_line: 64
+        end_line: 68
+        file: ''
+      - start_line: 71
+        end_line: 72
+        file: ''
+      uid: afcfe7d2-c061-4d26-bbac-097fe94783d2
+  '["age","credit_hist_length"]':
+    code:
+    - suggestion: '.satisfies(''variance(`age`) > 1e-4 AND variance(`credit_hist_length`)
+        > 1e-4'', ''Age and Credit History Length Variance'', lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''variance(`age`) > 1e-4 AND variance(`credit_hist_length`)
+        > 1e-4'', ''Age and Credit History Length Variance'', lambda x: x == 1)''
+        failed on data sample: org.apache.spark.sql.AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION]
+        A column or function parameter with name `age` cannot be resolved. Did you
+        mean one of the following? [`id`, `loan_grade`, `person_age`, `loan_amnt`,
+        `loan_intent`].; line 1 pos 9;
+
+        ''Aggregate [sum(cast(((''variance(''age) > 1.0E-4) AND (''variance(''credit_hist_length)
+        > 1.0E-4)) as int)) AS sum(CAST(((variance(age) > 1.0E-4) AND (variance(credit_hist_length)
+        > 1.0E-4)) AS INT))#93229, count(1) AS count(1)#93230L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: warning
+      uid: b8357e26-6bb2-4445-b0e8-086e66ac753c
+      source_assumptions:
+      - c1abd1b2-00df-4608-8a2a-8a2717fd44f9
+    - suggestion: '.satisfies(''ABS(corr(`age`, `other_columns`)) <= 0.95 AND ABS(corr(`credit_hist_length`,
+        `other_columns`)) <= 0.95'', ''Age and Credit History Length Correlation'',
+        lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''ABS(corr(`age`, `other_columns`))
+        <= 0.95 AND ABS(corr(`credit_hist_length`, `other_columns`)) <= 0.95'', ''Age
+        and Credit History Length Correlation'', lambda x: x == 1)'' failed on data
+        sample: org.apache.spark.sql.AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION]
+        A column or function parameter with name `age` cannot be resolved. Did you
+        mean one of the following? [`id`, `loan_grade`, `person_age`, `loan_amnt`,
+        `loan_intent`].; line 1 pos 9;
+
+        ''Aggregate [sum(cast(((''ABS(''corr(''age, ''other_columns)) <= 0.95) AND
+        (''ABS(''corr(''credit_hist_length, ''other_columns)) <= 0.95)) as int)) AS
+        sum(CAST(((ABS(corr(age, other_columns)) <= 0.95) AND (ABS(corr(credit_hist_length,
+        other_columns)) <= 0.95)) AS INT))#93247, count(1) AS count(1)#93248L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: warning
+      uid: 36a6870c-3ab1-4bad-a2cd-782c8d1e3830
+      source_assumptions:
+      - 62bc33e1-d25a-475a-b9c8-dbded82f001d
+    assumptions:
+    - text: 'The columns ''age'' and ''credit_hist_length'' should not have low variance
+        in the test dataset to ensure they are meaningful for model inference. This
+        can be represented as a deequ constraint checking that their variance is above
+        a certain threshold: .hasMinVariance(''age'', 1e-4).hasMinVariance(''credit_hist_length'',
+        1e-4).'
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: c1abd1b2-00df-4608-8a2a-8a2717fd44f9
+    - text: 'There should be no highly correlated pairs of columns with ''age'' and
+        ''credit_hist_length'' having a correlation greater than 0.95 with any other
+        columns in the test dataset, as such columns are dropped during preprocessing,
+        potentially affecting model predictions. This can be represented as a deequ
+        constraint to ensure that no pair of columns involving ''age'' or ''credit_hist_length''
+        has correlation above 0.95: .hasMaxCorrelation(''age'', 0.95, otherColumns).hasMaxCorrelation(''credit_hist_length'',
+        0.95, otherColumns).'
+      sources:
+      - start_line: 80
+        end_line: 100
+        file: ''
+      uid: 62bc33e1-d25a-475a-b9c8-dbded82f001d
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: f502868e-0657-457c-945c-6ae5d4d5fe0d
+      source_assumptions:
+      - 6af9f5de-b5d0-4baa-8a81-fe26c405a5b7
+    - suggestion: .isUnique('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: bda107a7-4374-44dc-8e57-d5731c79e787
+      source_assumptions:
+      - 46a43b22-345b-48cb-b00b-12c57b17d3dd
+    assumptions:
+    - text: The 'id' column should be present in the test data, as it is used to create
+        the submission DataFrame. However, the code handles the scenario where 'id'
+        might be missing by generating a new 'id' column with a range of integers.
+        This implies that 'id' is expected to be unique and non-null.
+      sources:
+      - start_line: 57
+        end_line: 58
+        file: ''
+      - start_line: 212
+        end_line: 214
+        file: ''
+      uid: 6af9f5de-b5d0-4baa-8a81-fe26c405a5b7
+    - text: The 'id' column should have unique values in the test data, as it is used
+        as an identifier when creating the submission DataFrame.
+      sources:
+      - start_line: 212
+        end_line: 216
+        file: ''
+      uid: 46a43b22-345b-48cb-b00b-12c57b17d3dd
+  '["income","income_to_loan","loan_amount"]':
+    code:
+    - suggestion: '.satisfies(''income != 0 OR loan_amount != 0'', ''Income and Loan
+        Amount Non-zero'', lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''income != 0 OR loan_amount !=
+        0'', ''Income and Loan Amount Non-zero'', lambda x: x == 1)'' failed on data
+        sample: org.apache.spark.sql.AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION]
+        A column or function parameter with name `income` cannot be resolved. Did
+        you mean one of the following? [`id`, `loan_amnt`, `person_income`, `loan_grade`,
+        `person_age`].; line 1 pos 0;
+
+        ''Aggregate [sum(cast((NOT (''income = 0) OR NOT (''loan_amount = 0)) as int))
+        AS sum(CAST(((NOT (income = 0)) OR (NOT (loan_amount = 0))) AS INT))#93041,
+        count(1) AS count(1)#93042L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: error
+      uid: 7896aa54-d95d-4ee7-8b5d-6bfbf963f47c
+      source_assumptions:
+      - 8c65d206-2d9b-46bb-8047-ff3b92552b2c
+    - suggestion: .hasMinVariance('income', 1e-4).hasMinVariance('loan_amount', 1e-4).hasMinVariance('income_to_loan',
+        1e-4)
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasMinVariance(''income'',
+        1e-4).hasMinVariance(''loan_amount'', 1e-4).hasMinVariance(''income_to_loan'',
+        1e-4)'': ''Check'' object has no attribute ''hasMinVariance'''
+      level: warning
+      uid: 29bdb50b-4243-41b2-adc1-ba27b96a7f1e
+      source_assumptions:
+      - 1cb2e40f-ff13-4a08-a5c6-df070b5ed458
+    - suggestion: '.hasCorrelation(''income'', ''income_to_loan'', lambda corr: corr
+        <= 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''income'', ''income_to_loan'',
+        lambda corr: corr <= 0.95)'' failed on data sample: Input data does not include
+        column income!'
+      level: warning
+      uid: efefd496-141e-488f-962f-02b0cf0c05ff
+      source_assumptions:
+      - 2ae88bc5-f5a6-4fdd-bbdc-3e8f9b042d17
+    assumptions:
+    - text: 'The ''income_to_loan'' column is derived from the ''income'' and ''loan_amount''
+        columns. It assumes that both ''income'' and ''loan_amount'' should not be
+        zero simultaneously to avoid division by zero errors. In Deequ, this can be
+        represented as: .where(''income'' != 0 or ''loan_amount'' != 0)'
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: 8c65d206-2d9b-46bb-8047-ff3b92552b2c
+    - text: 'Numeric columns including ''income'', ''loan_amount'', and ''income_to_loan''
+        should have a variance above the threshold (1e-4) to avoid being dropped for
+        low variance. This ensures they carry enough information for the model. In
+        Deequ, this can be represented as: .hasMinVariance(''income'', 1e-4) and similarly
+        for other columns.'
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: 1cb2e40f-ff13-4a08-a5c6-df070b5ed458
+    - text: 'Highly correlated columns (correlation > 0.95) should not exist to prevent
+        multicollinearity issues in the dataset. This means pairs like (''income'',
+        ''income_to_loan'') should not be highly correlated. In Deequ, this can be
+        represented as: .hasMaxCorrelation(''income'', ''income_to_loan'', 0.95)'
+      sources:
+      - start_line: 91
+        end_line: 100
+        file: ''
+      uid: 2ae88bc5-f5a6-4fdd-bbdc-3e8f9b042d17
+  '["income","loan_amount","loan_income_ratio"]':
+    code:
+    - suggestion: '.haveCompleteness([''income'', ''loan_amount'', ''income_to_loan''],
+        lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.haveCompleteness([''income'', ''loan_amount'',
+        ''income_to_loan''], lambda x: x == 1)'' failed on data sample: Input data
+        does not include column income!'
+      level: error
+      uid: 41fc10a9-7b6b-4cd5-931a-7378fdcfb0d9
+      source_assumptions:
+      - 002d5513-47bc-4639-a061-40940647b323
+    - suggestion: '.hasCorrelation(''income'', ''loan_amount'', lambda x: x < 0.95).hasCorrelation(''income'',
+        ''loan_income_ratio'', lambda x: x < 0.95).hasCorrelation(''loan_amount'',
+        ''loan_income_ratio'', lambda x: x < 0.95)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasCorrelation(''income'', ''loan_amount'',
+        lambda x: x < 0.95).hasCorrelation(''income'', ''loan_income_ratio'', lambda
+        x: x < 0.95).hasCorrelation(''loan_amount'', ''loan_income_ratio'', lambda
+        x: x < 0.95)'' failed on data sample: Input data does not include column income!'
+      level: warning
+      uid: a057cb29-16a2-4c20-adf2-ea154990a5b7
+      source_assumptions:
+      - ccc270b1-57bc-4115-95b5-355794d7ab33
+    - suggestion: .satisfies('VARIANCE(`income`) >= 1e-4 AND VARIANCE(`loan_amount`)
+        >= 1e-4 AND VARIANCE(`loan_income_ratio`) >= 1e-4 AND VARIANCE(`income_to_loan`)
+        >= 1e-4', 'Sufficient Variance')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''VARIANCE(`income`) >= 1e-4 AND
+        VARIANCE(`loan_amount`) >= 1e-4 AND VARIANCE(`loan_income_ratio`) >= 1e-4
+        AND VARIANCE(`income_to_loan`) >= 1e-4'', ''Sufficient Variance'')'' failed
+        on data sample: org.apache.spark.sql.AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION]
+        A column or function parameter with name `income` cannot be resolved. Did
+        you mean one of the following? [`id`, `loan_amnt`, `person_income`, `loan_grade`,
+        `person_age`].; line 1 pos 9;
+
+        ''Aggregate [sum(cast((((''VARIANCE(''income) >= 1.0E-4) AND (''VARIANCE(''loan_amount)
+        >= 1.0E-4)) AND ((''VARIANCE(''loan_income_ratio) >= 1.0E-4) AND (''VARIANCE(''income_to_loan)
+        >= 1.0E-4))) as int)) AS sum(CAST((((VARIANCE(income) >= 1.0E-4) AND (VARIANCE(loan_amount)
+        >= 1.0E-4)) AND ((VARIANCE(loan_income_ratio) >= 1.0E-4) AND (VARIANCE(income_to_loan)
+        >= 1.0E-4))) AS INT))#93112, count(1) AS count(1)#93113L]
+
+        +- LogicalRDD [id#26L, person_age#27L, person_income#28L, person_home_ownership#29,
+        person_emp_length#30, loan_intent#31, loan_grade#32, loan_amnt#33L, loan_int_rate#34,
+        loan_percent_income#35, cb_person_default_on_file#36, cb_person_cred_hist_length#37L,
+        loan_status#38L], false
+
+        '
+      level: warning
+      uid: 014fd83e-50b0-429a-8617-5aadd3af8c86
+      source_assumptions:
+      - 238d1d9c-d88a-44ca-9911-0305f22e72a8
+    assumptions:
+    - text: 'The ''income'', ''loan_amount'', and ''income_to_loan'' columns should
+        not contain null values in the test dataset. This is assumed because the ''income_to_loan''
+        column is derived from ''income'' and ''loan_amount''. Any null values in
+        these columns would result in null values in ''income_to_loan'', potentially
+        causing issues during model inference. A Deequ constraint to ensure non-null
+        values could be: .hasCompleteness(''income'', lambda x: x == 1).hasCompleteness(''loan_amount'',
+        lambda x: x == 1).hasCompleteness(''income_to_loan'', lambda x: x == 1).'
+      sources:
+      - start_line: 52
+        end_line: 53
+        file: ''
+      uid: 002d5513-47bc-4639-a061-40940647b323
+    - text: The correlation between numeric columns, including 'income', 'loan_amount',
+        and 'loan_income_ratio', should not exceed 0.95 to avoid multicollinearity
+        issues in the model. This is ensured by dropping one of the highly correlated
+        pairs during preprocessing. A Deequ constraint to check for this could be
+        implemented by computing the correlation matrix and asserting that all pairwise
+        correlations are less than 0.95.
+      sources:
+      - start_line: 91
+        end_line: 100
+        file: ''
+      uid: ccc270b1-57bc-4115-95b5-355794d7ab33
+    - text: 'The columns ''income'', ''loan_amount'', ''loan_income_ratio'', and ''income_to_loan''
+        should have sufficient variance in the test dataset, as low variance columns
+        are dropped during preprocessing. This ensures that the features provide meaningful
+        information for model predictions. A Deequ constraint to ensure variance could
+        be: .hasMinVariance(''income'', 1e-4).hasMinVariance(''loan_amount'', 1e-4).hasMinVariance(''loan_income_ratio'',
+        1e-4).hasMinVariance(''income_to_loan'', 1e-4).'
+      sources:
+      - start_line: 62
+        end_line: 72
+        file: ''
+      uid: 238d1d9c-d88a-44ca-9911-0305f22e72a8
+column_data_flow_locations:
+  person_age:
+  - start_line: 20
+    end_line: 26
+    file: ''
+  - start_line: 37
+    end_line: 38
+    file: ''
+  - start_line: 62
+    end_line: 68
+    file: ''
+  - start_line: 71
+    end_line: 71
+    file: ''
+  - start_line: 104
+    end_line: 109
+    file: ''
+  - start_line: 113
+    end_line: 114
+    file: ''
+  - start_line: 123
+    end_line: 123
+    file: ''
+  person_income:
+  - start_line: 24
+    end_line: 26
+    file: ''
+  - start_line: 37
+    end_line: 39
+    file: ''
+  - start_line: 51
+    end_line: 53
+    file: ''
+  - start_line: 62
+    end_line: 68
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  - start_line: 108
+    end_line: 108
+    file: ''
+  - start_line: 113
+    end_line: 113
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  person_home_ownership:
+  - start_line: 23
+    end_line: 28
+    file: ''
+  - start_line: 37
+    end_line: 40
+    file: ''
+  - start_line: 74
+    end_line: 77
+    file: ''
+  - start_line: 108
+    end_line: 109
+    file: ''
+  person_emp_length:
+  - start_line: 19
+    end_line: 21
+    file: ''
+  - start_line: 23
+    end_line: 49
+    file: ''
+  - start_line: 62
+    end_line: 72
+    file: ''
+  - start_line: 102
+    end_line: 109
+    file: ''
+  loan_amnt:
+  - start_line: 28
+    end_line: 29
+    file: ''
+  - start_line: 42
+    end_line: 43
+    file: ''
+  - start_line: 52
+    end_line: 53
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  - start_line: 71
+    end_line: 72
+    file: ''
+  - start_line: 119
+    end_line: 119
+    file: ''
+  - start_line: 121
+    end_line: 121
+    file: ''
+  loan_int_rate:
+  - start_line: 19
+    end_line: 21
+    file: ''
+  - start_line: 42
+    end_line: 43
+    file: ''
+  - start_line: 62
+    end_line: 72
+    file: ''
+  - start_line: 98
+    end_line: 100
+    file: ''
+  loan_percent_income:
+  - start_line: 31
+    end_line: 31
+    file: ''
+  - start_line: 44
+    end_line: 44
+    file: ''
+  - start_line: 62
+    end_line: 63
+    file: ''
+  - start_line: 66
+    end_line: 71
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 1
+    end_line: 1
+    file: ''
+  - start_line: 19
+    end_line: 21
+    file: ''
+  - start_line: 24
+    end_line: 36
+    file: ''
+  - start_line: 37
+    end_line: 49
+    file: ''
+  - start_line: 62
+    end_line: 68
+    file: ''
+  - start_line: 70
+    end_line: 72
+    file: ''
+  - start_line: 79
+    end_line: 80
+    file: ''
+  - start_line: 82
+    end_line: 83
+    file: ''
+  - start_line: 85
+    end_line: 89
+    file: ''
+  - start_line: 91
+    end_line: 94
+    file: ''
+  - start_line: 96
+    end_line: 100
+    file: ''
+  - start_line: 104
+    end_line: 109
+    file: ''
+  - start_line: 111
+    end_line: 117
+    file: ''
+  - start_line: 119
+    end_line: 124
+    file: ''
+  - start_line: 126
+    end_line: 127
+    file: ''
+  - start_line: 148
+    end_line: 150
+    file: ''
+  - start_line: 212
+    end_line: 216
+    file: ''
+  loan_grade:
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 46
+    end_line: 46
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 35
+    end_line: 35
+    file: ''
+  - start_line: 48
+    end_line: 48
+    file: ''
+  id:
+  - start_line: 57
+    end_line: 58
+    file: ''
+  - start_line: 212
+    end_line: 214
+    file: ''
+  - start_line: 216
+    end_line: 216
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.011492500000000001
+    total_tokens: 4465
+    prompt_tokens: 4421
+    completion_tokens: 44
+  data_flow_inspection:
+    cost: 0.060039999999999996
+    total_tokens: 35581
+    prompt_tokens: 34508
+    completion_tokens: 1073
+  column_correlation_discovery:
+    cost: 0.0092425
+    total_tokens: 3394
+    prompt_tokens: 3293
+    completion_tokens: 101
+  multi_column_data_flow_inspection:
+    cost: 0.0415575
+    total_tokens: 11853
+    prompt_tokens: 9943
+    completion_tokens: 1910
+  multi_column_assumption_generation:
+    cost: 0.038075
+    total_tokens: 11984
+    prompt_tokens: 10902
+    completion_tokens: 1082
+  multi_column_code_generation:
+    cost: 0.0388
+    total_tokens: 15619
+    prompt_tokens: 14692
+    completion_tokens: 927
+  single_column_assumption_generation:
+    cost: 0.1686175
+    total_tokens: 63232
+    prompt_tokens: 59715
+    completion_tokens: 3517
+  single_column_code_generation:
+    cost: 0.1544725
+    total_tokens: 76251
+    prompt_tokens: 74949
+    completion_tokens: 1302

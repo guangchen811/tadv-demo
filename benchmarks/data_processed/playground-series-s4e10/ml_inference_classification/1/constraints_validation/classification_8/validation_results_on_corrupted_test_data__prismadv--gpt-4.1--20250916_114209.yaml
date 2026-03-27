@@ -1,0 +1,87 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: '.hasCompleteness(''loan_int_rate'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasDistinctness([''person_home_ownership''], lambda x: x <= 4/1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''CASE WHEN `person_home_ownership` = "OTHER" THEN 1
+        ELSE 0 END'', ''Rare OTHER category'', lambda x: x <= 0.01)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: false
+      reason_if_failed: 'Constraint ''.isContainedIn(''loan_grade'', [''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', ''G''])'' failed on data sample: Value: 0.9000227350233034
+        does not meet the constraint requirement!'
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: '.hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.isPositive(''loan_amnt'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasApproxQuantile(''loan_amnt'', 0.99, lambda q: q <= 35000)'
+      status: false
+      reason_if_failed: 'Constraint ''.hasApproxQuantile(''loan_amnt'', 0.99, lambda
+        q: q <= 35000)'' failed on data sample: Value: 3.5E7 does not meet the constraint
+        requirement!'
+      level: warning
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error

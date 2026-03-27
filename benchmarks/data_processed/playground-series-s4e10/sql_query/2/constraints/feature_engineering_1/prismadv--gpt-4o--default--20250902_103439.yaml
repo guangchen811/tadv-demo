@@ -1,0 +1,75 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values because the code
+        is performing arithmetic operations that assume the presence of non-null values.
+        The completeness of the column is 1.0, which indicates that there are no null
+        values in the current data, and this should be maintained in the test data.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: The 'loan_amnt' column should contain only integral values, as the dataType
+        is specified as Integral. The test data should maintain this data type to
+        ensure consistent calculations.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .satisfies('person_income != 0', 'Non-zero person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_income' column should not contain any null values. This is
+        because the SQL operation divides by 'person_income', and dividing by null
+        would result in an error. The completeness of 'person_income' is 1.0, indicating
+        no null values in the current dataset, which must be maintained in future
+        datasets.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: The 'person_income' column should not contain zero values. The SQL operation
+        involves division by 'person_income', and dividing by zero would result in
+        an error. Thus, all values in 'person_income' must be non-zero.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+column_data_flow_locations:
+  loan_amnt:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  person_income:
+  - start_line: 2
+    end_line: 2
+    file: ''

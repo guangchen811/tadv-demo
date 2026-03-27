@@ -1,0 +1,175 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column must not contain any null values, as it is used
+        directly in SELECT, GROUP BY, and ORDER BY clauses. Nulls in this column would
+        result in incomplete or incorrect aggregation and ordering.
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'All values in the ''loan_intent'' column should be one of the known categories:
+        ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'',
+        or ''VENTURE''. The code assumes no unexpected values, as results are grouped
+        and ordered by this column and meaningful default rates are expected for each
+        category.'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: .hasDataType('loan_status', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column must not contain any null values, as the code
+        aggregates and computes statistics directly on this column without handling
+        missing values. Nulls would cause the SUM and CASE WHEN logic in the calculation
+        of ''default_count'' and ''default_rate'' to behave unexpectedly or return
+        incorrect results. We could represent this assumption as a deequ constraint
+        like this: .hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_status'' column must only contain the values 0 and 1, as the
+        code treats ''loan_status = 1'' as a default and ''loan_status = 0'' as non-default.
+        Any values outside this set would make the default rate calculation incorrect.
+        We could represent this assumption as a deequ constraint like this: .isContainedIn(''loan_status'',
+        [0, 1])'
+      sources:
+      - start_line: 4
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_status'' column should be of integer type, as the code expects
+        numeric comparison and aggregation (e.g., SUM, CASE WHEN loan_status = 1).
+        Non-integer or string values would cause computation errors or incorrect aggregations.
+        We could represent this assumption as a deequ constraint like this: .hasDataType(''loan_status'',
+        ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 4
+        end_line: 10
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['OWN', 'MORTGAGE', 'RENT',
+        'OTHER'])
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_home_ownership'', lambda x:
+        x == 4)'
+      validity: false
+      level: warning
+    - suggestion: '.hasCompleteness(''person_home_ownership'', lambda x: x >= 0.995)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''person_home_ownership'', lambda x:
+        x >= 4)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''person_home_ownership'' column must not contain null values, as
+        it is directly selected and used for grouping in the SQL query without any
+        null handling. The grouping and aggregation will fail or produce incomplete
+        results if nulls are present. We could represent this assumption as a deequ
+        constraint like this: .isComplete(''person_home_ownership'')'
+      sources:
+      - start_line: 2
+        end_line: 12
+        file: ''
+    - text: 'The ''person_home_ownership'' column should only contain the following
+        expected categories: ''OWN'', ''MORTGAGE'', ''RENT'', and ''OTHER'', as indicated
+        by the dataset''s value histogram. Unexpected categories may lead to misleading
+        aggregation or interpretation in the query results. We could represent this
+        assumption as a deequ constraint like this: .satisfies("person_home_ownership
+        IN (''OWN'', ''MORTGAGE'', ''RENT'', ''OTHER'')", ''Valid Home Ownership Status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 12
+        file: ''
+    - text: 'The ''person_home_ownership'' column should contain a reasonable distribution
+        among the categories to ensure meaningful group-by results. For instance,
+        no single category (such as ''OTHER'') should dominate or be too rare (e.g.,
+        less than 0.5% of rows), or the resulting aggregated statistics may not be
+        robust. We could represent this assumption as a deequ constraint like this:
+        .hasHistogramValues(''person_home_ownership'', {''OWN'': ''>0.5%'', ''MORTGAGE'':
+        ''>0.5%'', ''RENT'': ''>0.5%'', ''OTHER'': ''>0.1%''})'
+      sources:
+      - start_line: 2
+        end_line: 12
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 12
+    end_line: 12
+    file: ''
+  loan_intent:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 12
+    end_line: 12
+    file: ''
+  loan_status:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 9
+    end_line: 10
+    file: ''

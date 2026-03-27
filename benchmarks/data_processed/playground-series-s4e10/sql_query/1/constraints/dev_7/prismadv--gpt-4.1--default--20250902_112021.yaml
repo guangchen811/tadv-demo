@@ -1,0 +1,236 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: '.hasCompleteness(''loan_amnt'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasApproxQuantile(''loan_amnt'', 0.99, lambda x: x < upper_reasonable_limit)'
+      validity: false
+      level: warning
+    - suggestion: '.hasApproxQuantile(''loan_amnt'', 0.01, lambda x: x > lower_reasonable_limit)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_amnt'' column should not contain any NULL values, as the code
+        computes AVG(loan_amnt) without any explicit handling of NULLs. In SQL, NULLs
+        are ignored in aggregation, but if all values are NULL within a group, the
+        AVG result will be NULL, which could lead to incomplete or misleading results.
+        Since the column completeness is 1.0, this assumption is currently met, but
+        future input data should maintain this property. We could represent this assumption
+        as a Deequ constraint like this: .hasCompleteness(''loan_amnt'', lambda x:
+        x == 1.0)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral (whole number)
+        values, as it is used in AVG aggregation and the dataType is Integral. Non-integral
+        values could cause type errors or unexpected results in downstream tasks.
+        We could represent this assumption as a Deequ constraint like this: .isNonNegative(''loan_amnt'')
+        and .satisfies(''loan_amnt = CAST(loan_amnt AS BIGINT)'', ''Integral Loan
+        Amount'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_amnt'' column should have a reasonable range and distribution
+        of values, as the analysis aims to compare average loan amounts across home
+        ownership categories. If all loan amounts are the same or if there are extreme
+        outliers, the results may be misleading. We could represent this assumption
+        as a Deequ constraint like this: .hasApproxQuantile(''loan_amnt'', 0.99, lambda
+        x: x < upper_reasonable_limit) and .hasApproxQuantile(''loan_amnt'', 0.01,
+        lambda x: x > lower_reasonable_limit)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 24
+        end_line: 27
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''loan_int_rate >= 0 AND loan_int_rate <= 100'', ''Plausible
+        Interest Rates'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDistinctness(''loan_int_rate'', lambda x: x > 0.01)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must be complete (i.e., contain no NULL
+        values), since the code computes AVG(loan_int_rate) for each home ownership
+        group. If any value is NULL, the group average may be inaccurate or misleading,
+        and missing values would be excluded from the average calculation, potentially
+        biasing results. To ensure meaningful and accurate aggregation, the input
+        data should have no NULLs in ''loan_int_rate''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_int_rate IS NOT NULL'', ''No Null loan_int_rate'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_int_rate'' column should contain only numeric (fractional)
+        values within a plausible range for loan interest rates. Since the code calculates
+        AVG(loan_int_rate), non-numeric values would cause errors or be ignored, and
+        implausible values (e.g., negative rates, or extremely high rates) could distort
+        the average. The input data should contain only non-negative, reasonable numeric
+        values for ''loan_int_rate'' (e.g., between 0 and 100).
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_int_rate >= 0 AND loan_int_rate <= 100'', ''Plausible Interest
+        Rates'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_int_rate'' column should have sufficient variation within
+        each home ownership group to make the group averages meaningful. If all values
+        are identical or nearly identical, the analysis of differences between home
+        ownership types will not be informative. The input data should have multiple
+        distinct ''loan_int_rate'' values within each group.
+
+        We could represent this assumption as a deequ constraint like this (for each
+        group):
+
+        .hasDistinctness(''loan_int_rate'', lambda x: x > threshold)  # where threshold
+        is greater than 1 per group'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 18
+        end_line: 18
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: .hasDataType('loan_status', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column must be complete (no null values), as the code
+        uses it in a CASE WHEN expression to count defaults without handling missing
+        values. Any nulls in 'loan_status' would cause the SUM aggregation to produce
+        incorrect or misleading results.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: The 'loan_status' column is expected to contain only two distinct integer
+        values, 0 and 1, representing non-default and default statuses, respectively.
+        This is implied by the use of 'loan_status = 1' to count defaults, and the
+        column's metadata showing only two distinct values. Any values outside {0,
+        1} would lead to incorrect default counts.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: The 'loan_status' column must be of an integral (integer) data type, as
+        the code compares it directly to the integer 1. Non-integer types (e.g., strings
+        or floats) could cause errors or unexpected results in the aggregation.
+      sources:
+      - start_line: 13
+        end_line: 13
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_home_ownership'', lambda x:
+        x <= 4)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''person_home_ownership'' column should have no null values, since
+        it is used directly in SELECT, GROUP BY, and ORDER BY clauses without any
+        null-handling logic. The dataset characteristic ''completeness: 1.0'' also
+        indicates that the column is expected to always be present.'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 18
+        end_line: 18
+        file: ''
+    - text: 'The ''person_home_ownership'' column should contain only the expected
+        categories: ''RENT'', ''MORTGAGE'', ''OWN'', and ''OTHER'', as inferred from
+        the column''s histogram and the query''s intent to analyze loan patterns by
+        home ownership type. Unexpected values could cause misleading aggregations
+        or incorrect groupings.'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 18
+        end_line: 18
+        file: ''
+    - text: The 'person_home_ownership' column should have a limited number of distinct
+        values (ideally 4, as indicated by approximateNumDistinctValues), to ensure
+        that the aggregation and ordering logic in the query remains interpretable
+        and does not result in a large number of unexpected groups.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 18
+        end_line: 18
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 18
+    end_line: 18
+    file: ''
+  loan_amnt:
+  - start_line: 7
+    end_line: 7
+    file: ''
+  loan_int_rate:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  loan_status:
+  - start_line: 13
+    end_line: 13
+    file: ''

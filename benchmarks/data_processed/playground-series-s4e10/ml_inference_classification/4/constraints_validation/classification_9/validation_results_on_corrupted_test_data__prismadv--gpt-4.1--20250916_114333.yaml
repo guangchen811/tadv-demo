@@ -1,0 +1,169 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: '.hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.hasCompleteness(''loan_grade'', lambda x: x
+        == 1.0)'' failed on data sample: Value: 0.9000227350233034 does not meet the
+        constraint requirement!'
+      level: error
+    - suggestion: .satisfies("loan_grade IN ('A', 'B', 'C', 'D', 'E', 'F', 'G')",
+        'Valid loan_grade categories')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies("loan_grade IN (''A'', ''B'', ''C'',
+        ''D'', ''E'', ''F'', ''G'')", ''Valid loan_grade categories'')'' failed on
+        data sample: Value: 0.9000227350233034 does not meet the constraint requirement!'
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''loan_amnt >= 0'', ''Non-negative loan_amnt'', lambda
+        x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''loan_amnt = CAST(loan_amnt AS INT)'', ''Integral loan_amnt'',
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.hasCompleteness(''loan_status'', lambda x:
+        x == 1.0)'' failed on data sample: Input data does not include column loan_status!'
+      level: error
+  '["cb_person_default_on_file","loan_status"]':
+    code:
+    - suggestion: .satisfies('cb_person_default_on_file IN ("Y", "N")', 'cb_person_default_on_file
+        valid values')
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('loan_amnt >= 0 AND loan_int_rate IS NOT NULL', 'Loan
+        amount must be non-negative and interest rate must not be null')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''loan_status''], lambda x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_status''], lambda
+        x: x == 1.0)'' failed on data sample: Input data does not include column loan_status!'
+      level: error
+    - suggestion: .satisfies('loan_status IN (0, 1)', 'Loan status must be binary')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''loan_status IN (0, 1)'', ''Loan
+        status must be binary'')'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column or function parameter with name
+        `loan_status` cannot be resolved. Did you mean one of the following? [`loan_amnt`,
+        `loan_grade`, `loan_int_rate`, `loan_intent`, `id`].; line 1 pos 0;
+
+        ''Aggregate [sum(cast(''loan_status IN (0,1) as int)) AS sum(CAST((loan_status
+        IN (0, 1)) AS INT))#592689, count(1) AS count(1)#592690L]
+
+        +- LogicalRDD [id#590525L, person_age#590526L, person_income#590527L, person_home_ownership#590528,
+        person_emp_length#590529, loan_intent#590530, loan_grade#590531, loan_amnt#590532L,
+        loan_int_rate#590533, loan_percent_income#590534, cb_person_default_on_file#590535,
+        cb_person_cred_hist_length#590536L], false
+
+        '
+      level: error
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_int_rate'', ''loan_grade''],
+        lambda x: x == 1.0)'' failed on data sample: Value: 0.9000227350233034 does
+        not meet the constraint requirement!'
+      level: error
+    - suggestion: .satisfies('loan_grade IN ("A", "B", "C", "D", "E", "F", "G") AND
+        loan_int_rate IS NOT NULL', 'Valid loan_grade and loan_int_rate types')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''loan_grade IN ("A", "B", "C", "D",
+        "E", "F", "G") AND loan_int_rate IS NOT NULL'', ''Valid loan_grade and loan_int_rate
+        types'')'' failed on data sample: Value: 0.9000227350233034 does not meet
+        the constraint requirement!'
+      level: error
+  '["loan_grade","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_grade'', ''loan_status''], lambda c:
+        c == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_grade'', ''loan_status''],
+        lambda c: c == 1.0)'' failed on data sample: Input data does not include column
+        loan_status!'
+      level: error
+    - suggestion: .satisfies('loan_status in (0, 1) AND loan_grade in ("A", "B", "C",
+        "D", "E", "F", "G")', 'Loan status and grade are valid')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''loan_status in (0, 1) AND loan_grade
+        in ("A", "B", "C", "D", "E", "F", "G")'', ''Loan status and grade are valid'')''
+        failed on data sample: org.apache.spark.sql.AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION]
+        A column or function parameter with name `loan_status` cannot be resolved.
+        Did you mean one of the following? [`loan_amnt`, `loan_grade`, `loan_int_rate`,
+        `loan_intent`, `id`].; line 1 pos 0;
+
+        ''Aggregate [sum(cast((''loan_status IN (0,1) AND loan_grade#590531 IN (A,B,C,D,E,F,G))
+        as int)) AS sum(CAST(((loan_status IN (0, 1)) AND (loan_grade IN (A, B, C,
+        D, E, F, G))) AS INT))#592893, count(1) AS count(1)#592894L]
+
+        +- LogicalRDD [id#590525L, person_age#590526L, person_income#590527L, person_home_ownership#590528,
+        person_emp_length#590529, loan_intent#590530, loan_grade#590531, loan_amnt#590532L,
+        loan_int_rate#590533, loan_percent_income#590534, cb_person_default_on_file#590535,
+        cb_person_cred_hist_length#590536L], false
+
+        '
+      level: error
+  '["loan_int_rate","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_status''], lambda
+        x: x == 1.0)'
+      status: false
+      reason_if_failed: 'Constraint ''.haveCompleteness([''loan_int_rate'', ''loan_status''],
+        lambda x: x == 1.0)'' failed on data sample: Input data does not include column
+        loan_status!'
+      level: error

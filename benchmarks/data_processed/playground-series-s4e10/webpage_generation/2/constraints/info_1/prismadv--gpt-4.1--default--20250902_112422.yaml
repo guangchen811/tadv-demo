@@ -1,0 +1,145 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_default_on_file' column should have no missing (null) values,
+        as the code directly accesses this column and computes value counts without
+        handling missing values. The computation assumes all values are present.
+      sources:
+      - start_line: 14
+        end_line: 21
+        file: ''
+    - text: The 'cb_person_default_on_file' column should only contain the values
+        'Y' and 'N', as indicated by the dataset's histogram and the fact that the
+        code treats this column as categorical and computes frequencies for each unique
+        value.
+      sources:
+      - start_line: 14
+        end_line: 21
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_grade', 'String')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column is expected to have no missing values in the input
+        data, as it is included in the list of categorical columns for which value
+        counts are computed without any missing value handling. A missing value would
+        cause a KeyError or produce inaccurate frequency counts.
+      sources:
+      - start_line: 14
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_grade'' column is expected to contain only a small, finite
+        set of string values representing loan grades, as the code computes its value
+        counts for display in a bar chart. Based on the data profile, the expected
+        categories are: ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G''. Unexpected
+        or additional values may cause misleading or confusing visualizations.'
+      sources:
+      - start_line: 14
+        end_line: 21
+        file: ''
+    - text: The 'loan_grade' column should contain only string values, as the code
+        processes it as a categorical variable and the data profile shows it is of
+        type string. Non-string values could result in errors or incorrect frequency
+        calculations.
+      sources:
+      - start_line: 14
+        end_line: 21
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_intent', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column must not contain any null values, as the code
+        directly computes value counts on it without handling missing data. This means
+        the downstream tasks expect every row to have a non-null value for ''loan_intent''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_intent` IS NULL THEN 0 ELSE 1 END", "No Nulls
+        in loan_intent", lambda x: x == 1)'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_intent'' column is expected to only contain one of the following
+        six string categories: EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION,
+        MEDICAL, or VENTURE, as inferred from both the data profile and the value_counts
+        logic used for categorical columns. Any value outside this set would likely
+        break the reporting and visualization logic.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_intent` IN (''EDUCATION'', ''HOMEIMPROVEMENT'',
+        ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'') THEN 1 ELSE
+        0 END", "Valid loan_intent Categories", lambda x: x == 1)'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_intent'' column is expected to be of String data type (not
+        numeric or boolean), as it is treated as a categorical column and its possible
+        values are all strings. This is required for correct downstream processing
+        and visualization.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("loan_intent", ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 21
+    file: ''
+  loan_intent:
+  - start_line: 18
+    end_line: 22
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 18
+    end_line: 22
+    file: ''

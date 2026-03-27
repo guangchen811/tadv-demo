@@ -1,0 +1,335 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_grade', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column must have no null (missing) values, as the
+        code does not perform any null-handling or filtering for nulls before using
+        ''loan_grade'' as a grouping key in groupby operations. The completeness is
+        1.0, which matches this assumption. We could represent this assumption as
+        a deequ constraint like this:
+
+        .completeness(''loan_grade'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 25
+        file: ''
+    - text: 'The ''loan_grade'' column should only contain a small, finite set of
+        categorical string values, corresponding to the observed values: ''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', and ''G''. This is because the downstream heatmap
+        and JSON output expect to enumerate all unique values as axes labels, and
+        the histogram confirms only these 7 values are present. We could represent
+        this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN loan_grade IN (''A'', ''B'', ''C'', ''D'', ''E'', ''F'',
+        ''G'') THEN 1 ELSE 0 END", ''Valid Loan Grades'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 25
+        file: ''
+    - text: 'The ''loan_grade'' column must be of string (categorical/text) data type,
+        as it is used as a grouping key and as a label in the heatmap axes, and the
+        dataType is reported as String with all type counts for numeric/boolean being
+        zero. We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType(''loan_grade'', ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 14
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 25
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_intent', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column should not contain null values, as it is directly
+        used in a groupby operation and as a categorical axis in the heatmap without
+        any missing value handling. The code and data characteristics (completeness:
+        1.0) both assume that every row has a valid ''loan_intent'' value. We could
+        represent this assumption as a deequ constraint like this: .isComplete(''loan_intent'')'
+      sources:
+      - start_line: 18
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain one of the following six
+        categories: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', or ''VENTURE''. The groupby operation and the downstream visualization
+        expect these to be the only possible values for correct rendering and interpretation.
+        We could represent this assumption as a deequ constraint like this: .hasDistinctValues(''loan_intent'',
+        [''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', ''VENTURE''])'
+      sources:
+      - start_line: 19
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: 'The ''loan_intent'' column should be of string (categorical) data type,
+        as the code treats it as a categorical axis in both the groupby and heatmap
+        visualization, and the dataset description confirms the type. We could represent
+        this assumption as a deequ constraint like this: .hasDataType(''loan_intent'',
+        ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 19
+        end_line: 20
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: .hasDataType('loan_status', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column must not contain any null values, as the code
+        does not perform any null handling or imputation and expects to group by this
+        column directly. The completeness of the column is 1.0, indicating that all
+        values are present in the data.
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 19
+        end_line: 20
+        file: ''
+      - start_line: 25
+        end_line: 27
+        file: ''
+    - text: The 'loan_status' column is expected to be categorical with only two distinct
+        integer values (specifically '0' and '1'), as the code generates heatmaps
+        based on its values and the dataset histogram shows only these two values.
+        Any additional or unexpected values would not be handled or visualized correctly.
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 19
+        end_line: 20
+        file: ''
+      - start_line: 25
+        end_line: 27
+        file: ''
+    - text: The 'loan_status' column should only contain integer values, as inferred
+        from the data type and its use in groupby operations and downstream visualization.
+        Non-integer or malformed values would cause errors or incorrect visualization.
+      sources:
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 19
+        end_line: 20
+        file: ''
+      - start_line: 25
+        end_line: 27
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: '.hasCompleteness(''person_emp_length'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_emp_length'', lambda x: x >=
+        1 and x <= 50)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''person_emp_length'' column must be complete with no missing (null)
+        values, since the code does not perform any missing value handling (such as
+        fillna or dropna) before using it in a groupby operation for heatmap generation.
+        This is supported by the dataset profile indicating completeness of 1.0, and
+        is required because groupby would otherwise exclude or misrepresent rows with
+        nulls, potentially causing misleading or incomplete heatmap data for the ''Employment
+        Length vs Loan Status'' visualization. We could represent this assumption
+        as a deequ constraint like this: .hasCompleteness(''person_emp_length'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 27
+        file: ''
+    - text: 'The ''person_emp_length'' column must contain only fractional (numeric)
+        values, as it is used as a grouping key in the heatmap and is of dataType
+        ''Fractional'' in the dataset profile. Non-numeric or unexpected types could
+        cause errors or unexpected buckets in the groupby. We could represent this
+        assumption as a deequ constraint like this: .isNonNegative(''person_emp_length'')
+        if negative values are invalid, or .isContainedIn(''person_emp_length'', allowed_values)
+        if there is a known set of allowed employment lengths.'
+      sources:
+      - start_line: 14
+        end_line: 27
+        file: ''
+    - text: 'The ''person_emp_length'' column is expected to have a moderate number
+        of distinct values (approximately 33), as per the dataset profile. If the
+        number of distinct values is much higher, the resulting heatmap may become
+        unreadable or uninformative. We could represent this assumption as a deequ
+        constraint like this: .hasNumberOfDistinctValuesBetween(''person_emp_length'',
+        lowerBound=1, upperBound=50)'
+      sources:
+      - start_line: 14
+        end_line: 27
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: '.hasCompleteness(''person_home_ownership'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies("`person_home_ownership` IN (''RENT'', ''MORTGAGE'',
+        ''OWN'', ''OTHER'')", ''Valid Home Ownership Values'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_home_ownership', ConstrainableDataTypes.String)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_home_ownership'' column must not contain any null or missing
+        values, as the column is used in a groupby operation without any null handling
+        (such as fillna or dropna). Groupby operations with nulls would result in
+        missing or incomplete aggregation in the output heatmap, so the input data
+        is expected to be complete for this column. We could represent this assumption
+        as a deequ constraint like this:
+
+        .hasCompleteness(''person_home_ownership'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 20
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: 'The ''person_home_ownership'' column should only contain the values RENT,
+        MORTGAGE, OWN, or OTHER, as the observed histogram shows only these four values
+        and the downstream code expects to generate a heatmap with interpretable categories.
+        Unexpected or new values could cause issues in visualization or interpretation.
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_home_ownership` IN (''RENT'', ''MORTGAGE'',
+        ''OWN'', ''OTHER'') THEN 1 ELSE 0 END", ''Valid Home Ownership Values'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 20
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: 'The ''person_home_ownership'' column must be of string (categorical)
+        data type, as it is used as a categorical axis in groupby and for visualization
+        in the heatmap. Non-string or mixed types could cause errors or mislabeling
+        in the output. We could represent this assumption as a deequ constraint like
+        this:
+
+        .hasDataType(''person_home_ownership'', ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 14
+        end_line: 20
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 35
+    end_line: 35
+    file: ''
+  loan_intent:
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''
+  loan_status:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 25
+    end_line: 27
+    file: ''
+  - start_line: 35
+    end_line: 35
+    file: ''
+  person_home_ownership:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  person_emp_length:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 27
+    end_line: 27
+    file: ''

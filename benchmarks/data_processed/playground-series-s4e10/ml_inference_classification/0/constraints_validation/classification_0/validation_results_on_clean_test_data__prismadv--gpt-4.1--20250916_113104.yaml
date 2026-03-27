@@ -1,0 +1,91 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isNonNegative('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A','B','C','D','E','F','G'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_default_on_file","loan_amnt","loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate'', ''loan_grade'',
+        ''cb_person_default_on_file''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''loan_amnt >= 0 AND loan_int_rate >= 0'', ''Loan amount
+        and interest rate must be non-negative'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_default_on_file","loan_grade"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_grade'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: '.hasCompleteness(''id'', lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["id","loan_status"]':
+    code:
+    - suggestion: '.hasUniqueness([''id''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","log_loan_amnt"]':
+    code:
+    - suggestion: '.satisfies(''loan_amnt IS NOT NULL AND loan_amnt >= 0 AND loan_amnt
+        = CAST(loan_amnt AS BIGINT)'', ''loan_amnt non-null, non-negative integer'',
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

@@ -1,0 +1,336 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''cb_person_cred_hist_length'', ''Integral'', lambda
+        x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''cb_person_cred_hist_length'', lambda
+        x: x >= 10)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'cb_person_cred_hist_length' column must not contain any null values
+        in the input data, because the code selects this column as a feature and then
+        immediately applies dropna() to the selected columns, ensuring that only rows
+        with non-null values in all features (including 'cb_person_cred_hist_length')
+        are used for downstream processing. Therefore, if any rows have nulls in 'cb_person_cred_hist_length',
+        those rows will be dropped and not visualized.
+      sources:
+      - start_line: 23
+        end_line: 28
+        file: ''
+    - text: The 'cb_person_cred_hist_length' column should contain only integral (integer)
+        values, as indicated by the dataType metadata and its use as a feature for
+        StandardScaler and t-SNE, which expect numeric input.
+      sources:
+      - start_line: 23
+        end_line: 32
+        file: ''
+    - text: 'The ''cb_person_cred_hist_length'' column should have a reasonable range
+        and distribution of values, as it is used as a feature for scaling and t-SNE
+        dimensionality reduction. Outliers or non-representative values may distort
+        the visualization. While no explicit range is enforced in the code, the column
+        is expected to have a meaningful numeric spread (approximateNumDistinctValues:
+        29) for effective visualization.'
+      sources:
+      - start_line: 23
+        end_line: 37
+        file: ''
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_amnt' column must have no null values in the input data, because
+        the code selects it as a feature and then immediately applies dropna() to
+        remove any rows with missing values in the selected columns. This ensures
+        that all downstream operations (such as scaling and t-SNE) only see complete
+        data. Therefore, the code implicitly assumes that either there are no missing
+        values in 'loan_amnt' or that missing values are acceptable to drop without
+        harming downstream analysis. Given the column completeness is 1.0, this is
+        currently satisfied, but the code expects this to remain true in future data.
+      sources:
+      - start_line: 20
+        end_line: 28
+        file: ''
+    - text: The 'loan_amnt' column is expected to be of integral (integer) data type
+        in the input data, as it is used as a feature for StandardScaler and t-SNE,
+        both of which expect numeric inputs. Non-numeric or non-integral values in
+        this column would cause errors or unexpected results during scaling and dimensionality
+        reduction.
+      sources:
+      - start_line: 20
+        end_line: 32
+        file: ''
+    - text: The 'loan_amnt' column is expected to have a reasonable numeric range
+        and distribution, as it is combined with other numeric features for scaling
+        and t-SNE visualization. Extreme outliers or negative values may distort the
+        results. While the code does not explicitly check for range or outliers, the
+        downstream use of StandardScaler and t-SNE implies the data should be within
+        a reasonable, expected range (e.g., non-negative, plausible loan amounts).
+      sources:
+      - start_line: 20
+        end_line: 38
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: '.hasCompleteness(''loan_int_rate'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must not contain any null values in the
+        input data, since the code drops all rows with nulls using dropna() before
+        proceeding. Any row with a null in ''loan_int_rate'' will be excluded from
+        downstream processing. Thus, for maximum data retention and expected behavior,
+        the input data should have complete (non-null) values for ''loan_int_rate''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_int_rate'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 24
+        end_line: 28
+        file: ''
+    - text: 'The ''loan_int_rate'' column is expected to be of a numeric (fractional/float)
+        data type in the input data, as it is used as a feature for scaling and t-SNE
+        embedding. Non-numeric or malformed values would cause errors during StandardScaler
+        transformation.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType(''loan_int_rate'', ''Fractional'')'
+      sources:
+      - start_line: 24
+        end_line: 32
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_percent_income'', ''Fractional'', lambda x:
+        x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.satisfies(''`loan_percent_income` >= 0 AND `loan_percent_income`
+        <= 2'', ''loan_percent_income reasonable range'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_percent_income' column must not contain any null values in the
+        input data, because the code drops all rows with nulls in any of the selected
+        features (including 'loan_percent_income') before further processing. If there
+        are nulls in this column, those rows will be excluded from the analysis and
+        the resulting visualization.
+      sources:
+      - start_line: 20
+        end_line: 28
+        file: ''
+    - text: The 'loan_percent_income' column should consist of fractional (i.e., floating
+        point) values, as indicated by the dataset metadata and as required by the
+        use of StandardScaler and t-SNE, which expect numeric continuous inputs.
+      sources:
+      - start_line: 25
+        end_line: 32
+        file: ''
+    - text: The 'loan_percent_income' column should not contain extreme outliers or
+        non-numeric values, since scaling (StandardScaler) and t-SNE are sensitive
+        to outliers and assume reasonable numeric ranges. The code does not explicitly
+        handle outliers, so the presence of extreme values could distort the visualization.
+      sources:
+      - start_line: 31
+        end_line: 37
+        file: ''
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column must have no null values in the input data,
+        as the code drops any rows with nulls in any of the selected columns (including
+        ''loan_status'') before further processing. This means the downstream code
+        will only work if ''loan_status'' is complete for all relevant records. We
+        could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 28
+        end_line: 28
+        file: ''
+    - text: 'The ''loan_status'' column should only contain the integer values 0 or
+        1, representing ''not approved'' and ''approved'' loans, respectively. This
+        is assumed by the code logic and the downstream visualization, which filters
+        and labels data based on ''loan_status'' being exactly 0 or 1. We could represent
+        this assumption as a deequ constraint like this: .isContainedIn(''loan_status'',
+        [0, 1])'
+      sources:
+      - start_line: 27
+        end_line: 27
+        file: ''
+      - start_line: 89
+        end_line: 90
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', ConstrainableDataTypes.Fractional)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_emp_length'' column must be complete (i.e., contain no null
+        values) in the input data, because the code drops all rows with any missing
+        values in the selected features (including ''person_emp_length'') or the target
+        prior to further processing. If there are null values, those rows will be
+        excluded and not be part of the analysis or visualization. We could represent
+        this assumption as a deequ constraint like this: .isComplete(''person_emp_length'')'
+      sources:
+      - start_line: 20
+        end_line: 28
+        file: ''
+    - text: 'The ''person_emp_length'' column must contain only numeric (fractional)
+        values, as it is used as input to StandardScaler (which requires numeric types)
+        and subsequently to t-SNE. Any non-numeric or non-convertible values in this
+        column will cause errors or be implicitly dropped, resulting in data loss.
+        We could represent this assumption as a deequ constraint like this: .hasDataType(''person_emp_length'',
+        ConstrainableDataTypes.Fractional)'
+      sources:
+      - start_line: 22
+        end_line: 32
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    - suggestion: '.hasStandardDeviation(''person_income'', lambda std: std > 0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column must have no null values in the input data,
+        as the code selects it as a feature and immediately applies dropna() to remove
+        any rows with missing values. This implies that the downstream processing
+        expects ''person_income'' to always be present for all rows used in the analysis.
+        We could represent this assumption as a deequ constraint like this: .isComplete(''person_income'')'
+      sources:
+      - start_line: 20
+        end_line: 28
+        file: ''
+    - text: 'The ''person_income'' column should have only integral (integer) values,
+        since its data type is Integral and it is used as a numerical feature in scaling
+        (StandardScaler) and t-SNE embedding. The input data should not contain any
+        non-integer or non-numeric values in ''person_income''. We could represent
+        this assumption as a deequ constraint like this: .hasDataType(''person_income'',
+        ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 20
+        end_line: 32
+        file: ''
+    - text: 'The ''person_income'' column is implicitly assumed to have sufficient
+        variance (i.e., not be constant or nearly constant) because it is used as
+        a feature for StandardScaler and t-SNE. If all or most values were the same,
+        the scaling and t-SNE embedding would not be meaningful. We could represent
+        this assumption as a deequ constraint like this: .hasVariance(''person_income'',
+        lambda v: v > 0)'
+      sources:
+      - start_line: 20
+        end_line: 37
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 20
+    end_line: 20
+    file: ''
+  - start_line: 28
+    end_line: 32
+    file: ''
+  loan_amnt:
+  - start_line: 20
+    end_line: 20
+    file: ''
+  - start_line: 28
+    end_line: 32
+    file: ''
+  person_emp_length:
+  - start_line: 20
+    end_line: 20
+    file: ''
+  - start_line: 28
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 19
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  loan_int_rate:
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 28
+    end_line: 28
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  loan_percent_income:
+  - start_line: 20
+    end_line: 26
+    file: ''
+  - start_line: 28
+    end_line: 32
+    file: ''
+  loan_status:
+  - start_line: 27
+    end_line: 28
+    file: ''
+  - start_line: 33
+    end_line: 33
+    file: ''
+  - start_line: 41
+    end_line: 41
+    file: ''
+  - start_line: 89
+    end_line: 90
+    file: ''

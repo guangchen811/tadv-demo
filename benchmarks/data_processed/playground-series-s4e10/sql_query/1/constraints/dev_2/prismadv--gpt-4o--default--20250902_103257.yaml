@@ -1,0 +1,95 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values, as the code calculates
+        the average loan amount using this column. For the AVG function to work correctly,
+        it requires non-null values.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain null values because the
+        code calculates an average interest rate using this column, and SQL aggregation
+        functions like AVG ignore null values. Given that the completeness is 1.0,
+        the column is expected to be fully complete.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column is expected to have fractional values, as indicated
+        by its data type. This is necessary for accurate calculation of the average
+        interest rate.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column is expected to have no null values since it is
+        used for grouping in the SQL query. Grouping on null values would result in
+        a separate group for nulls, which is usually undesirable.
+      sources:
+      - start_line: 2
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain one of the following distinct
+        values: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', or ''VENTURE'', as these are the only categories observed in
+        the dataset and the code aggregates loan statistics by these categories.'
+      sources:
+      - start_line: 2
+        end_line: 7
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  loan_int_rate:
+  - start_line: 4
+    end_line: 4
+    file: ''

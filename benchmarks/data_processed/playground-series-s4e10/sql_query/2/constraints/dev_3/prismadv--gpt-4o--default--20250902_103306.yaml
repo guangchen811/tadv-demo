@@ -1,0 +1,109 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column should not contain null values because the code
+        calculates the average loan amount using AVG(loan_amnt), which requires non-null
+        values.
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+    - text: The 'loan_amnt' column should contain numeric values, specifically integral
+        values, as it is used in an arithmetic operation (AVG) which requires numeric
+        data types.
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain null values because the
+        code calculates the average interest rate using this column, and null values
+        could result in incorrect calculations.
+      sources:
+      - start_line: 13
+        end_line: 14
+        file: ''
+    - text: The 'loan_int_rate' column contains fractional data, as indicated by its
+        data type, and this is expected to remain consistent in the input data.
+      sources:
+      - start_line: 13
+        end_line: 14
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    - suggestion: .satisfies('person_income < 50000 OR (person_income >= 50000 AND
+        person_income <= 100000) OR person_income > 100000', 'Income Band Classification')
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'person_income' column should not contain null values because the
+        SQL query assumes that every record has a valid income value to classify into
+        income bands.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: The 'person_income' column should contain numeric values since the SQL
+        query uses numerical comparisons to categorize income into bands.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: 'The ''person_income'' column is expected to have values that fall into
+        three categories: less than 50,000, between 50,000 and 100,000, and greater
+        than 100,000. This is implied by the income band classification logic in the
+        SQL query.'
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 2
+    end_line: 6
+    file: ''
+  loan_amnt:
+  - start_line: 11
+    end_line: 11
+    file: ''
+  loan_int_rate:
+  - start_line: 1
+    end_line: 22
+    file: ''

@@ -1,0 +1,44 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: '.satisfies("CASE WHEN UPPER(TRIM(`cb_person_default_on_file`))
+        IN (''Y'',''N'') THEN 1 ELSE 0 END", "cb_person_default_on_file only canonical
+        Y/N", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: .isComplete("cb_person_default_on_file")
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("UPPER(TRIM(`cb_person_default_on_file`)) = ''Y''",
+        "Has at least one Y in cb_person_default_on_file", lambda x: x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("UPPER(TRIM(`cb_person_default_on_file`)) = ''N''",
+        "Has at least one N in cb_person_default_on_file", lambda x: x > 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  loan_intent:
+    code:
+    - suggestion: .isComplete("loan_intent")
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.isContainedIn("loan_intent", ["EDUCATION", "HOMEIMPROVEMENT",
+        "PERSONAL", "DEBTCONSOLIDATION", "MEDICAL", "VENTURE"], lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("loan_intent = UPPER(TRIM(loan_intent))", "Uppercase
+        and trimmed loan_intent", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("TRIM(loan_intent) <> ''''", "Non-empty loan_intent",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning

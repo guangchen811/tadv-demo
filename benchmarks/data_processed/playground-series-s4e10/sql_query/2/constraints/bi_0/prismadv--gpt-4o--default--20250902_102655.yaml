@@ -1,0 +1,157 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column should not contain null values because it is used
+        to group data and calculate aggregates in the SQL query.
+      sources:
+      - start_line: 5
+        end_line: 10
+        file: ''
+      - start_line: 21
+        end_line: 22
+        file: ''
+    - text: 'The ''loan_grade'' column should have values only from the predefined
+        set: A, B, C, D, E, F, G, as these are the only expected categories used for
+        aggregation and analysis.'
+      sources:
+      - start_line: 5
+        end_line: 10
+        file: ''
+      - start_line: 21
+        end_line: 22
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain null values because the
+        code calculates the average interest rate using this column, which requires
+        non-null values for accurate computation. Given the dataset description, it
+        is confirmed that 'loan_int_rate' has a completeness of 1.0, meaning it does
+        not contain null values.
+      sources:
+      - start_line: 10
+        end_line: 17
+        file: ''
+    - text: The 'loan_int_rate' column is expected to contain fractional values as
+        it represents interest rates, which are typically expressed as decimals.
+      sources:
+      - start_line: 10
+        end_line: 17
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_status' column in the input data should have values that are
+        either 0 or 1. This is because the code treats the 'loan_status' as a binary
+        indicator (1 for default, 0 for non-default) and uses it to calculate the
+        number of defaults and the default percentage.
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 18
+        end_line: 20
+        file: ''
+    - text: The 'loan_status' column should not contain null values. The code does
+        not handle nulls in 'loan_status' and directly uses it in calculations, which
+        implies that nulls are not expected.
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 18
+        end_line: 20
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''person_emp_length'', lambda x: x >=
+        33)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_emp_length' column should not contain any null values because
+        the code aggregates data based on this column without any null-handling operations.
+        The completeness of this column is 1.0, indicating no null values are present
+        in the dataset.
+      sources:
+      - start_line: 7
+        end_line: 10
+        file: ''
+      - start_line: 14
+        end_line: 22
+        file: ''
+    - text: The 'person_emp_length' column is expected to have distinct values that
+        allow meaningful aggregation and analysis in the context of grouping and calculating
+        averages and sums. This is supported by the approximate number of distinct
+        values being 33, which suggests a reasonable variety for aggregation.
+      sources:
+      - start_line: 14
+        end_line: 22
+        file: ''
+column_data_flow_locations:
+  person_emp_length:
+  - start_line: 5
+    end_line: 11
+    file: ''
+  - start_line: 14
+    end_line: 22
+    file: ''
+  loan_grade:
+  - start_line: 5
+    end_line: 11
+    file: ''
+  - start_line: 13
+    end_line: 23
+    file: ''
+  loan_status:
+  - start_line: 9
+    end_line: 9
+    file: ''
+  - start_line: 18
+    end_line: 19
+    file: ''
+  loan_int_rate:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 17
+    end_line: 17
+    file: ''

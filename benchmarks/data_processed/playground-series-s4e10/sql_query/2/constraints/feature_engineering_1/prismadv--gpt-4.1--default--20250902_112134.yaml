@@ -1,0 +1,110 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_amnt'' column must not contain null values, as it is used
+        directly in an arithmetic operation (division) without any null handling in
+        the code. Null values in ''loan_amnt'' would cause the SQL query to return
+        null or error for those rows. We could represent this assumption as a deequ
+        constraint like this:
+
+        .satisfies("CASE WHEN `loan_amnt` IS NOT NULL THEN 1 ELSE 0 END", "Non-null
+        loan_amnt", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral numeric values,
+        as the column is described as Integral and is used in a numeric division operation
+        in the code. Non-numeric or non-integral values would cause the query to fail
+        or return incorrect results. We could represent this assumption as a deequ
+        constraint like this:
+
+        .satisfies("CASE WHEN CAST(`loan_amnt` AS BIGINT) = `loan_amnt` THEN 1 ELSE
+        0 END", "Integral loan_amnt", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''person_income != 0'', ''No Zero Income'', lambda x:
+        x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.satisfies(''person_income > 0'', ''Positive Income'', lambda x:
+        x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column must not contain null values, as it is used
+        as a divisor in a division operation. Null values would cause the SQL query
+        to return nulls for those rows or potentially raise errors, depending on the
+        SQL engine. We could represent this assumption as a deequ constraint like
+        this: .isComplete(''person_income'')'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: 'The ''person_income'' column must not contain zero values, as dividing
+        by zero will result in errors or undefined values in SQL. We could represent
+        this assumption as a deequ constraint like this: .satisfies(''person_income
+        != 0'', ''No Zero Income'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: 'The ''person_income'' column should contain only numeric (integral) values,
+        as it is used in a mathematical operation. Non-numeric values would cause
+        errors in computation. We could represent this assumption as a deequ constraint
+        like this: .isInteger(''person_income'')'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: 'The ''person_income'' column should contain positive values, as negative
+        or zero income is likely not meaningful for a loan-to-income ratio and could
+        indicate invalid data. We could represent this assumption as a deequ constraint
+        like this: .satisfies(''person_income > 0'', ''Positive Income'', lambda x:
+        x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+column_data_flow_locations:
+  loan_amnt:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  person_income:
+  - start_line: 2
+    end_line: 2
+    file: ''

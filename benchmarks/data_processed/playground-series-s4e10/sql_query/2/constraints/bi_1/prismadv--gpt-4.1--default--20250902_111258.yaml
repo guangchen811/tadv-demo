@@ -1,0 +1,103 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_default_on_file' column must not contain any null values,
+        as the code performs an equality check (cb_person_default_on_file = 'N') and
+        divides by COUNT(*), implying that missing values would cause incorrect approval
+        rate calculations or errors. All rows must have a valid 'cb_person_default_on_file'
+        value.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: The 'cb_person_default_on_file' column should only contain the values
+        'Y' or 'N', as the approval rate logic is based on these two categories and
+        the histogram in the data description indicates no other values are expected.
+        Unexpected values could cause approval rates to be miscalculated.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'MORTGAGE', 'OWN',
+        'OTHER'])
+      validity: true
+      level: error
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = ''OTHER'' THEN 1
+        ELSE 0 END", "Few ''OTHER'' home ownership values", lambda x: x <= 0.01)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'person_home_ownership' column must not contain any null values, as
+        the code groups by this column and expects each row to have a valid homeownership
+        status. Null values would cause those rows to be grouped under a NULL category,
+        potentially distorting results.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: 'The ''person_home_ownership'' column should only contain the following
+        values: ''RENT'', ''MORTGAGE'', ''OWN'', or ''OTHER'', as the downstream analysis
+        is based on these categories. Unexpected or new values could result in meaningless
+        or misleading groupings in the output.'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+    - text: The distribution of values in 'person_home_ownership' should be similar
+        to the training data, where 'RENT', 'MORTGAGE', and 'OWN' are the predominant
+        categories, and 'OTHER' is rare (about 0.2%). A significant increase in the
+        proportion of 'OTHER' or new categories may indicate data drift or quality
+        issues.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 10
+        end_line: 10
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 10
+    end_line: 10
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 7
+    end_line: 7
+    file: ''

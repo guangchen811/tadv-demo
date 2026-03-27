@@ -1,0 +1,82 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column should not have any null values because the
+        code groups by this column, which implies that null values would disrupt the
+        grouping operation. We could represent this assumption as a deequ constraint
+        like this: .satisfies(''CASE WHEN loan_grade IS NOT NULL THEN 1 ELSE 0 END'',
+        ''Non-null Loan Grades'', lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_grade'' column is expected to have a limited set of distinct
+        values, specifically ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'', as these
+        are the only values observed in the dataset''s histogram. We could represent
+        this assumption as a deequ constraint like this: .satisfies(''CASE WHEN loan_grade
+        IN ("A", "B", "C", "D", "E", "F", "G") THEN 1 ELSE 0 END'', ''Valid Loan Grades'',
+        lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 7
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column should not contain null values because the code
+        performs aggregation operations that assume all values are non-null. This
+        is evidenced by the use of COUNT and SUM functions directly on the 'loan_status'
+        column without any null handling.
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+    - text: The 'loan_status' column should only contain the values 0 and 1, as the
+        code uses these values to calculate the number of defaults and the default
+        rate. This is consistent with the histogram data provided, which shows that
+        these are the only values present.
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  loan_status:
+  - start_line: 4
+    end_line: 5
+    file: ''

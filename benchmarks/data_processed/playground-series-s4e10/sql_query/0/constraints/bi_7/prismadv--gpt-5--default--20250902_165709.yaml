@@ -1,0 +1,504 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: '.hasDataType(''loan_amnt'', ConstrainableDataTypes.Numeric, lambda
+        x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness(''loan_amnt'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.isPositive(''loan_amnt'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_amnt'' column must exist in the input table and be a numeric
+        type (integer or decimal) so it can be aggregated with AVG and rounded. We
+        could represent this as: Deequ: .hasColumn("loan_amnt").hasDataType("loan_amnt",
+        ConstrainableDataTypes.Numeric) or Great Expectations: expect_column_to_exist("loan_amnt"),
+        expect_column_values_to_be_in_type_list("loan_amnt", ["INTEGER", "BIGINT",
+        "DECIMAL", "NUMERIC", "DOUBLE", "FLOAT"]).'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 25
+        end_line: 25
+        file: ''
+    - text: 'The ''loan_amnt'' column should be largely complete (few or no NULLs)
+        so average loan amounts per segment are meaningful. For example, require at
+        least 99% non-null values overall. We could represent this as: Deequ: .hasCompleteness("loan_amnt",
+        _ >= 0.99) or Great Expectations: expect_column_values_to_not_be_null("loan_amnt",
+        mostly=0.99).'
+      sources:
+      - start_line: 25
+        end_line: 25
+        file: ''
+    - text: 'Loan amounts should be strictly positive (greater than 0), as they represent
+        amounts issued to borrowers and are averaged. We could represent this as:
+        Deequ: .satisfies("loan_amnt > 0", "Positive loan amounts", lambda x: x ==
+        1.0) or Great Expectations: expect_column_values_to_be_between("loan_amnt",
+        min_value=0, strict_min=True).'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+      - start_line: 25
+        end_line: 25
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: '.satisfies("loan_grade IS NOT NULL", "loan_grade_not_null", lambda
+        x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies("CASE WHEN UPPER(TRIM(loan_grade)) IN (''A'',''B'',''C'',''D'',''E'',''F'',''G'')
+        THEN 1 ELSE 0 END", "loan_grade_allowed_values", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues("loan_grade", lambda x: x >= 1 and x
+        <= 7)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'loan_grade must be present (not NULL) for all records, since it is used
+        for grouping and ordering. We could represent this as a Deequ constraint like:
+        .satisfies("CASE WHEN loan_grade IS NOT NULL THEN 1 ELSE 0 END", "loan_grade_not_null",
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 30
+        end_line: 30
+        file: ''
+      - start_line: 31
+        end_line: 31
+        file: ''
+    - text: 'loan_grade values should be confined to the known grade set after normalization
+        (trim and uppercase): {''A'',''B'',''C'',''D'',''E'',''F'',''G''}. This avoids
+        fragmented grouping due to case/whitespace or unexpected categories. Deequ
+        example: .satisfies("CASE WHEN UPPER(TRIM(loan_grade)) IN (''A'',''B'',''C'',''D'',''E'',''F'',''G'')
+        THEN 1 ELSE 0 END", "loan_grade_allowed_values", lambda x: x == 1.0)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+      - start_line: 14
+        end_line: 14
+        file: ''
+      - start_line: 30
+        end_line: 30
+        file: ''
+      - start_line: 31
+        end_line: 31
+        file: ''
+    - text: "loan_grade should be low-cardinality categorical data (no more than 7\
+        \ distinct values), consistent with grades A\u2013G, to keep groupings meaningful.\
+        \ Deequ example: .hasNumberOfDistinctValues(\"loan_grade\", lambda x: x >=\
+        \ 1 and x <= 7)"
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+      - start_line: 30
+        end_line: 30
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: '.hasDataType("loan_int_rate", ConstrainableDataTypes.Fractional,
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness("loan_int_rate", lambda x: x >= 0.95)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("loan_int_rate BETWEEN 0 AND 100", "Interest rate within
+        [0,100]", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'loan_int_rate must be a numeric (fractional/decimal) column so AVG()
+        and ROUND() can operate without casting errors. Example constraint: Deequ
+        .hasDataType("loan_int_rate", ConstrainableDataTypes.Fractional) or Great
+        Expectations expect_column_values_to_be_of_type("loan_int_rate", "DOUBLE"/"DECIMAL").'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: 'loan_int_rate should be largely non-null so averages by segment are meaningful;
+        recommend at least 95% completeness. Example constraint: Deequ .hasCompleteness("loan_int_rate",
+        lambda x: x >= 0.95) or Great Expectations expect_column_values_to_not_be_null(mostly=0.95).'
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: 'loan_int_rate values should represent percentages in a realistic range:
+        0 <= loan_int_rate <= 100 (no negatives or values above 100%). Example constraints:
+        Deequ .hasMin("loan_int_rate", lambda m: m >= 0) and .hasMax("loan_int_rate",
+        lambda m: m <= 100), or .satisfies("loan_int_rate BETWEEN 0 AND 100", "Interest
+        rate within [0,100]", lambda x: x == 1.0).'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 24
+        end_line: 24
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_intent'', lambda x: x <= 6)'
+      validity: false
+      level: warning
+    - suggestion: '.satisfies(''`loan_intent` = TRIM(`loan_intent`) AND LENGTH(`loan_intent`)
+        > 0'', ''loan_intent trimmed and non-empty'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasPattern(''loan_intent'', ''^[A-Z]+$'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'loan_intent must be present (non-null) for all records to avoid aggregating
+        a NULL bucket when grouping by intent. Deequ: completeness on loan_intent
+        should be 1.0.'
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 30
+        end_line: 31
+        file: ''
+    - text: 'loan_intent values should be restricted to the known categorical set:
+        EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, VENTURE,
+        to keep group-by results meaningful and comparable. Deequ: isContainedIn on
+        loan_intent with exactly these six values.'
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 30
+        end_line: 31
+        file: ''
+    - text: 'The number of distinct loan_intent categories in the dataset should be
+        at most 6 to prevent unexpected category explosion in the grouped output.
+        Deequ: number of distinct values for loan_intent <= 6.'
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 30
+        end_line: 31
+        file: ''
+    - text: 'loan_intent values should be cleanly formatted: no leading or trailing
+        whitespace and not empty strings, so that logically identical categories do
+        not split in the GROUP BY. Deequ: a satisfies check ensuring loan_intent =
+        TRIM(loan_intent) and LENGTH(loan_intent) > 0 for all rows.'
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 30
+        end_line: 31
+        file: ''
+    - text: 'loan_intent casing should be consistent (e.g., all uppercase A-Z characters
+        only) to avoid duplicates created by case differences when grouping. Deequ:
+        hasPattern on loan_intent using regex ^[A-Z]+$.'
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+      - start_line: 15
+        end_line: 15
+        file: ''
+      - start_line: 30
+        end_line: 31
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .hasDataType('loan_percent_income', ConstrainableDataTypes.Fractional)
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness(''loan_percent_income'', lambda x: x >= 0.98)'
+      validity: true
+      level: warning
+    - suggestion: '.isNonNegative(''loan_percent_income'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasMax(''loan_percent_income'', lambda m: m <= 200)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''loan_percent_income'', lambda d: d
+        >= 10)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_percent_income'' column must be numeric (fractional/decimal)
+        so that AVG can be computed without errors. We could represent this assumption
+        as a deequ constraint like this: .hasDataType(''loan_percent_income'', ConstrainableDataTypes.Fractional)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+    - text: 'The ''loan_percent_income'' column should be largely complete to ensure
+        meaningful averages; require at least 98% non-null values. We could represent
+        this assumption as a deequ constraint like this: .hasCompleteness(''loan_percent_income'',
+        lambda x: x >= 0.98)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+    - text: 'Values in ''loan_percent_income'' should be non-negative (a percentage/ratio
+        cannot be negative). We could represent this as a deequ constraint: .satisfies(''CASE
+        WHEN loan_percent_income >= 0 THEN 1 ELSE 0 END'', ''Non-negative loan_percent_income'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+    - text: 'Values in ''loan_percent_income'' should be finite and within a reasonable
+        magnitude to avoid polluted averages; cap the maximum at 200 (covers both
+        ratio and percent encodings). We could represent this as a deequ constraint:
+        .hasMax(''loan_percent_income'', lambda m: m <= 200)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+    - text: 'The ''loan_percent_income'' column should exhibit some variability (not
+        be near-constant) to produce meaningful averages; require at least 10 distinct
+        values. We could represent this as a deequ constraint: .hasApproxCountDistinct(''loan_percent_income'',
+        lambda d: d >= 10)'
+      sources:
+      - start_line: 11
+        end_line: 11
+        file: ''
+      - start_line: 27
+        end_line: 27
+        file: ''
+  loan_status:
+    code:
+    - suggestion: '.isContainedIn("loan_status", [0, 1], lambda x: x == 1.0)'
+      validity: false
+      level: warning
+    - suggestion: .isComplete("loan_status")
+      validity: true
+      level: warning
+    - suggestion: '.hasDataType("loan_status", ConstrainableDataTypes.Integral, lambda
+        x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.satisfies("loan_status = 1", "At least one default present", lambda
+        x: x > 0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_status'' column must be a binary indicator encoded as integers
+        with allowed values {0, 1}, where 1 denotes a default and 0 denotes a non-default.
+        We could represent this as a Deequ constraint like: .isContainedIn("loan_status",
+        Array(0, 1)) and in Great Expectations as: expect_column_values_to_be_in_set(column="loan_status",
+        value_set=[0, 1]).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_status'' column should be complete (no NULLs), because NULLs
+        would be counted as non-defaults by the CASE expression and bias the default_rate.
+        We could represent this as a Deequ constraint like: .hasCompleteness("loan_status",
+        _ == 1.0) and in Great Expectations as: expect_column_values_to_not_be_null(column="loan_status").'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_status'' column should be stored as an integral numeric type
+        so that the equality comparison to 1 works consistently without implicit casting.
+        We could represent this as a Deequ constraint like: .hasDataType("loan_status",
+        ConstrainableDataTypes.Integral) and in Great Expectations as: expect_column_values_to_be_in_type_list(column="loan_status",
+        type_list=["BYTE", "SMALLINT", "INTEGER", "BIGINT"]).'
+      sources:
+      - start_line: 18
+        end_line: 18
+        file: ''
+      - start_line: 21
+        end_line: 21
+        file: ''
+    - text: 'The dataset should contain at least one row with loan_status = 1 so that
+        total_defaults and default_rate are informative (not trivially zero). We could
+        represent this as a Deequ constraint like: .satisfies("loan_status = 1", "At
+        least one default present", _ > 0).'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+  person_income:
+    code:
+    - suggestion: '.hasDataType(''person_income'', ConstrainableDataTypes.Numeric,
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasCompleteness(''person_income'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''person_income IS NULL OR (person_income >= 0 AND person_income
+        <= 10000000)'', ''person_income non-negative and <= 10M'', lambda x: x ==
+        1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''person_income'', lambda x: x >= 100)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'person_income' column must be numeric (integer or decimal) so AVG(person_income)
+        and ROUND(...) execute without type errors. This can be validated with a data
+        type check (e.g., Deequ hasDataType to Integral or Fractional, or Great Expectations
+        expect_column_values_to_be_in_type_list with integer/float types).
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: The 'person_income' column should be complete (no NULLs) in the input
+        data to ensure meaningful per-segment averages; target overall completeness
+        >= 0.99 (ideally 1.00). This can be validated with Deequ completeness('person_income')
+        >= 0.99 or Great Expectations expect_column_values_to_not_be_null.
+      sources:
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: The 'person_income' values should be non-negative and within a realistic
+        upper bound to avoid skewed or meaningless averages (e.g., 0 <= person_income
+        <= 10000000). This can be validated with a row-level predicate (e.g., Deequ
+        satisfies("person_income >= 0 AND person_income <= 10000000")) or Great Expectations
+        expect_column_values_to_be_between with min_value=0 and max_value=10000000
+        (inclusive).
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 26
+        end_line: 26
+        file: ''
+    - text: To ensure aggregated results are informative, the 'person_income' column
+        should exhibit sufficient variability; expect at least 100 distinct values.
+        This can be validated with Deequ approxCountDistinct('person_income') >= 100
+        or Great Expectations expect_column_unique_value_count_to_be_between with
+        min_value=100.
+      sources:
+      - start_line: 26
+        end_line: 26
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 5
+    end_line: 5
+    file: ''
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 30
+    end_line: 31
+    file: ''
+  loan_intent:
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 15
+    end_line: 15
+    file: ''
+  - start_line: 30
+    end_line: 31
+    file: ''
+  loan_status:
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 18
+    end_line: 18
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  loan_int_rate:
+  - start_line: 8
+    end_line: 12
+    file: ''
+  - start_line: 24
+    end_line: 31
+    file: ''
+  loan_amnt:
+  - start_line: 9
+    end_line: 9
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  person_income:
+  - start_line: 10
+    end_line: 10
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  loan_percent_income:
+  - start_line: 11
+    end_line: 11
+    file: ''
+  - start_line: 27
+    end_line: 27
+    file: ''

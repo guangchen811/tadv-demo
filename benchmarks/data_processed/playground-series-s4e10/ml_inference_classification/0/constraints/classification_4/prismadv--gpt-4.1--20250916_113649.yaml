@@ -1,0 +1,1488 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: The code is written for ML Inference task. After
+      training a model on the training data, the model would be used to make predictions
+      on the test data. you are asked to generate constraints on the upcoming *test*
+      data to ensure that the code can run without any errors and the predictions
+      are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d133d336-0e02-46d0-b6fb-089c387c5779
+      source_assumptions:
+      - e7883f9c-a2d0-4c67-a9ce-74ab55a5acff
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: af9786fe-b5a3-4c3c-91b2-ebc22d51e792
+      source_assumptions:
+      - b24e41a9-fa25-4f13-96d2-d9ddbdc5ecc5
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column must be present in the test
+        data and must not contain any null values. This is required because the column
+        is included in the list of categorical columns passed to the OneHotEncoder,
+        and the encoder does not handle missing values by default. Any missing value
+        would cause a runtime error during model inference. We could represent this
+        assumption as a deequ constraint like this:
+
+        .satisfies(''cb_person_default_on_file IS NOT NULL'', ''No Nulls in cb_person_default_on_file'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 28
+        end_line: 37
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: e7883f9c-a2d0-4c67-a9ce-74ab55a5acff
+    - text: 'The ''cb_person_default_on_file'' column in the test data should only
+        contain the values ''Y'' or ''N''. The OneHotEncoder is fit on the training
+        data, which only includes these values, and will raise an error if any unseen
+        value appears in the test data for this column. We could represent this assumption
+        as a deequ constraint like this:
+
+        .satisfies("cb_person_default_on_file IN (''Y'', ''N'')", ''Valid values for
+        cb_person_default_on_file'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 29
+        end_line: 37
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: b24e41a9-fa25-4f13-96d2-d9ddbdc5ecc5
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: fcdb5b54-5d3f-4484-8e93-222a83545a1c
+      source_assumptions:
+      - b0925dd9-43bb-4ddf-931d-7e458847474b
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_int_rate'',
+        ''Fractional'', lambda x: x == 1.0)'
+      level: error
+      uid: e87fd8f4-1b8f-4f35-8355-eff3c28388f7
+      source_assumptions:
+      - d97f7a20-6d66-4805-b853-d3eed78a681c
+    - suggestion: '.hasMin(''loan_int_rate'', lambda x: x >= 5.42)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 8bde9c9b-0985-4165-bf47-ffd6235b83b7
+      source_assumptions:
+      - bc3e90df-a93e-4b5e-bb97-0ab37f9dac56
+    - suggestion: '.hasMax(''loan_int_rate'', lambda x: x <= 26.3)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 15e15035-052f-4c0c-841e-6cb4e07cd063
+      source_assumptions:
+      - bc3e90df-a93e-4b5e-bb97-0ab37f9dac56
+    assumptions:
+    - text: The 'loan_int_rate' column in the test data must be present and completely
+        non-null, since it is included in the numerical columns passed to StandardScaler,
+        which cannot handle missing values. There should be no missing values in 'loan_int_rate'
+        in the test set.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 35
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: b0925dd9-43bb-4ddf-931d-7e458847474b
+    - text: The 'loan_int_rate' column in the test data must contain only numeric
+        (fractional/float) values, as it is passed to StandardScaler, which requires
+        numerical input. All values in 'loan_int_rate' should be valid numbers (not
+        strings or other types).
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 35
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: d97f7a20-6d66-4805-b853-d3eed78a681c
+    - text: The distribution and range of 'loan_int_rate' values in the test data
+        should be reasonably similar to that of the training data, as StandardScaler
+        is fit on the training data and applied to the test data. Extreme outliers
+        or values far outside the training range may impact model performance or cause
+        unreliable predictions.
+      sources:
+      - start_line: 34
+        end_line: 35
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: bc3e90df-a93e-4b5e-bb97-0ab37f9dac56
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: b69fcf16-796d-42a4-8466-09f624418325
+      source_assumptions:
+      - adb130d5-6542-4394-a4cf-88cd1eb07873
+      - af5c5c62-ef88-439d-a662-80dff429e9e5
+    - suggestion: '.hasDataType(''loan_percent_income'', ''Fractional'', lambda x:
+        x == 1)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_percent_income'',
+        ''Fractional'', lambda x: x == 1)'
+      level: error
+      uid: 7e03b572-98aa-4f71-9ecc-dbd766a552af
+      source_assumptions:
+      - 7b3e96bb-bb1d-43fd-a6ed-eaa3bb754587
+    assumptions:
+    - text: The 'loan_percent_income' column must be present in all input datasets
+        (including the test set). It cannot be missing, as it is explicitly included
+        in the 'numerical_cols' list and is required for preprocessing and model inference.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 39
+        end_line: 44
+        file: ''
+      uid: adb130d5-6542-4394-a4cf-88cd1eb07873
+    - text: The 'loan_percent_income' column in the input data must not contain any
+        null values, because the column is directly passed to StandardScaler without
+        any missing value handling. StandardScaler does not support missing values
+        and will raise an error if nulls are present.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 35
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: af5c5c62-ef88-439d-a662-80dff429e9e5
+    - text: The 'loan_percent_income' column should contain only numeric (fractional)
+        values, as it is expected to be a continuous variable and is processed by
+        StandardScaler and then converted to a PyTorch tensor of dtype float32.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 35
+        file: ''
+      - start_line: 52
+        end_line: 52
+        file: ''
+      uid: 7b3e96bb-bb1d-43fd-a6ed-eaa3bb754587
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: ca8deb43-9c6f-4eda-b741-c11e2cf7cabd
+      source_assumptions:
+      - 0484b3a1-22fd-434e-8237-26d7b6634890
+    - suggestion: '.hasDataType(''person_emp_length'', ''Fractional'', lambda x: x
+        == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_emp_length'',
+        ''Fractional'', lambda x: x == 1.0)'
+      level: error
+      uid: 836eb322-20c9-435b-8804-c2146b83ece7
+      source_assumptions:
+      - 0484b3a1-22fd-434e-8237-26d7b6634890
+    - suggestion: '.hasMin(''person_emp_length'', lambda x: x >= 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 87a9e233-be67-4f8e-94fc-5cbc089f02bb
+      source_assumptions:
+      - 430f152e-fefd-4b04-b83b-ec0fa3945a51
+    - suggestion: '.hasMax(''person_emp_length'', lambda x: x <= 50)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasMax(''person_emp_length'', lambda x: x
+        <= 50)'' failed on data sample: Value: 123.0 does not meet the constraint
+        requirement!'
+      level: warning
+      uid: 5201f7da-9fed-4318-92db-4c903ad6e05b
+      source_assumptions:
+      - 430f152e-fefd-4b04-b83b-ec0fa3945a51
+    assumptions:
+    - text: The 'person_emp_length' column in the test data must be present, must
+        not contain any null or missing values, and must be of a numeric type (fractional/float).
+        This is required because the column is included in the 'numerical_cols' list,
+        which is passed directly to sklearn's StandardScaler without any missing value
+        imputation or type conversion. StandardScaler cannot handle missing values
+        or non-numeric types.
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 36
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: 0484b3a1-22fd-434e-8237-26d7b6634890
+    - text: The distribution of values in the 'person_emp_length' column in the test
+        data should be reasonably similar to that in the training data to ensure that
+        the scaling performed by StandardScaler is meaningful and the model's inference
+        remains valid. Extreme outliers or values far outside the training distribution
+        may produce unreliable predictions.
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 36
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      - start_line: 91
+        end_line: 137
+        file: ''
+      uid: 430f152e-fefd-4b04-b83b-ec0fa3945a51
+  person_home_ownership:
+    code:
+    - suggestion: '.hasCompleteness(''person_home_ownership'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: df766558-3f8c-4379-8f38-1c400f553598
+      source_assumptions:
+      - 7f253e0a-8c96-4aa3-afdf-d84e3481ee9f
+    - suggestion: '.hasDataType(''person_home_ownership'', ''String'', lambda x: x
+        == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_home_ownership'',
+        ''String'', lambda x: x == 1.0)'
+      level: error
+      uid: 5f624b17-5155-40b7-8c86-8eb476a36971
+      source_assumptions:
+      - 0223152e-bdef-4982-bb9a-4629acb8603e
+    - suggestion: '.isContainedIn(''person_home_ownership'', [''RENT'', ''MORTGAGE'',
+        ''OWN'', ''OTHER''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 82d287c9-d115-4bee-a479-c069c4badf23
+      source_assumptions:
+      - d6f74b32-6e15-465f-894d-c42e711c2aed
+    assumptions:
+    - text: 'The ''person_home_ownership'' column must not contain null or missing
+        values in the test data, as it is used directly in a OneHotEncoder without
+        any missing value handling. The completeness is expected to be 100% (i.e.,
+        every row must have a value for this column).
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''person_home_ownership'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 28
+        end_line: 44
+        file: ''
+      uid: 7f253e0a-8c96-4aa3-afdf-d84e3481ee9f
+    - text: All values in the 'person_home_ownership' column must be of string data
+        type, as the OneHotEncoder expects categorical string inputs and the column
+        is inferred as String in the dataset.
+      sources:
+      - start_line: 28
+        end_line: 44
+        file: ''
+      uid: 0223152e-bdef-4982-bb9a-4629acb8603e
+    - text: 'The ''person_home_ownership'' column in the test data should not contain
+        any new or unseen categories beyond those present in the training data (''RENT'',
+        ''MORTGAGE'', ''OWN'', ''OTHER''), as the OneHotEncoder was fit only on these
+        categories and will raise an error if it encounters unseen values. Ideally,
+        all values should be within this set.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `person_home_ownership` IN (''RENT'', ''MORTGAGE'',
+        ''OWN'', ''OTHER'') THEN 1 ELSE 0 END", "Valid Home Ownership Categories",
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 28
+        end_line: 44
+        file: ''
+      uid: d6f74b32-6e15-465f-894d-c42e711c2aed
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 54908bc1-7f77-4c75-8540-9939ab05ac48
+      source_assumptions:
+      - e9319ad4-4ed7-44f2-ae47-d98569386f25
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 81c1e185-9bb3-4e21-96e2-1c2916d2477c
+      source_assumptions:
+      - dc7afc33-d09d-41f4-9b10-42983e3b46d5
+    - suggestion: .hasDataType('loan_grade', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_grade'',
+        ''String'')'
+      level: error
+      uid: 1bdbc704-4ba7-4ed5-ab8a-64aa91cbf887
+      source_assumptions:
+      - 0578d6d7-ca92-45d1-b439-19f26ec951d4
+    assumptions:
+    - text: 'The ''loan_grade'' column must not contain any missing (null) values
+        in the test data. This is necessary because the downstream code applies OneHotEncoder
+        (with drop=''first'') to the ''loan_grade'' column without any missing value
+        handling, and OneHotEncoder does not support missing values by default. The
+        dataset description also indicates full completeness (completeness: 1.0) for
+        this column in the training data, so the same is expected for the test data.
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_grade` IS NULL THEN 0 ELSE 1 END", "No Nulls in
+        loan_grade", lambda x: x == 1)'
+      sources:
+      - start_line: 28
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: e9319ad4-4ed7-44f2-ae47-d98569386f25
+    - text: 'All values in the ''loan_grade'' column in the test data must be one
+        of the known categories observed in the training data: ''A'', ''B'', ''C'',
+        ''D'', ''E'', ''F'', or ''G''. This is crucial because the OneHotEncoder is
+        fitted only on the training data, and unseen categories in the test data would
+        cause an error during transformation. We could represent this assumption as
+        a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_grade` IN (''A'', ''B'', ''C'', ''D'', ''E'',
+        ''F'', ''G'') THEN 1 ELSE 0 END", "Valid loan_grade Categories", lambda x:
+        x == 1)'
+      sources:
+      - start_line: 28
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: dc7afc33-d09d-41f4-9b10-42983e3b46d5
+    - text: 'The ''loan_grade'' column in the test data should be of string (object)
+        data type, matching the type used in the training data, as the OneHotEncoder
+        expects consistent data types between fit and transform stages. We could represent
+        this assumption as a deequ constraint like this:
+
+        .hasDataType("loan_grade", "String")'
+      sources:
+      - start_line: 28
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 0578d6d7-ca92-45d1-b439-19f26ec951d4
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 5ba52924-a334-4947-9170-37f0bd099314
+      source_assumptions:
+      - 2d9f1696-d908-4817-91c2-00aa3339576b
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_amnt'',
+        ''Integral'', lambda x: x == 1.0)'
+      level: error
+      uid: 0fc83d6a-16cb-4d04-b006-8f22dcdde8b7
+      source_assumptions:
+      - 2d9f1696-d908-4817-91c2-00aa3339576b
+    - suggestion: '.hasNumberOfDistinctValues(''loan_amnt'', lambda x: x <= 466 and
+        x >= 1)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''loan_amnt'',
+        lambda x: x <= 466 and x >= 1)'': Check.hasNumberOfDistinctValues() missing
+        2 required positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: b651c3cc-f6a4-4e12-83c0-76e60334024d
+      source_assumptions:
+      - a83edc66-c76c-4f09-a773-398bfb8f7983
+    assumptions:
+    - text: The 'loan_amnt' column in the test data must be present, must be of integral
+        (integer) data type, and must not contain any null values, as it is included
+        in the list of numerical columns passed to the StandardScaler, which does
+        not handle missing values or non-numeric types.
+      sources:
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 35
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: 2d9f1696-d908-4817-91c2-00aa3339576b
+    - text: The 'loan_amnt' column in the test data should have values within a reasonable
+        range as observed in the training data (approximately 466 distinct values),
+        and its distribution should not contain outlier values far outside the range
+        seen in training, since the model is trained with those ranges and extreme
+        values may lead to unpredictable inference results.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 35
+        file: ''
+      uid: a83edc66-c76c-4f09-a773-398bfb8f7983
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 67e63144-06da-4be4-abfb-743d40c19d15
+      source_assumptions:
+      - 7fea4553-1806-4865-ae5d-80f347949294
+    - suggestion: '.satisfies(''CAST(person_age AS BIGINT) = person_age'', ''person_age
+        is integer'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 442a3728-7cf4-4a0c-9275-a028e1b9cd8a
+      source_assumptions:
+      - 7aea6554-985d-4dde-8501-f86e297932af
+    - suggestion: '.hasMin(''person_age'', lambda x: x >= 18)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6cfdfb1c-023d-4ab6-ac80-e72c7d11a2a7
+      source_assumptions:
+      - f0140f40-6ea8-4507-b8b2-61a29b2ac17c
+    - suggestion: '.hasMax(''person_age'', lambda x: x <= 100)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 09652cdf-fd63-4771-bca7-486a7c5ddf1a
+      source_assumptions:
+      - f0140f40-6ea8-4507-b8b2-61a29b2ac17c
+    assumptions:
+    - text: 'The ''person_age'' column in the test data must not contain any null
+        values, as it is included directly in the list of numerical columns to be
+        scaled using StandardScaler, which does not handle nulls. Any null values
+        in ''person_age'' would cause the transformation step to fail. We could represent
+        this assumption as a deequ constraint like this:
+
+        .satisfies(''person_age IS NOT NULL'', ''No Nulls in person_age'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 35
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 7fea4553-1806-4865-ae5d-80f347949294
+    - text: 'The ''person_age'' column in the test data must contain only integral
+        (integer) values, as its dataType is declared as Integral and it is used as
+        a numerical feature for model inference. Any non-integer values could cause
+        errors or degrade model performance. We could represent this assumption as
+        a deequ constraint like this:
+
+        .satisfies(''CAST(person_age AS BIGINT) = person_age'', ''person_age is integer'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      uid: 7aea6554-985d-4dde-8501-f86e297932af
+    - text: 'The ''person_age'' column should have values within a reasonable range,
+        consistent with the values seen during training (since approximateNumDistinctValues
+        is 53, suggesting ages like 18-70). Extreme outliers or negative ages would
+        likely reduce prediction quality or cause model instability. We could represent
+        this assumption as a deequ constraint like this:
+
+        .hasMin(''person_age'', lambda x: x >= 18)
+
+        .hasMax(''person_age'', lambda x: x <= 100)'
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      uid: f0140f40-6ea8-4507-b8b2-61a29b2ac17c
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d7842ec4-3a0b-4431-b45a-7bae20891dd4
+      source_assumptions:
+      - 3bcc3d06-12ae-445a-83cf-635fa7d4aef5
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 668ccf1e-90d9-4160-abe8-dd780bf31598
+      source_assumptions:
+      - c87406d1-121c-4568-9260-eb51b460ea65
+    - suggestion: .hasDataType('loan_intent', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_intent'',
+        ''String'')'
+      level: warning
+      uid: ce35a668-2f29-41c2-8b4b-9be215a68fbd
+      source_assumptions:
+      - b50694f7-918d-4465-b20b-0b09be9c36c5
+    assumptions:
+    - text: The 'loan_intent' column must be present in the input (test) data and
+        must not contain any null values, as it is included in the categorical columns
+        passed to OneHotEncoder, which does not handle missing values by default.
+        If null values are present, the code will raise an error during transformation.
+      sources:
+      - start_line: 28
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: 3bcc3d06-12ae-445a-83cf-635fa7d4aef5
+    - text: All values in the 'loan_intent' column of the input (test) data should
+        belong to the set {'EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL', 'DEBTCONSOLIDATION',
+        'MEDICAL', 'VENTURE'}, as OneHotEncoder is fitted on the training data and
+        will ignore or error on unseen categories. Ideally, no unseen categories should
+        appear in test data to ensure consistent model input dimensions.
+      sources:
+      - start_line: 28
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: c87406d1-121c-4568-9260-eb51b460ea65
+    - text: The 'loan_intent' column in the input (test) data should be of string
+        (object) data type, matching the expected type for categorical encoding and
+        consistent with the training data.
+      sources:
+      - start_line: 28
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: b50694f7-918d-4465-b20b-0b09be9c36c5
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3f036b11-b079-4e5e-b2ef-8622b41d584b
+      source_assumptions:
+      - 11fcb972-2445-43e3-a481-d7ef647ea05d
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''person_income'',
+        ''Integral'', lambda x: x == 1.0)'
+      level: error
+      uid: 68f8fed0-cd4a-474c-a571-07b498364b99
+      source_assumptions:
+      - 782a7514-394c-4107-ad1e-cab8f5898ae4
+    - suggestion: '.hasMin(''person_income'', lambda x: x >= 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: ca93af4e-2bf7-4ab7-9799-96719342ca0a
+      source_assumptions:
+      - 2280c3b2-9072-4dab-9e93-af8e18eeeacb
+    - suggestion: '.hasMax(''person_income'', lambda x: x <= 600000)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.hasMax(''person_income'', lambda x: x <= 600000)''
+        failed on data sample: Value: 1839784.0 does not meet the constraint requirement!'
+      level: warning
+      uid: e4f8c5a9-d9f2-467d-b161-2a732f136b32
+      source_assumptions:
+      - 2280c3b2-9072-4dab-9e93-af8e18eeeacb
+    - suggestion: '.hasMean(''person_income'', lambda x: x >= 10000 and x <= 150000)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: e34365fa-a8b5-461f-aa79-7b8b5168ff27
+      source_assumptions:
+      - 2280c3b2-9072-4dab-9e93-af8e18eeeacb
+    assumptions:
+    - text: The 'person_income' column must be present in the test data and must have
+        no missing (null) values. This is required because the column is included
+        in the numerical columns passed to StandardScaler in the preprocessing pipeline,
+        and no fillna or imputation is performed, so missing values would cause the
+        pipeline to fail. The dataset metadata also reports completeness as 1.0, indicating
+        no missing values are expected.
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 11fcb972-2445-43e3-a481-d7ef647ea05d
+    - text: All values in the 'person_income' column in the test data should be of
+        integral (integer) type, as the column is expected to be numeric and is passed
+        to StandardScaler, which requires numeric input. Non-integer or non-numeric
+        values would cause an error during scaling.
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      uid: 782a7514-394c-4107-ad1e-cab8f5898ae4
+    - text: The distribution and scale of values in the 'person_income' column in
+        the test data should be similar to that in the training data, since StandardScaler
+        is fit on the training data and then applied to the test data. Extremely out-of-range
+        values or distributions could lead to poor model inference or runtime errors
+        due to unexpected scaling.
+      sources:
+      - start_line: 33
+        end_line: 44
+        file: ''
+      uid: 2280c3b2-9072-4dab-9e93-af8e18eeeacb
+    - text: The 'person_income' column in the test data should not contain any duplicate
+        column names or unexpected casing/formatting, as it is referenced explicitly
+        as 'person_income' in the preprocessing pipeline.
+      sources:
+      - start_line: 24
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      uid: 76d3e986-a35c-4be7-8e2f-176999629a3c
+  '["cb_person_default_on_file","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 89b446f3-ba74-49b8-a074-e33e0b595fb2
+      source_assumptions:
+      - 4c0c1784-8ecf-4aa5-9bd0-1a781aed6cf6
+    - suggestion: '.satisfies(''cb_person_default_on_file IN ("Y", "N")'', ''cb_person_default_on_file
+        values in Y or N'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: fb551d22-4732-4778-ad57-7d2c1adfc513
+      source_assumptions:
+      - cd3c8d22-8911-4731-89d8-730a1d147a7f
+    assumptions:
+    - text: 'The columns ''person_income'' and ''cb_person_default_on_file'' must
+        both be present and non-null in every row of the test data. This is required
+        because they are used together in the preprocessing pipeline, where ''person_income''
+        is treated as a numerical column (scaled), and ''cb_person_default_on_file''
+        is treated as a categorical column (one-hot encoded). If either column is
+        missing or contains nulls, the transformation will fail. This assumption can
+        be represented as a Deequ constraint: .hasCompleteness(''person_income'',
+        1.0).hasCompleteness(''cb_person_default_on_file'', 1.0)'
+      sources:
+      - start_line: 25
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 4c0c1784-8ecf-4aa5-9bd0-1a781aed6cf6
+    - text: 'For every row in the test data, the value of ''cb_person_default_on_file''
+        must be either ''Y'' or ''N''. This is required because ''cb_person_default_on_file''
+        is one-hot encoded, and the encoder is fit on the training data with only
+        those two categories. Any unexpected value will cause the transformation to
+        fail or misalign features. This can be enforced with a Deequ constraint: .hasDistinctValues(''cb_person_default_on_file'',
+        [''Y'', ''N''])'
+      sources:
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: cd3c8d22-8911-4731-89d8-730a1d147a7f
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3255bd30-9001-44ea-98e6-8c6accff8904
+      source_assumptions:
+      - 15f5aa0f-08ec-4462-b1f2-c1cca4ceb419
+    - suggestion: '.hasDataType(''id'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''id'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 1e0b32ca-2ffd-40d5-8a40-21180cbe5815
+      source_assumptions:
+      - 15f5aa0f-08ec-4462-b1f2-c1cca4ceb419
+    - suggestion: .isUnique('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 40ac1956-046d-41e5-ad19-70583719c620
+      source_assumptions:
+      - d3603489-7346-4a78-a41c-23ed30b39de7
+    assumptions:
+    - text: The 'id' column in the input test data must be present, non-null for all
+        rows, and contain only integral values. This is necessary because the code
+        uses 'test_data["id"]' directly when constructing the submission DataFrame,
+        and 'id' is not modified or cleaned in any way prior to this usage. Null or
+        missing 'id' values would cause errors or misalignment in the output submission.
+      sources:
+      - start_line: 20
+        end_line: 21
+        file: ''
+      - start_line: 138
+        end_line: 138
+        file: ''
+      uid: 15f5aa0f-08ec-4462-b1f2-c1cca4ceb419
+    - text: The 'id' column in the input test data should have unique values for each
+        row. This is implied because the 'id' is used as the identifier for each prediction
+        in the submission file, and duplicate 'id' values would make it impossible
+        to associate predictions with unique test records.
+      sources:
+      - start_line: 138
+        end_line: 138
+        file: ''
+      uid: d3603489-7346-4a78-a41c-23ed30b39de7
+    - text: The 'id' column in the input test data should have the same number of
+        entries as the number of rows in the test set. Any mismatch in the length
+        of 'id' and prediction arrays would cause an error when creating the submission
+        DataFrame.
+      sources:
+      - start_line: 138
+        end_line: 138
+        file: ''
+      uid: 03804037-c50c-495f-a447-982748fd3de8
+  '["loan_amnt","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate''], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 688912c3-d026-41aa-b6a5-a057361db5a4
+      source_assumptions:
+      - 631363d6-ad78-4866-a53a-5de7d6cd2485
+    assumptions:
+    - text: Both 'loan_amnt' and 'loan_int_rate' columns must be present and completely
+        non-null in all incoming test data records, as they are both used as numerical
+        features and passed together into a StandardScaler for model inference. Missing
+        values in either column could break the transformation pipeline or degrade
+        model predictions.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 44
+        file: ''
+      uid: 631363d6-ad78-4866-a53a-5de7d6cd2485
+    - text: The values in 'loan_amnt' and 'loan_int_rate' columns must be valid numeric
+        types (Integral for 'loan_amnt', Fractional for 'loan_int_rate') and within
+        the ranges seen in training data, to ensure the StandardScaler transformation
+        and model inference are meaningful and do not encounter unexpected outliers
+        or type errors.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 34
+        end_line: 44
+        file: ''
+      - start_line: 91
+        end_line: 137
+        file: ''
+      uid: 6612412d-0045-452a-bcc0-3349c5a82971
+  '["loan_amnt","loan_percent_income","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''person_income'', ''loan_percent_income''],
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3036f046-b99b-41b9-8593-5552aef2f605
+      source_assumptions:
+      - 10850c5a-ff58-48b3-bcf4-49e3f10e6243
+    - suggestion: '.satisfies(''loan_percent_income = loan_amnt / person_income'',
+        ''Loan percent income must match loan_amnt / person_income'', lambda x: x
+        == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''loan_percent_income = loan_amnt
+        / person_income'', ''Loan percent income must match loan_amnt / person_income'',
+        lambda x: x == 1.0)'' failed on data sample: Value: 0.17486571745246823 does
+        not meet the constraint requirement!'
+      level: error
+      uid: 3bd7d882-b34a-49dc-9cfd-79f86faf35fb
+      source_assumptions:
+      - 2620f009-bb98-48b4-a61b-9e31f6ac90c8
+    - suggestion: '.satisfies(''loan_amnt >= 0 AND loan_amnt <= person_income'', ''Loan
+        amount must be non-negative and not exceed income'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''loan_amnt >= 0 AND loan_amnt <=
+        person_income'', ''Loan amount must be non-negative and not exceed income'',
+        lambda x: x == 1.0)'' failed on data sample: Value: 0.9998863216528832 does
+        not meet the constraint requirement!'
+      level: error
+      uid: 73a603c9-cc47-402c-8f6f-142c3b976f86
+      source_assumptions:
+      - 94f219f5-acc2-43d6-add6-e914a1d23cc0
+    assumptions:
+    - text: All of the columns 'loan_amnt', 'person_income', and 'loan_percent_income'
+        must be present and complete (i.e., contain no missing or null values) for
+        every record, because the preprocessing and model inference steps require
+        all numerical features to be available for transformation and model input.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 10850c5a-ff58-48b3-bcf4-49e3f10e6243
+    - text: The value in the 'loan_percent_income' column for each record should be
+        equal to the value of 'loan_amnt' divided by 'person_income' (i.e., loan_percent_income
+        = loan_amnt / person_income), as these features are mathematically related
+        and likely used together in the model input. Any deviation could indicate
+        data corruption or inconsistency.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 2620f009-bb98-48b4-a61b-9e31f6ac90c8
+    - text: For all records, the value of 'loan_amnt' must be non-negative and less
+        than or equal to 'person_income', since a loan amount should not exceed the
+        individual's income for the ratio 'loan_percent_income' to be meaningful and
+        for the ML model to generalize correctly.
+      sources:
+      - start_line: 25
+        end_line: 26
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 94f219f5-acc2-43d6-add6-e914a1d23cc0
+  '["loan_amnt","person_home_ownership"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''person_home_ownership''], lambda
+        x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 2be1ccca-59c0-43fd-a124-67910f20c47f
+      source_assumptions:
+      - a2d15dfa-6eef-43d9-ba15-5c3765b1e689
+    - suggestion: .satisfies('person_home_ownership IN ("OWN", "MORTGAGE", "RENT",
+        "OTHER") AND CAST(loan_amnt AS STRING) RLIKE "^[0-9]+$"', 'Valid Types and
+        Categories')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: b511f10a-cb46-4e51-84c7-e5e6010c1fff
+      source_assumptions:
+      - 26fe7a36-99e8-4cf4-9ad7-e859be9c8cc0
+    - suggestion: '.haveAnyCompleteness([''person_home_ownership''], lambda x: x ==
+        1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 18109977-ea53-44fe-875c-d2f8fffad06e
+      source_assumptions:
+      - 244167fe-1a5a-4fd5-a59f-d0cc5ae0b2b6
+    assumptions:
+    - text: 'Both ''loan_amnt'' and ''person_home_ownership'' columns must be present
+        and non-null in every row of the test dataset. This is because they are referenced
+        in the preprocessing pipeline as required features for model inference. The
+        combination of these columns being absent or null in any row would cause errors
+        or misaligned feature transformations at inference time.
+
+        A corresponding Deequ constraint could be:
+
+        .hasCompleteness(''loan_amnt'', 1.0)
+
+        .hasCompleteness(''person_home_ownership'', 1.0)'
+      sources:
+      - start_line: 25
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 44
+        file: ''
+      uid: a2d15dfa-6eef-43d9-ba15-5c3765b1e689
+    - text: '''loan_amnt'' should always be of integral (numeric) type and ''person_home_ownership''
+        should be a string value among the expected categories (OWN, MORTGAGE, RENT,
+        OTHER) for all rows in the test dataset. Rows with mismatched types or unexpected
+        categories can cause downstream errors in the preprocessing pipeline (StandardScaler
+        and OneHotEncoder). A possible Deequ multi-column constraint could be:
+
+        .where("person_home_ownership in (''OWN'', ''MORTGAGE'', ''RENT'', ''OTHER'')
+        and cast(loan_amnt as string) rlike ''^[0-9]+$''")'
+      sources:
+      - start_line: 25
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 44
+        file: ''
+      uid: 26fe7a36-99e8-4cf4-9ad7-e859be9c8cc0
+    - text: 'For every row in the test dataset, the pair (''loan_amnt'', ''person_home_ownership'')
+        must have values that have been seen in the training data, or at least ''person_home_ownership''
+        must not introduce unseen categories. This ensures the OneHotEncoder (with
+        drop=''first'') does not encounter unknown categories during inference, which
+        would otherwise cause a shape mismatch or runtime error. A Deequ constraint
+        representation could be:
+
+        .hasDistinctness([''person_home_ownership'']).isContainedIn([''OWN'', ''MORTGAGE'',
+        ''RENT'', ''OTHER''])'
+      sources:
+      - start_line: 25
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 44
+        file: ''
+      uid: 244167fe-1a5a-4fd5-a59f-d0cc5ae0b2b6
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 75f71f3a-bc3b-40d9-9a53-7dc5fc1d09f4
+      source_assumptions:
+      - 761700b7-96a5-451b-a9af-2c4d9a82ffd7
+      - a62e9408-f286-4a5e-b6c5-3a9bbd2e4552
+    assumptions:
+    - text: 'Both ''loan_int_rate'' and ''loan_grade'' columns must be present and
+        complete (i.e., have no missing values) in every row of the test dataset,
+        as they are required for the preprocessing pipeline and subsequent inference.
+        This can be represented by Deequ constraints: .hasCompleteness(''loan_int_rate'',
+        lambda x: x == 1.0) and .hasCompleteness(''loan_grade'', lambda x: x == 1.0).'
+      sources:
+      - start_line: 25
+        end_line: 30
+        file: ''
+      - start_line: 33
+        end_line: 44
+        file: ''
+      uid: 761700b7-96a5-451b-a9af-2c4d9a82ffd7
+    - text: 'For every row in the test dataset, the value of ''loan_grade'' must be
+        one of the expected categorical values observed during training: [''A'', ''B'',
+        ''C'', ''D'', ''E'', ''F'', ''G''], to ensure the OneHotEncoder transformation
+        does not fail. This can be represented by a Deequ constraint: .isContainedIn(''loan_grade'',
+        [''A'',''B'',''C'',''D'',''E'',''F'',''G'']).'
+      sources:
+      - start_line: 29
+        end_line: 36
+        file: ''
+      - start_line: 44
+        end_line: 44
+        file: ''
+      uid: d345deed-4e03-49a5-b23f-1d26e5a905a8
+    - text: The combination of 'loan_int_rate' and 'loan_grade' must not contain any
+        nulls or mismatched types (i.e., 'loan_int_rate' should be numeric and 'loan_grade'
+        should be string) in the test set, as the preprocessing pipeline expects numeric
+        and categorical features to be appropriately typed for transformation.
+      sources:
+      - start_line: 25
+        end_line: 36
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: a62e9408-f286-4a5e-b6c5-3a9bbd2e4552
+  '["loan_grade","loan_intent"]':
+    code:
+    - suggestion: .satisfies('loan_intent IN ("EDUCATION", "HOMEIMPROVEMENT", "PERSONAL",
+        "DEBTCONSOLIDATION", "MEDICAL", "VENTURE") AND loan_grade IN ("A", "B", "C",
+        "D", "E", "F", "G")', 'Loan intent and grade must be valid and non-null')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: df2df29f-5598-4b6b-aff0-1636ddccb31d
+      source_assumptions:
+      - a4e0e503-8cee-4de4-81b1-5a696a78b654
+    assumptions:
+    - text: 'All values in the ''loan_intent'' and ''loan_grade'' columns must be
+        non-null and belong to their respective known categories. For ''loan_intent'',
+        allowed categories are: [''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'',
+        ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'']. For ''loan_grade'', allowed
+        categories are: [''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'']. There should
+        be no unexpected or missing category combinations in the test data, since
+        OneHotEncoder (with drop=''first'') will fail or produce misaligned columns
+        otherwise.'
+      sources:
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 35
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: a4e0e503-8cee-4de4-81b1-5a696a78b654
+    - text: The combination of 'loan_intent' and 'loan_grade' must exist in the training
+        data, i.e., no new (loan_intent, loan_grade) pair should appear in the test
+        data that was not present during training, to ensure the OneHotEncoder produces
+        consistent columns and avoids unseen-category errors.
+      sources:
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 35
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 6a9ade22-7922-4be5-97a5-610006e280a5
+  '["person_age","person_emp_length"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_emp_length'', ''person_age''], lambda
+        x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 7a5727e1-6d45-4ec3-8467-6a7434ef1c98
+      source_assumptions:
+      - 9b9a0b2e-bd3f-4f89-a2bc-c4f2aaded6b5
+    - suggestion: .satisfies('CAST(`person_emp_length` AS DOUBLE) IS NOT NULL AND
+        CAST(`person_age` AS INT) IS NOT NULL', 'Both person_emp_length and person_age
+        are numeric')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: f7b7e4e6-4de4-4204-bdce-3ace72d46bd2
+      source_assumptions:
+      - 6984b8da-2c29-44db-b29b-c6495df9626d
+    - suggestion: .isLessThanOrEqualTo('person_emp_length', 'person_age')
+      validity: false
+      reason_if_invalid: 'Constraint ''.isLessThanOrEqualTo(''person_emp_length'',
+        ''person_age'')'' failed on data sample: Value: 0.9999431608264416 does not
+        meet the constraint requirement!'
+      level: warning
+      uid: 775a2e18-0893-4c2a-82d3-e3dc8d8fe7d0
+      source_assumptions:
+      - 994dad0a-ebf0-417b-9312-ea645602e27f
+    assumptions:
+    - text: The 'person_emp_length' and 'person_age' columns must both be present
+        and fully complete (no missing values) in the test data. This is necessary
+        because both columns are included in the 'numerical_cols' list and are jointly
+        preprocessed with StandardScaler in the ColumnTransformer, which does not
+        handle missing values by default. The model expects both columns to be available
+        for every record during inference.
+      sources:
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 36
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 9b9a0b2e-bd3f-4f89-a2bc-c4f2aaded6b5
+    - text: The data types of 'person_emp_length' (Fractional) and 'person_age' (Integral)
+        must be compatible with numerical operations and the StandardScaler transformer.
+        Both columns must be convertible to numeric types without error, and their
+        joint scaling should not introduce NaN or infinite values. This ensures that
+        the downstream model receives valid numerical input for both features.
+      sources:
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 36
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 6984b8da-2c29-44db-b29b-c6495df9626d
+    - text: 'For every record in the test data, the combination of ''person_age''
+        and ''person_emp_length'' should represent a plausible real-world relationship:
+        ''person_emp_length'' must not exceed ''person_age'', as employment length
+        cannot be greater than age. This constraint ensures data quality and model
+        input validity.'
+      sources:
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 994dad0a-ebf0-417b-9312-ea645602e27f
+  '["person_emp_length","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''person_emp_length''], lambda
+        x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a166e538-3d65-4791-90c2-fbba5228bff3
+      source_assumptions:
+      - e4943ece-376c-4349-ac99-be1d01909542
+    - suggestion: .satisfies('CAST(`person_income` AS DOUBLE) IS NOT NULL AND CAST(`person_emp_length`
+        AS DOUBLE) IS NOT NULL', 'person_income and person_emp_length are numeric')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3b8cfe68-aba9-4b79-b144-9215cb629e6e
+      source_assumptions:
+      - 394ea6c2-e1a6-49fc-9480-21c3db531555
+    assumptions:
+    - text: Both 'person_income' and 'person_emp_length' columns must be present and
+        fully complete (i.e., have no missing values) in the test dataset. This is
+        because both columns are included together in the 'numerical_cols' list, which
+        is processed by a StandardScaler in a single transformation step. Any missing
+        value in either column would cause the transformation or inference pipeline
+        to fail.
+      sources:
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: e4943ece-376c-4349-ac99-be1d01909542
+    - text: The values in 'person_income' and 'person_emp_length' columns must be
+        numeric and within the expected range as inferred from the training data (i.e.,
+        'person_income' should be integral and 'person_emp_length' should be fractional),
+        since both columns are jointly standardized by the same StandardScaler. Any
+        deviation in data type or presence of non-numeric values in either column
+        in the test data would cause the pipeline to fail.
+      sources:
+      - start_line: 25
+        end_line: 27
+        file: ''
+      - start_line: 33
+        end_line: 37
+        file: ''
+      - start_line: 43
+        end_line: 44
+        file: ''
+      uid: 394ea6c2-e1a6-49fc-9480-21c3db531555
+  '["person_home_ownership","person_income"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_income'', ''person_home_ownership''],
+        lambda x: x >= 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 116a8051-8c0e-4513-b282-e54c3e8d0cfd
+      source_assumptions:
+      - 68c0e6ad-79ec-4a04-aeb2-7b635a82ca6c
+    - suggestion: .satisfies('person_home_ownership IN ("OWN", "MORTGAGE", "RENT",
+        "OTHER")', 'Valid home ownership values')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 02568272-1cf7-4920-9d56-0489f2f4504c
+      source_assumptions:
+      - 132e5686-6313-46fb-b193-c0babbcfb909
+    - suggestion: .satisfies('person_income >= 0', 'Non-negative person_income')
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: da4db932-0e4e-4b00-b979-224ee80fe37d
+      source_assumptions:
+      - 6d6920cf-dfb9-444d-ba7f-af6515bfb85d
+    - suggestion: .satisfies('person_income IS NOT NULL AND person_home_ownership
+        IN ("OWN", "MORTGAGE", "RENT", "OTHER")', 'Valid income and home ownership
+        jointly')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 57cf6670-9268-46b1-9865-3ffed1ee06a6
+      source_assumptions:
+      - 8bbad807-a59d-46e8-a08a-72c3102536b4
+    assumptions:
+    - text: 'Both ''person_income'' and ''person_home_ownership'' columns must be
+        present and complete (no missing values) in the test dataset, since they are
+        both used together in the preprocessing pipeline (one as numerical, the other
+        as categorical) and are required for the ML inference pipeline to function
+        without error. This can be represented as a multi-column completeness constraint
+        in Deequ: .hasCompleteness([''person_income'', ''person_home_ownership''],
+        _ >= 1.0)'
+      sources:
+      - start_line: 25
+        end_line: 35
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: 68c0e6ad-79ec-4a04-aeb2-7b635a82ca6c
+    - text: 'For every record in the test dataset, the value of ''person_home_ownership''
+        must be one of the categories seen during training: ''OWN'', ''MORTGAGE'',
+        ''RENT'', or ''OTHER''. Otherwise, the OneHotEncoder in the pipeline may fail
+        or produce misaligned features. This can be expressed as a multi-column categorical
+        membership constraint in Deequ: .hasDistinctness([''person_home_ownership''],
+        _ >= 0.0) and .isContainedIn(''person_home_ownership'', [''OWN'', ''MORTGAGE'',
+        ''RENT'', ''OTHER''])'
+      sources:
+      - start_line: 29
+        end_line: 35
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: 132e5686-6313-46fb-b193-c0babbcfb909
+    - text: 'The distribution of ''person_income'' should be numerically compatible
+        with the training data (e.g., not containing string or extreme outlier values),
+        because the StandardScaler is fit on training data and then applied to test
+        data. If the test set contains unseen types or extreme outliers, the transformed
+        features may be invalid or lead to unstable model inference. This can be represented
+        as a multi-column data type and range constraint in Deequ: .hasDataType(''person_income'',
+        ''Integral'') and (optionally) .isNonNegative(''person_income'') if negative
+        incomes are not expected.'
+      sources:
+      - start_line: 25
+        end_line: 35
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: 6d6920cf-dfb9-444d-ba7f-af6515bfb85d
+    - text: 'Every row in the test dataset must have both a valid ''person_income''
+        (integral, within expected range) and a valid ''person_home_ownership'' (string,
+        in allowed set); otherwise, the joint transformation pipeline will fail, and
+        the test row will not be processed correctly. This can be expressed as a multi-column
+        constraint requiring the joint validity of these two columns: .where(''person_income
+        IS NOT NULL AND person_home_ownership IN ("OWN", "MORTGAGE", "RENT", "OTHER")'')'
+      sources:
+      - start_line: 25
+        end_line: 35
+        file: ''
+      - start_line: 41
+        end_line: 44
+        file: ''
+      uid: 8bbad807-a59d-46e8-a08a-72c3102536b4
+column_data_flow_locations:
+  person_age:
+  - start_line: 24
+    end_line: 27
+    file: ''
+  - start_line: 39
+    end_line: 44
+    file: ''
+  person_income:
+  - start_line: 24
+    end_line: 27
+    file: ''
+  - start_line: 33
+    end_line: 37
+    file: ''
+  - start_line: 39
+    end_line: 44
+    file: ''
+  - start_line: 47
+    end_line: 47
+    file: ''
+  - start_line: 51
+    end_line: 66
+    file: ''
+  - start_line: 68
+    end_line: 70
+    file: ''
+  - start_line: 91
+    end_line: 139
+    file: ''
+  person_emp_length:
+  - start_line: 24
+    end_line: 27
+    file: ''
+  - start_line: 39
+    end_line: 44
+    file: ''
+  loan_amnt:
+  - start_line: 25
+    end_line: 25
+    file: ''
+  - start_line: 39
+    end_line: 44
+    file: ''
+  loan_int_rate:
+  - start_line: 25
+    end_line: 25
+    file: ''
+  - start_line: 34
+    end_line: 34
+    file: ''
+  - start_line: 43
+    end_line: 44
+    file: ''
+  loan_percent_income:
+  - start_line: 24
+    end_line: 27
+    file: ''
+  - start_line: 39
+    end_line: 44
+    file: ''
+  person_home_ownership:
+  - start_line: 28
+    end_line: 29
+    file: ''
+  - start_line: 33
+    end_line: 36
+    file: ''
+  - start_line: 43
+    end_line: 44
+    file: ''
+  loan_intent:
+  - start_line: 28
+    end_line: 30
+    file: ''
+  - start_line: 33
+    end_line: 37
+    file: ''
+  loan_grade:
+  - start_line: 28
+    end_line: 30
+    file: ''
+  - start_line: 33
+    end_line: 37
+    file: ''
+  - start_line: 41
+    end_line: 44
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 28
+    end_line: 30
+    file: ''
+  - start_line: 33
+    end_line: 37
+    file: ''
+  - start_line: 39
+    end_line: 44
+    file: ''
+  id:
+  - start_line: 41
+    end_line: 41
+    file: ''
+  - start_line: 138
+    end_line: 138
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.00385
+    total_tokens: 3626
+    prompt_tokens: 3585
+    completion_tokens: 41
+  data_flow_inspection:
+    cost: 0.027234
+    total_tokens: 23286
+    prompt_tokens: 22669
+    completion_tokens: 617
+  column_correlation_discovery:
+    cost: 0.007622
+    total_tokens: 2917
+    prompt_tokens: 2619
+    completion_tokens: 298
+  multi_column_data_flow_inspection:
+    cost: 0.052106
+    total_tokens: 21190
+    prompt_tokens: 19569
+    completion_tokens: 1621
+  multi_column_assumption_generation:
+    cost: 0.07785800000000001
+    total_tokens: 27457
+    prompt_tokens: 23633
+    completion_tokens: 3824
+  multi_column_code_generation:
+    cost: 0.056022
+    total_tokens: 37626
+    prompt_tokens: 36159
+    completion_tokens: 1467
+  single_column_assumption_generation:
+    cost: 0.102556
+    total_tokens: 37922
+    prompt_tokens: 33470
+    completion_tokens: 4452
+  single_column_code_generation:
+    cost: 0.088674
+    total_tokens: 66084
+    prompt_tokens: 64437
+    completion_tokens: 1647

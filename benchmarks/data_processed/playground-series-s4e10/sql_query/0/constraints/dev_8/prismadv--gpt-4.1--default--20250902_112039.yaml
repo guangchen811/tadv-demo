@@ -1,0 +1,197 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1)'
+      validity: false
+      level: error
+    - suggestion: '.isNonNegative(''loan_amnt'', lambda x: x == 1)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''loan_amnt > 0 AND loan_amnt < 1000000'', ''plausible
+        loan amounts'', lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_amnt' column should not contain any null values, as the code
+        computes AVG(loan_amnt) and SUM(loan_amnt) without handling nulls. Null values
+        would cause these aggregates to ignore those records and could lead to misleading
+        results.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'loan_amnt' column should contain non-negative integer values, as
+        it represents loan amounts and is used in average and sum calculations. Negative
+        loan amounts would be nonsensical in this business context and could distort
+        the aggregate metrics.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'loan_amnt' column should contain plausible and reasonable values
+        for loan amounts (e.g., should not be unreasonably large or zero), as extreme
+        outliers or zero values could skew the average loan amount and loan-to-income
+        ratio calculations.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: error
+    - suggestion: .satisfies('loan_int_rate > 0 AND loan_int_rate < 1', 'loan_int_rate
+        realistic range')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column must be complete (no NULL values) in the input
+        data, because the code calculates AVG(loan_int_rate) and applies ROUND to
+        its result. If any group has all NULLs in 'loan_int_rate', AVG will return
+        NULL, and ROUND will also output NULL, which may be undesirable for downstream
+        analytics.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column should contain only numeric (fractional) values,
+        as it is aggregated using AVG and processed with ROUND. Non-numeric values
+        would cause errors or incorrect results.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column should contain values within a realistic interest
+        rate range, for example, greater than 0 and less than 1 (assuming rates are
+        in decimal form, e.g., 0.075 for 7.5%), as extremely high or negative rates
+        are likely data errors and would distort the average calculation.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: '.hasCompleteness(''loan_intent'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column must not contain any null values, as it is
+        used directly in SELECT and GROUP BY statements without any null handling.
+        Every row in the input data must have a non-null ''loan_intent'' value. We
+        could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_intent'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'All values in the ''loan_intent'' column should be among a known set
+        of six categories: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', and ''VENTURE'', as the column''s approximate number of distinct
+        values is 6 and only these values are present in the histogram. We could represent
+        this assumption as a deequ constraint like this: .satisfies("CASE WHEN loan_intent
+        IN (''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', ''VENTURE'') THEN 1 ELSE 0 END", ''Valid loan_intent values'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .isPositive('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'person_income' column must not contain any null or missing values,
+        as the code relies on SUM(person_income) in the denominator of a division
+        operation. Null values would cause SUM to ignore those records and could result
+        in inaccurate or misleading average loan-to-income ratios.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: All values in the 'person_income' column must be strictly greater than
+        zero. Since the code divides by SUM(person_income), if any group has a total
+        income of zero, this would cause a division by zero error.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'person_income' column should only contain integral (whole number)
+        values, as expected by its data type, to ensure consistency with the downstream
+        logic and prevent type errors.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  loan_int_rate:
+  - start_line: 5
+    end_line: 5
+    file: ''
+  person_income:
+  - start_line: 6
+    end_line: 6
+    file: ''

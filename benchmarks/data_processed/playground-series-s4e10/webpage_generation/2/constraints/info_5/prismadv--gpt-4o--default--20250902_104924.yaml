@@ -1,0 +1,102 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_amnt' column should not have null values, as it is used in aggregation
+        functions like 'count' and 'mean' which require non-null values.
+      sources:
+      - start_line: 21
+        end_line: 23
+        file: ''
+    - text: The 'loan_amnt' column is expected to contain integral values, as indicated
+        by its data type and its use in aggregation functions.
+      sources:
+      - start_line: 21
+        end_line: 23
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_status' column should have no null values because the code calculates
+        the sum of defaults directly without handling missing values.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+    - text: The 'loan_status' column should contain only the values 0 and 1. This
+        is inferred from the use of a lambda function that checks if 'loan_status'
+        is equal to 1.
+      sources:
+      - start_line: 24
+        end_line: 24
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_income', 'Integral')
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_income' column must not have null values as the code directly
+        uses it to assign income brackets without any null handling.
+      sources:
+      - start_line: 13
+        end_line: 18
+        file: ''
+    - text: The 'person_income' column should be of an integral data type because
+        the code processes it using numeric bins to categorize income into brackets.
+      sources:
+      - start_line: 16
+        end_line: 18
+        file: ''
+    - text: The 'person_income' column should contain values that are non-negative,
+        as income brackets start from 0 and assume non-negative income values.
+      sources:
+      - start_line: 16
+        end_line: 18
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 13
+    end_line: 18
+    file: ''
+  loan_amnt:
+  - start_line: 21
+    end_line: 23
+    file: ''
+  loan_status:
+  - start_line: 24
+    end_line: 24
+    file: ''

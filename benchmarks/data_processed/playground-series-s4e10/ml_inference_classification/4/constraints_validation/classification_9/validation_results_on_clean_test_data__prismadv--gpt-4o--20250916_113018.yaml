@@ -1,0 +1,89 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isNonNegative('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_default_on_file","loan_grade"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_grade'', ''cb_person_default_on_file''],
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CASE WHEN loan_grade IN ("A", "B", "C", "D", "E",
+        "F", "G") AND cb_person_default_on_file IN ("Y", "N") THEN 1 ELSE 0 END'',
+        ''Coverage of loan_grade and cb_person_default_on_file combinations'', lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["loan_amnt","log_loan_amnt"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''loan_amnt >= 0'', ''Non-negative Loan Amount'', lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasUniqueness([''id''], lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN loan_grade IS NOT NULL AND CAST(loan_grade
+        AS STRING) = loan_grade THEN 1 ELSE 0 END", "loan_grade String Check", lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

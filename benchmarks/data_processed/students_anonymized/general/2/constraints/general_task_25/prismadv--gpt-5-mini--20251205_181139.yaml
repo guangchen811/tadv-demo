@@ -1,0 +1,1794 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: No specific description provided. The script can
+      be used for any task.
+  llm:
+    model_name: gpt-5-mini
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  c21:
+    code:
+    - suggestion: '.hasCompleteness(''c21'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 1bb6443a-6ee7-4d76-a7af-810da7a5bda1
+      source_assumptions:
+      - ed857632-1e31-4009-8e6c-3312599f6831
+    - suggestion: '.hasDataType(''c21'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c21'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 7b931c5c-7016-4d47-b1c3-6d3a9679bb71
+      source_assumptions:
+      - ed857632-1e31-4009-8e6c-3312599f6831
+      - 53941443-dba8-4ae3-abf1-565a6b99b726
+    - suggestion: '.isContainedIn(''c21'', [0, 1], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('c21',\
+        \ [0, 1], lambda x: x == 1.0)': An error occurred while calling None.None.\
+        \ Trace:\npy4j.Py4JException: Cannot convert java.lang.Integer to java.lang.String\n\
+        \tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\t\
+        at py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:829)\n\n"
+      level: error
+      uid: 8a4ec37a-25ae-40e6-a9a8-fdf6c6b98d81
+      source_assumptions:
+      - 47ab5dc0-7aee-4f19-90dd-f071231aca8d
+    assumptions:
+    - text: 'c21 must be fully present and numeric-convertible in the input data:
+        the code calls pd.to_numeric(..., errors=''coerce'') on the column and then
+        immediately casts it to int (df[c].astype(int)). If any input value is non-numeric
+        and would be coerced to NaN, the subsequent astype(int) will fail. Represent
+        this as a validity/completeness constraint, e.g. (deequ style): .satisfies("CASE
+        WHEN `c21` IS NOT NULL THEN 1 ELSE 0 END", "c21_not_null", lambda x: x ==
+        1.0) or .hasCompleteness(''c21'', 1.0).'
+      sources:
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 42
+        end_line: 42
+        file: ''
+      uid: ed857632-1e31-4009-8e6c-3312599f6831
+    - text: 'c21 should contain integer values (no fractional values). The code casts
+        c21 to int (astype(int)), so input values must be whole numbers or whole-number
+        strings (e.g., ''0'', ''1''). You can express this as: .satisfies("CASE WHEN
+        `c21` = CAST(`c21` AS INT) THEN 1 ELSE 0 END", "c21_integer", lambda x: x
+        == 1.0) or a Great Expectations expectation that values are of integer type
+        / have zero fractional part.'
+      sources:
+      - start_line: 32
+        end_line: 32
+        file: ''
+      - start_line: 42
+        end_line: 42
+        file: ''
+      uid: 53941443-dba8-4ae3-abf1-565a6b99b726
+    - text: 'c21 is expected to be a binary indicator encoded as 0 or 1 (1 means ''international'').
+        The code treats (val9 == 1) as the international flag and uses it in statistics
+        and scoring (mean, additive score term, output field ''international''). Enforce
+        that all values belong to the set {0, 1}: .satisfies("CASE WHEN `c21` IN (0,1)
+        THEN 1 ELSE 0 END", "c21_binary", lambda x: x == 1.0).'
+      sources:
+      - start_line: 53
+        end_line: 53
+        file: ''
+      - start_line: 64
+        end_line: 64
+        file: ''
+      - start_line: 92
+        end_line: 92
+        file: ''
+      - start_line: 105
+        end_line: 105
+        file: ''
+      uid: 47ab5dc0-7aee-4f19-90dd-f071231aca8d
+  c16:
+    code:
+    - suggestion: .isComplete('c16')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 49f03fc5-d8cc-4323-961e-1859cb1e63e4
+      source_assumptions:
+      - a50e2f55-f7cf-4197-8435-2b739c5b92db
+    - suggestion: '.satisfies(''CASE WHEN `c16` IN (0, 1) THEN 1 ELSE 0 END'', ''c16_is_binary'',
+        lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 56f6073c-5837-40c8-acd7-8d0d78682a6e
+      source_assumptions:
+      - 0ad15eb5-8a82-49db-b6b7-ea1f0fc48b75
+    - suggestion: '.hasDataType(''c16'', ''Integral'', lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c16'', ''Integral'',
+        lambda x: x == 1)'
+      level: error
+      uid: a4c6af7d-eeee-45a9-ba63-c12185cae337
+      source_assumptions:
+      - d8e889a4-38ff-44cb-b87f-3d89c0a3fae8
+    assumptions:
+    - text: 'c16 must contain no null/missing values in the input. The code converts
+        c16 to numeric (with errors=''coerce'') and then does df[v7].astype(int);
+        that astype(int) will fail or produce unexpected results if any values are
+        null/NaN. As a validation rule this can be expressed as e.g. a deequ constraint:
+
+        .satisfies("CASE WHEN `c16` IS NOT NULL THEN 1 ELSE 0 END", "c16_not_null",
+        lambda x: x == 1)
+
+        (or Great Expectations: expect_column_values_to_not_be_null(''c16'')).'
+      sources:
+      - start_line: 29
+        end_line: 33
+        file: ''
+      - start_line: 40
+        end_line: 40
+        file: ''
+      uid: a50e2f55-f7cf-4197-8435-2b739c5b92db
+    - text: 'c16 must be binary with only the integer values 0 or 1. The code treats
+        c16 as an integer indicator (uses comparisons like (val7 == 1), uses val7
+        in boolean masks and arithmetic 0.05 * val7, and writes it out as the ''debtor''
+        field). Input values outside {0,1} (including other integers or strings) will
+        change logic or produce incorrect results. A validation rule example:
+
+        .satisfies("CASE WHEN `c16` IN (0, 1) THEN 1 ELSE 0 END", "c16_is_binary",
+        lambda x: x == 1)
+
+        (or Great Expectations: expect_column_values_to_be_in_set(''c16'', [0,1])).'
+      sources:
+      - start_line: 40
+        end_line: 40
+        file: ''
+      - start_line: 57
+        end_line: 63
+        file: ''
+      - start_line: 72
+        end_line: 72
+        file: ''
+      - start_line: 90
+        end_line: 90
+        file: ''
+      uid: 0ad15eb5-8a82-49db-b6b7-ea1f0fc48b75
+    - text: 'c16 must be numeric/parsable as an integer (no non-numeric strings).
+        The code calls pd.to_numeric(..., errors=''coerce'') followed by astype(int).
+        Non-numeric input would be coerced to NaN and then fail the int cast or create
+        missing values. A validation rule example:
+
+        .satisfies("CASE WHEN TRY_CAST(`c16` AS DOUBLE) IS NOT NULL THEN 1 ELSE 0
+        END", "c16_numeric", lambda x: x == 1)
+
+        (or Great Expectations: expect_column_values_to_be_of_type(''c16'', ''int64'')
+        or first coerce and assert no parse failures).'
+      sources:
+      - start_line: 29
+        end_line: 33
+        file: ''
+      - start_line: 40
+        end_line: 40
+        file: ''
+      uid: d8e889a4-38ff-44cb-b87f-3d89c0a3fae8
+  c17:
+    code:
+    - suggestion: .isComplete('c17')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 405d434c-d676-48fe-b1b8-35ac09a48616
+      source_assumptions:
+      - bbdfe266-e7dc-4eb0-b776-64c9265665bd
+    - suggestion: '.hasDataType(''c17'', ''Integral'', lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c17'', ''Integral'',
+        lambda x: x == 1)'
+      level: error
+      uid: 9cd07173-218f-4f7a-8f82-12b2f56714aa
+      source_assumptions:
+      - 1e9361b5-6e36-48a1-b1ac-48543fa690a9
+    - suggestion: '.satisfies(''CASE WHEN `c17` IN (0,1) THEN 1 ELSE 0 END'', ''c17_binary'',
+        lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 15b403c8-19d4-4c79-91f5-2be933981873
+      source_assumptions:
+      - 679f75c3-6fe7-416f-a229-cbf1b017d1f2
+    assumptions:
+    - text: 'The input column ''c17'' must be numeric / integer-convertible. The code
+        calls pd.to_numeric(..., errors=''coerce'') and then uses df[''c17''].astype(int),
+        so values that are non-numeric (which would become NaN after to_numeric) will
+        break the subsequent astype(int) step. Example validation (Deequ-style): .satisfies("CASE
+        WHEN `c17` IS NOT NULL AND `c17` REGEXP ''^-?\\d+$'' THEN 1 ELSE 0 END", "c17_is_integer_like",
+        lambda x: x == 1) or simply ensure .isComplete(''c17'') and .isNumeric(''c17'').'
+      sources:
+      - start_line: 25
+        end_line: 33
+        file: ''
+      - start_line: 40
+        end_line: 41
+        file: ''
+      uid: 1e9361b5-6e36-48a1-b1ac-48543fa690a9
+    - text: 'The input column ''c17'' must not contain null/missing values (no NaNs)
+        because the code immediately casts it to int and computes statistics (mean,
+        equality checks). Enforce that all rows have a present value for c17. Example
+        validation: .isComplete(''c17'') or .satisfies("CASE WHEN `c17` IS NOT NULL
+        THEN 1 ELSE 0 END", "c17_not_null", lambda x: x == 1).'
+      sources:
+      - start_line: 32
+        end_line: 41
+        file: ''
+      - start_line: 53
+        end_line: 55
+        file: ''
+      uid: bbdfe266-e7dc-4eb0-b776-64c9265665bd
+    - text: "The input column 'c17' is expected to be binary with allowed values {0,\
+        \ 1}. The code compares values to 0 and 1, computes (c17 == 1).mean(), and\
+        \ uses (c17 == 0) as a flag\u2014so any other value would change logic or\
+        \ cause unexpected behavior. Example validation: .satisfies(\"CASE WHEN `c17`\
+        \ IN (0,1) THEN 1 ELSE 0 END\", \"c17_binary\", lambda x: x == 1) or .hasValuesIn('c17',\
+        \ [0, 1])."
+      sources:
+      - start_line: 53
+        end_line: 56
+        file: ''
+      - start_line: 72
+        end_line: 73
+        file: ''
+      - start_line: 91
+        end_line: 93
+        file: ''
+      uid: 679f75c3-6fe7-416f-a229-cbf1b017d1f2
+  c22:
+    code:
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(c22 AS double) IS NOT NULL THEN
+        1 ELSE 0 END", "c22_castable_to_double", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3182e32b-ac14-4d1f-8460-b694d0ca74d9
+      source_assumptions:
+      - 5c95edd8-e952-4fe9-be75-7d3528f86ab4
+    - suggestion: .isComplete("c22")
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: e5da0b83-43e4-4b19-a173-d17a0312ffb7
+      source_assumptions:
+      - 444aa68b-660e-466b-a8b5-5e57a82e03d6
+    - suggestion: '.isNonNegative("c22", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 0300c92b-0170-446d-812c-0b061d6136fd
+      source_assumptions:
+      - 96eb350c-ab0c-42dd-b162-0cc916559b96
+    - suggestion: '.satisfies("CASE WHEN cast(c23 AS double) > 0 THEN CASE WHEN cast(c22
+        AS double)/cast(c23 AS double) BETWEEN 0 AND 1 THEN 1 ELSE 0 END ELSE 1 END",
+        "c22_le_c23_for_positive_c23", lambda x: x >= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: ae07415a-820c-4c56-b7d3-438030e460ae
+      source_assumptions:
+      - 398a7ab7-d5fb-4699-8f35-078bba979375
+    - suggestion: '.satisfies("CASE WHEN cast(c22 AS double) IS NULL THEN 0 WHEN cast(c22
+        AS double) = floor(cast(c22 AS double)) THEN 1 ELSE 0 END", "c22_is_integer",
+        lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 152a6ac5-7bec-4a7b-b541-0cbfdf0ea9c4
+      source_assumptions:
+      - acbcf138-4ba1-4176-a9ed-6d8022d1ccd8
+    assumptions:
+    - text: 'The input column ''c22'' should be numeric or convertible to numeric.
+        The code explicitly calls pd.to_numeric(..., errors=''coerce'') on this column
+        and later casts it to float, and then uses it in arithmetic (division). If
+        many values are non-convertible they will become NaN and propagate into downstream
+        calculations.
+
+        Suggested validation (Deequ/GE style):
+
+        - Deequ: .satisfies("CASE WHEN regexp_like(c22, ''^-?\\d+$'') THEN 1 ELSE
+        0 END", "c22_is_integer_string", lambda x: x == 1.0)
+
+        - Or a looser check: .satisfies("CASE WHEN TRY_CAST(c22 AS double) IS NOT
+        NULL THEN 1 ELSE 0 END", "c22_castable_to_double", lambda x: x >= 0.99)
+
+        '
+      sources:
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 38
+        end_line: 38
+        file: ''
+      - start_line: 50
+        end_line: 50
+        file: ''
+      uid: 5c95edd8-e952-4fe9-be75-7d3528f86ab4
+    - text: 'The ''c22'' column should not contain null/missing values (completeness).
+        The script does not fill or impute c22 after coercion to numeric; missing
+        c22 values would produce NaNs in the computed credit_ratio and could lead
+        to NaN risk scores.
+
+        Suggested validation:
+
+        - Deequ: .hasCompleteness(''c22'', lambda x: x == 1.0)
+
+        - Great Expectations: expect_column_values_to_not_be_null(''c22'')
+
+        '
+      sources:
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 38
+        end_line: 38
+        file: ''
+      uid: 444aa68b-660e-466b-a8b5-5e57a82e03d6
+    - text: 'The values in ''c22'' are expected to be non-negative (>= 0). c22 is
+        used as a ''credit'' / numerator when computing a ratio (c22 / c23). Negative
+        values would produce negative ratios and affect the risk computation in unexpected
+        ways.
+
+        Suggested validation:
+
+        - Deequ: .satisfies("CASE WHEN c22 IS NOT NULL AND cast(c22 AS double) >=
+        0 THEN 1 ELSE 0 END", "c22_non_negative", lambda x: x == 1.0)
+
+        - Great Expectations: expect_column_values_to_be_between(''c22'', min_value=0,
+        max_value=None)
+
+        '
+      sources:
+      - start_line: 50
+        end_line: 50
+        file: ''
+      - start_line: 57
+        end_line: 63
+        file: ''
+      uid: 96eb350c-ab0c-42dd-b162-0cc916559b96
+    - text: 'For meaningful ''credit_ratio'' values, c22 should generally be less
+        than or equal to the corresponding c23 when c23 > 0 (i.e., the ratio c22 /
+        c23 is expected to lie in [0, 1] for the vast majority of records). The code
+        computes ratio1 = c22 / c23 when c23 > 0 and then uses (1 - ratio1) in the
+        risk calculation, implying the ratio represents a proportion.
+
+        Suggested validation (cross-column):
+
+        - Deequ: .satisfies("CASE WHEN cast(c23 AS double) > 0 AND cast(c22 AS double)/cast(c23
+        AS double) BETWEEN 0 AND 1 THEN 1 ELSE 0 END", "c22_le_c23_for_positive_c23",
+        lambda x: x >= 0.95)
+
+        - Great Expectations: expect_column_pair_values_A_to_be_less_than_or_equal_to_B(''c22'',''c23'')
+        applied only when c23 > 0 (or a custom expectation checking 0 <= c22/c23 <=
+        1)
+
+        '
+      sources:
+      - start_line: 44
+        end_line: 50
+        file: ''
+      - start_line: 57
+        end_line: 63
+        file: ''
+      uid: 398a7ab7-d5fb-4699-8f35-078bba979375
+    - text: 'The ''c22'' column is expected to be integral (whole numbers). The dataset
+        metadata indicates an integral type and the code casts to float only for arithmetic;
+        fractional values are likely not expected.
+
+        Suggested validation:
+
+        - Deequ: .satisfies("CASE WHEN cast(c22 AS double) = floor(cast(c22 AS double))
+        THEN 1 ELSE 0 END", "c22_is_integer", lambda x: x == 1.0)
+
+        - Great Expectations: expect_column_values_to_be_in_type_list(''c22'', [''Integer''])
+        or a custom check that value == floor(value)
+
+        '
+      sources:
+      - start_line: 22
+        end_line: 38
+        file: ''
+      uid: acbcf138-4ba1-4176-a9ed-6d8022d1ccd8
+  c23:
+    code:
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c23` AS DOUBLE) IS NOT NULL THEN
+        1 ELSE 0 END", "c23_is_numeric", lambda x: x >= 0.95)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: e897cd2f-875d-439c-97d4-a03a78237bfe
+      source_assumptions:
+      - 429e529b-4bf7-497a-b449-529c1378b28f
+    - suggestion: '.satisfies("CASE WHEN `c23` IS NOT NULL THEN 1 ELSE 0 END", "c23_not_null",
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 4f734281-3496-4cef-9360-d874abae0419
+      source_assumptions:
+      - 5ce3b364-8a0e-4af2-a281-dc28fcc71883
+    - suggestion: '.satisfies("CASE WHEN `c23` IS NOT NULL AND `c23` >= 0 AND `c23`
+        = FLOOR(`c23`) THEN 1 ELSE 0 END", "c23_non_negative_integer", lambda x: x
+        == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d8fe3cf0-4044-45b4-8f6e-873dd3ed3ef9
+      source_assumptions:
+      - 7acd4bc3-c48f-4556-954d-aa35d608534a
+    - suggestion: '.satisfies("CASE WHEN `c23` > 0 THEN 1 ELSE 0 END", "c23_has_positive",
+        lambda x: x > 0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 14e37dc2-4283-4e8a-8763-56cbe9f555a1
+      source_assumptions:
+      - 9d281ea7-c1d9-4bd6-8be1-3309e5fc9662
+    assumptions:
+    - text: 'c23 must be numeric / convertible to a numeric type (the code calls pd.to_numeric(...)
+        and then astype(float) on c23). If many input values cannot be parsed as numbers
+        they will be coerced to NaN and downstream numeric calculations (rates, ratios,
+        mean) will be affected. Example deequ-style check: .satisfies("CASE WHEN TRY_CAST(`c23`
+        AS DOUBLE) IS NOT NULL THEN 1 ELSE 0 END", "c23_is_numeric", lambda x: x >=
+        0.95)'
+      sources:
+      - start_line: 29
+        end_line: 34
+        file: ''
+      uid: 429e529b-4bf7-497a-b449-529c1378b28f
+    - text: 'c23 should not contain nulls (or only a negligible fraction). The code
+        does not explicitly handle many missing values for c23 after coercion to numeric,
+        and downstream summaries/means assume records are present. Example check:
+        .satisfies("CASE WHEN `c23` IS NOT NULL THEN 1 ELSE 0 END", "c23_not_null",
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 29
+        end_line: 34
+        file: ''
+      uid: 5ce3b364-8a0e-4af2-a281-dc28fcc71883
+    - text: 'c23 is expected to be non-negative and integral (counts/quantities).
+        The code uses comparisons val1 > 0 and divides other counts by val1, implying
+        c23 represents a count-like quantity; negative or fractional values are likely
+        invalid. Example check (integral + non-negative): .satisfies("CASE WHEN `c23`
+        IS NOT NULL AND `c23` >= 0 AND `c23` = FLOOR(`c23`) THEN 1 ELSE 0 END", "c23_non_negative_integer",
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 34
+        end_line: 50
+        file: ''
+      uid: 7acd4bc3-c48f-4556-954d-aa35d608534a
+    - text: 'There should be at least some positive c23 values (not all rows have
+        c23 <= 0). The code computes rates like (val1 - val3)/val1 and val5/val1 only
+        when val1 > 0; if every c23 is zero or non-positive the rates will all be
+        forced to 0 and risk scoring behaviour will be impacted. Example check: .satisfies("CASE
+        WHEN `c23` > 0 THEN 1 ELSE 0 END", "c23_has_positive", lambda x: x > 0)'
+      sources:
+      - start_line: 44
+        end_line: 50
+        file: ''
+      - start_line: 86
+        end_line: 86
+        file: ''
+      uid: 9d281ea7-c1d9-4bd6-8be1-3309e5fc9662
+  c24:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `c24` IS NOT NULL AND TRY_CAST(`c24` AS DOUBLE)
+        IS NOT NULL THEN 1 ELSE 0 END", "c24_is_numeric", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 8f6f21dd-d604-44e8-92fe-e2429445a9d4
+      source_assumptions:
+      - df881f16-dca8-4aa3-8bcb-c68bf8c6d1ed
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c24` AS DOUBLE) >= 0 THEN 1 ELSE
+        0 END", "c24_non_negative", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 4730423d-5f40-4312-a31c-4c0e0afbdef3
+      source_assumptions:
+      - f54b3378-94fc-41da-b75b-185f2d8645f0
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c24` AS DOUBLE) > 0 THEN 1 ELSE
+        0 END", "c24_has_positive_values", lambda x: x >= 0.01)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6d8183cd-6908-4890-a83e-e1c3ed08e83c
+      source_assumptions:
+      - 95f4cadd-06e8-477d-a831-ef00690dc0d3
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c24` AS DOUBLE) IS NOT NULL AND
+        FLOOR(TRY_CAST(`c24` AS DOUBLE)) = TRY_CAST(`c24` AS DOUBLE) THEN 1 ELSE 0
+        END", "c24_integer_like", lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 8545b9ad-2476-4078-b245-0b4a2054bad7
+      source_assumptions:
+      - 5a0bff07-7eeb-4979-afb4-c676805c643e
+    assumptions:
+    - text: 'The ''c24'' column must be numeric / convertible to a numeric type (the
+        code calls pd.to_numeric(..., errors=''coerce'') and then astype(float)).
+        In other words, input values for c24 should be integers or numeric strings
+        so they do not become NaN after conversion. Example deequ-style check: .satisfies(''CASE
+        WHEN `c24` IS NOT NULL AND TRY_CAST(`c24` AS DOUBLE) IS NOT NULL THEN 1 ELSE
+        0 END'', ''c24_is_numeric'', lambda x: x >= 0.99)'
+      sources:
+      - start_line: 31
+        end_line: 35
+        file: ''
+      uid: df881f16-dca8-4aa3-8bcb-c68bf8c6d1ed
+    - text: 'The ''c24'' column should be non-negative (>= 0). The code uses c24 as
+        a denominator for pass_rate and treats non-positive values as cases where
+        the rate is set to 0, so negative values are likely invalid. Example deequ-style
+        check: .satisfies(''CASE WHEN TRY_CAST(`c24` AS DOUBLE) >= 0 THEN 1 ELSE 0
+        END'', ''c24_non_negative'', lambda x: x == 1)'
+      sources:
+      - start_line: 35
+        end_line: 48
+        file: ''
+      uid: f54b3378-94fc-41da-b75b-185f2d8645f0
+    - text: 'There should be at least some positive values in ''c24'' (i.e., not all
+        rows have c24 <= 0), otherwise pass_rate will be 0 for all records. A practical
+        validation is to require a small fraction of rows with c24 > 0 (for example
+        >= 1%). Example deequ-style check: .satisfies(''CASE WHEN TRY_CAST(`c24` AS
+        DOUBLE) > 0 THEN 1 ELSE 0 END'', ''c24_has_positive_values'', lambda x: x
+        >= 0.01)'
+      sources:
+      - start_line: 47
+        end_line: 48
+        file: ''
+      - start_line: 86
+        end_line: 87
+        file: ''
+      uid: 95f4cadd-06e8-477d-a831-ef00690dc0d3
+    - text: 'The ''c24'' values are expected to be integer-like counts (no meaningful
+        fractional values). If fractional values are present they should be rare.
+        Example deequ-style check: .satisfies(''CASE WHEN TRY_CAST(`c24` AS DOUBLE)
+        IS NOT NULL AND FLOOR(TRY_CAST(`c24` AS DOUBLE)) = TRY_CAST(`c24` AS DOUBLE)
+        THEN 1 ELSE 0 END'', ''c24_integer_like'', lambda x: x >= 0.99)'
+      sources:
+      - start_line: 31
+        end_line: 35
+        file: ''
+      uid: 5a0bff07-7eeb-4979-afb4-c676805c643e
+  c25:
+    code:
+    - suggestion: '.hasDataType(''c25'', ''Numeric'', lambda x: x >= 0.99)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c25'', ''Numeric'',
+        lambda x: x >= 0.99)'
+      level: error
+      uid: 0e0f55e5-bda6-4d4a-b07a-1bb8fd46c3b2
+      source_assumptions:
+      - 09508140-f6ce-4bde-8a60-bdf06db5c5b2
+    - suggestion: .isComplete('c25')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 729b84bd-e84b-4311-97e7-1caf55f4a204
+      source_assumptions:
+      - 2a7fc11c-ba3d-4d27-b155-bf19bdb76824
+    - suggestion: '.satisfies(''CASE WHEN `c24` > 0 THEN CASE WHEN `c25` >= 0 AND
+        `c25` <= `c24` THEN 1 ELSE 0 END ELSE CASE WHEN `c25` >= 0 THEN 1 ELSE 0 END
+        END'', ''c25_in_valid_range'', lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 99fecbe2-ce7f-48fe-bb51-212a72646add
+      source_assumptions:
+      - 8bb558c0-ee45-4ba6-9d5f-266abcf73ab1
+    - suggestion: '.satisfies(''CASE WHEN `c24` > 0 THEN CASE WHEN (`c25` / `c24`)
+        <= 1.5 THEN 1 ELSE 0 END ELSE CASE WHEN `c25` >= 0 AND `c25` <= 1000000 THEN
+        1 ELSE 0 END END'', ''c25_pass_rate_sane'', lambda x: x >= 0.99)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 7885bd1b-d7a9-4086-9f43-72ebaa2c5b5e
+      source_assumptions:
+      - 382657f5-57fb-4a36-8d27-9c6dc8d26924
+    assumptions:
+    - text: 'The ''c25'' column must be numeric (convertible to float/integer). The
+        code calls pd.to_numeric(..., errors=''coerce'') and then astype(float) on
+        this column, so non-numeric values would be coerced to NaN and could break
+        downstream calculations.
+
+        Example Deequ-style check: .satisfies("CASE WHEN `c25` RLIKE ''^-?\\d+(\\.\\d+)?$''
+        THEN 1 ELSE 0 END", "c25_is_numeric", lambda x: x >= 0.99)
+
+        (Or Great Expectations: expect_column_values_to_be_in_type_list / expect_column_values_to_match_regex
+        to ensure numeric format.)'
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 37
+        end_line: 37
+        file: ''
+      uid: 09508140-f6ce-4bde-8a60-bdf06db5c5b2
+    - text: 'The ''c25'' column should contain no null / missing values. The code
+        does not explicitly handle NaNs for c25 when val2 > 0 (rate2 = val4 / val2),
+        so any NaN in c25 will propagate into rate2 and into risk/score computations.
+
+        Example Deequ-style check: .satisfies("CASE WHEN `c25` IS NOT NULL THEN 1
+        ELSE 0 END", "c25_no_nulls", lambda x: x == 1)
+
+        (Or Great Expectations: expect_column_values_to_not_be_null.)'
+      sources:
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 37
+        end_line: 37
+        file: ''
+      - start_line: 48
+        end_line: 48
+        file: ''
+      uid: 2a7fc11c-ba3d-4d27-b155-bf19bdb76824
+    - text: 'The ''c25'' values represent a count used as a numerator for pass_rate
+        and therefore should be non-negative integers (or integer-like) and realistically
+        bounded by the corresponding ''c24'' value (i.e., 0 <= c25 <= c24). The risk
+        calculation expects rate2 (c25 / c24 when c24 > 0) to be in [0, 1].
+
+        Example Deequ-style conditional check: .satisfies("CASE WHEN `c24` > 0 THEN
+        CASE WHEN `c25` >= 0 AND `c25` <= `c24` THEN 1 ELSE 0 END ELSE CASE WHEN `c25`
+        >= 0 THEN 1 ELSE 0 END END", "c25_in_valid_range", lambda x: x == 1)
+
+        (Or Great Expectations: use a row-wise expectation or a conditional expectation
+        to assert 0 <= c25 <= c24 when c24 > 0.)'
+      sources:
+      - start_line: 48
+        end_line: 48
+        file: ''
+      - start_line: 57
+        end_line: 63
+        file: ''
+      uid: 8bb558c0-ee45-4ba6-9d5f-266abcf73ab1
+    - text: 'Because the code casts c25 to float and later rounds pass_rate for output,
+        it''s acceptable for c25 to be integer-valued but the pipeline expects values
+        that do not cause extreme ratios (e.g., extremely large c25 relative to c24).
+        In practice enforce an upper bound sanity check (e.g., c25 <= c24 and c25
+        is within an expected maximum) to avoid implausible pass_rate values.
+
+        Example Deequ-style check: .hasLessThan("CASE WHEN `c24` > 0 THEN `c25` /
+        `c24` ELSE 0 END", 1.5) or enforce c25 <= c24 as above.'
+      sources:
+      - start_line: 37
+        end_line: 48
+        file: ''
+      - start_line: 86
+        end_line: 87
+        file: ''
+      uid: 382657f5-57fb-4a36-8d27-9c6dc8d26924
+  c26:
+    code:
+    - suggestion: '.satisfies(''c26 >= 0 AND c26 <= 20'', ''c26_in_0_20'', lambda
+        x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: d4898564-3cbb-4aea-b18c-5f2ecc0751b6
+      source_assumptions:
+      - f65992a2-0558-404f-9e28-88a285e95e8b
+    - suggestion: '.haveCompleteness(columns=[''c26''], assertion=lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 8b75a5ac-5fa1-4ef2-b9aa-450225b7bbed
+      source_assumptions:
+      - f65992a2-0558-404f-9e28-88a285e95e8b
+    assumptions:
+    - text: 'c26 is used as a normalized value norm1 = c26 / 20.0 and then combined
+        additively with other normalized rates to compute risk. Therefore c26 should
+        be non-negative and (ideally) <= 20 for most records so that norm1 lies in
+        [0,1] and (1 - norm1) behaves as an expected bounded component of the risk
+        score. Actionable constraint examples: - enforce 0 <= c26 <= 20 (Deequ: .satisfies(''c26
+        >= 0 AND c26 <= 20'', ''c26_in_0_20'') or .isNonNegative(''c26'') plus an
+        upper-bound check).'
+      sources:
+      - start_line: 23
+        end_line: 51
+        file: ''
+      - start_line: 57
+        end_line: 62
+        file: ''
+      uid: f65992a2-0558-404f-9e28-88a285e95e8b
+    - text: 'For the computed evaluation rate rate1 = (c23 - c27) / c23 to be interpretable
+        as a proportion in [0,1], c27 should be <= c23 for each record (and c23 should
+        be non-negative). Actionable constraint example: .satisfies(''c27 <= c23 AND
+        c23 >= 0'', ''c27_le_c23_and_c23_nonnegative'').'
+      sources:
+      - start_line: 34
+        end_line: 46
+        file: ''
+      uid: 18e3a5e6-f74b-4605-ac1b-3536f763ed6b
+    - text: 'For credit_ratio = c22 / c23 to represent a meaningful ratio in [0,1],
+        c22 should be <= c23 (and c23 should be > 0 for records where ratio is expected).
+        Actionable constraint example: .satisfies(''c22 <= c23 AND c23 > 0'', ''c22_le_c23_and_c23_positive'').'
+      sources:
+      - start_line: 34
+        end_line: 50
+        file: ''
+      uid: 7a600f2d-7f76-4c95-9d78-2aade1a39923
+    - text: 'For pass_rate = c25 / c24 to be a valid proportion, c25 should be <=
+        c24 (and c24 should be > 0 for records where a rate is expected). Actionable
+        constraint example: .satisfies(''c25 <= c24 AND c24 > 0'', ''c25_le_c24_and_c24_positive'').'
+      sources:
+      - start_line: 35
+        end_line: 48
+        file: ''
+      uid: 61d8f335-9ec3-4ec5-8456-1d57e245e860
+    - text: 'The denominators used in rate computations (c23 and c24) are expected
+        to be non-negative and typically positive when rates are meaningful. Enforce
+        that these columns are >= 0, and if business logic requires, > 0 for the subset
+        of records where rates are computed. Actionable constraint examples: .isNonNegative(''c23''),
+        .isNonNegative(''c24'') or .satisfies(''c23 > 0'', ''c23_positive_for_rate_computation'').'
+      sources:
+      - start_line: 32
+        end_line: 50
+        file: ''
+      uid: af4b802c-d3c1-4d2c-8e60-3b1472595e43
+    - text: 'Columns used as flags in boolean masks (c16, c17, c21) are treated as
+        binary indicators (checked against values 0 or 1 in multiple masks and used
+        to compute proportions). Therefore these columns should contain only {0,1}
+        (or at least the vast majority of records). Actionable constraint example:
+        .satisfies(''c16 IN (0,1) AND c17 IN (0,1) AND c21 IN (0,1)'', ''flags_are_binary'').'
+      sources:
+      - start_line: 40
+        end_line: 64
+        file: ''
+      - start_line: 72
+        end_line: 76
+        file: ''
+      uid: 7bea072c-60a7-4022-bb08-4495a3330b95
+  c27:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `c27` RLIKE ''^[0-9]+(\\.[0-9]+)?$'' THEN
+        1 ELSE 0 END", "c27_is_numeric", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: c90cf9a5-3f86-4609-8c67-9801517a7196
+      source_assumptions:
+      - e56a2787-ba50-4cfb-996e-405e66cdf873
+    - suggestion: '.satisfies("CASE WHEN `c27` >= 0 AND FLOOR(`c27`) = `c27` THEN
+        1 ELSE 0 END", "c27_non_negative_integer", lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 08e90154-4683-4f05-bf23-7a9c9ae31325
+      source_assumptions:
+      - daf312e6-0def-4d68-bed6-9a2bd907791d
+    - suggestion: '.satisfies("CASE WHEN `c27` <= `c23` THEN 1 ELSE 0 END", "c27_le_c23",
+        lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: ac308750-1a5d-4663-a860-b8e5d0df9897
+      source_assumptions:
+      - 4fdd7537-9729-4f9d-bfcc-d16a90b632d8
+    assumptions:
+    - text: 'c27 must be numeric (convertible to float) for every input row. The code
+        calls pd.to_numeric(..., errors=''coerce'') and then astype(float), and c27
+        is used in arithmetic (val1 - val3 and division). If c27 contains non-numeric
+        values that are coerced to NaN, those NaNs will propagate into rate and risk
+        calculations and produce unexpected NaNs in the outputs. We can express this
+        as a validation rule, for example: .satisfies("CASE WHEN `c27` RLIKE ''^[0-9]+(\\.[0-9]+)?$''
+        THEN 1 ELSE 0 END", "c27_is_numeric", lambda x: x == 1)'
+      sources:
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 36
+        end_line: 36
+        file: ''
+      - start_line: 44
+        end_line: 46
+        file: ''
+      uid: e56a2787-ba50-4cfb-996e-405e66cdf873
+    - text: 'c27 should contain non-negative integer values (e.g., counts). The code
+        treats c27 as a numeric value and subtracts it from c23 (val1 - val3). Negative
+        or fractional values would change the semantics of that subtraction and downstream
+        rates. Representable check: .satisfies("CASE WHEN `c27` >= 0 AND FLOOR(`c27`)
+        = `c27` THEN 1 ELSE 0 END", "c27_non_negative_integer", lambda x: x == 1)'
+      sources:
+      - start_line: 36
+        end_line: 36
+        file: ''
+      - start_line: 44
+        end_line: 46
+        file: ''
+      uid: daf312e6-0def-4d68-bed6-9a2bd907791d
+    - text: 'c27 should not exceed c23 for each row (c27 <= c23). The code computes
+        val11 = val1 - val3 and then divides by val1 when val1 > 0; if c27 (val3)
+        > c23 (val1) this yields negative rates and may violate expected semantics
+        (e.g., ''completed'' cannot exceed ''assigned''). Represent as: .satisfies("CASE
+        WHEN `c27` <= `c23` THEN 1 ELSE 0 END", "c27_le_c23", lambda x: x == 1)'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 44
+        end_line: 46
+        file: ''
+      uid: 4fdd7537-9729-4f9d-bfcc-d16a90b632d8
+  c8:
+    code:
+    - suggestion: .isComplete('c8')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 0ee51f4a-91bc-4b96-ac94-a36dfb57f4da
+      source_assumptions:
+      - 3f6c7ff7-026b-465e-b7af-8c1ac3099f49
+    - suggestion: '.satisfies(''CASE WHEN `c8` IS NOT NULL AND cast(`c8` as double)
+        IS NOT NULL THEN 1 ELSE 0 END'', ''c8 numeric-convertible'', lambda x: x ==
+        1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: b17ac39d-1487-40c1-9c8f-c63f139aa451
+      source_assumptions:
+      - 3f6c7ff7-026b-465e-b7af-8c1ac3099f49
+    - suggestion: '.hasDataType(''c8'', ''Integral'', lambda x: x == 1)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''c8'', ''Integral'',
+        lambda x: x == 1)'
+      level: error
+      uid: 8736d448-0cac-4cd2-a932-824f6cb61630
+      source_assumptions:
+      - 2c96355b-8234-45c9-a987-f3278b107e3d
+    - suggestion: '.isNonNegative(''c8'', lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 226fef84-51fd-4723-b94d-2764f07c903f
+      source_assumptions:
+      - c8d4b9a0-2945-42e3-9002-088e521ebb74
+    - suggestion: '.hasNumberOfDistinctValues(''c8'', lambda x: x <= 50)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasNumberOfDistinctValues(''c8'',
+        lambda x: x <= 50)'': Check.hasNumberOfDistinctValues() missing 2 required
+        positional arguments: ''binningUdf'' and ''maxBins'''
+      level: warning
+      uid: 74d1251e-739a-4dfc-9f44-6646495a513d
+      source_assumptions:
+      - c8d4b9a0-2945-42e3-9002-088e521ebb74
+    assumptions:
+    - text: 'The ''c8'' column must contain no missing/null values and all input values
+        should be numeric (i.e., convertible to a numeric type). The code coerces
+        c8 to numeric (errors=''coerce'') and then casts to int, which will fail or
+        produce NaNs if non-numeric values are present. Example validation rules:
+
+        .satisfies("CASE WHEN `c8` IS NOT NULL THEN 1 ELSE 0 END", "c8 completeness",
+        lambda x: x == 1)
+
+        .satisfies("CASE WHEN `c8` IS NOT NULL AND cast(`c8` as double) IS NOT NULL
+        THEN 1 ELSE 0 END", "c8 numeric-convertible", lambda x: x == 1)'
+      sources:
+      - start_line: 31
+        end_line: 32
+        file: ''
+      - start_line: 43
+        end_line: 43
+        file: ''
+      uid: 3f6c7ff7-026b-465e-b7af-8c1ac3099f49
+    - text: 'The ''c8'' column should contain integer-valued data (no fractional values).
+        The code casts the column to integer using astype(int), so values must represent
+        whole numbers (e.g., ''3'' or 3.0) and not non-integer floats. Example validation
+        rule:
+
+        .satisfies("CASE WHEN `c8` IS NULL THEN 0 WHEN floor(cast(`c8` as double))
+        = cast(`c8` as double) THEN 1 ELSE 0 END", "c8 integer-valued", lambda x:
+        x == 1)'
+      sources:
+      - start_line: 31
+        end_line: 32
+        file: ''
+      - start_line: 43
+        end_line: 43
+        file: ''
+      uid: 2c96355b-8234-45c9-a987-f3278b107e3d
+    - text: 'The ''c8'' column is used as a categorical code for nationality and is
+        expected to be a small set of integer category codes (dataset metadata suggests
+        ~19 distinct values). Input should therefore be non-negative integer category
+        codes and have limited cardinality. Example validation rules:
+
+        .satisfies("CASE WHEN `c8` >= 0 THEN 1 ELSE 0 END", "c8 non-negative", lambda
+        x: x == 1)
+
+        .satisfies("CASE WHEN countDistinct(`c8`) <= 50 THEN 1 ELSE 0 END", "c8 limited
+        cardinality (expected ~19)", lambda x: x == 1)'
+      sources:
+      - start_line: 43
+        end_line: 43
+        file: ''
+      - start_line: 93
+        end_line: 93
+        file: ''
+      uid: c8d4b9a0-2945-42e3-9002-088e521ebb74
+  '["c16","c17"]':
+    code: []
+    assumptions:
+    - text: 'Columns ''c16'' and ''c17'' are binary indicator columns (allowed values
+        are exactly 0 or 1) and contain no missing values. Actionable checks: assert
+        completeness for both columns equals 1.0 and that each value is contained
+        in {0,1}. Example Deequ-style constraints:
+
+        .isComplete([''c16''])
+
+        .isComplete([''c17''])
+
+        .satisfies(''c16 IN (0,1)'')
+
+        .satisfies(''c17 IN (0,1)'')'
+      sources:
+      - start_line: 24
+        end_line: 32
+        file: ''
+      - start_line: 40
+        end_line: 41
+        file: ''
+      uid: cbd1db02-1eab-4721-83e8-337e8fd19e48
+    - text: 'The derived output column ''tuition_hold'' is computed as the logical
+        expression (c17 == 0) OR (c16 == 1). Enforce that for every row tuition_hold
+        == 1 if and only if (c17 == 0 OR c16 == 1). Example constraint (Deequ/SQL
+        style): .satisfies(''((c17 = 0) OR (c16 = 1)) = (tuition_hold = 1)'')'
+      sources:
+      - start_line: 72
+        end_line: 75
+        file: ''
+      - start_line: 83
+        end_line: 83
+        file: ''
+      uid: f7faf63a-8752-4a71-8708-c7ea8243615d
+    - text: 'The output field ''debtor'' is directly the input column c16, and ''tuition_up_to_date''
+        is directly the input column c17 (no transformation). Enforce equality between
+        input and output columns. Example constraint: .satisfies(''debtor = c16'')
+        and .satisfies(''tuition_up_to_date = c17'')'
+      sources:
+      - start_line: 78
+        end_line: 83
+        file: ''
+      - start_line: 90
+        end_line: 92
+        file: ''
+      uid: 3ec8ea7f-0ac3-47a8-b21f-cda034f5fcd6
+    - text: 'The output field ''fees_flag'' equals (c17 == 0) (i.e., fees_flag ==
+        1 when c17 == 0, else 0). Enforce per-row equivalence: fees_flag == CAST((c17
+        = 0) AS int). Example constraint: .satisfies(''fees_flag = (CASE WHEN c17
+        = 0 THEN 1 ELSE 0 END)'')'
+      sources:
+      - start_line: 53
+        end_line: 56
+        file: ''
+      - start_line: 86
+        end_line: 89
+        file: ''
+      uid: a65483db-4f09-4f9b-9125-7b9ae0596860
+    - text: 'The categorical outputs ''hold_reason'' and ''hold_severity'' are determined
+        by the combination of c16, c17 and the score-based mask (mask2/mask4):
+
+        - If mask4 is true -> hold_reason == ''FEE+ACADEMIC'' and hold_severity ==
+        ''STRICT''
+
+        - Else if mask3 is true -> hold_reason == ''FEE'' and hold_severity == ''STANDARD''
+
+        - Else -> hold_reason == ''NONE'' and hold_severity == ''NONE''
+
+        Enforce these per-row mappings as multi-column constraints, e.g. .satisfies("(mask4
+        AND hold_reason = ''FEE+ACADEMIC'' AND hold_severity = ''STRICT'') OR (mask3
+        AND hold_reason = ''FEE'' AND hold_severity = ''STANDARD'') OR (NOT mask3
+        AND hold_reason = ''NONE'' AND hold_severity = ''NONE'')") but replace mask3/mask4
+        expressions with their definitions in terms of c16,c17 and score threshold.'
+      sources:
+      - start_line: 57
+        end_line: 76
+        file: ''
+      - start_line: 78
+        end_line: 85
+        file: ''
+      uid: a69345d0-5366-4cfd-9f1b-5ba380c9e86d
+  '["c16","c17","c21","c22","c23","c24","c25","c26","c27"]':
+    code: []
+    assumptions:
+    - text: 'For every record, c27 must be less than or equal to c23 so that val11
+        = c23 - c27 is non-negative and the computed evaluation rate (rate1 = (c23
+        - c27)/c23 when c23>0) lies in [0,1].
+
+        Suggested Deequ-style constraint: .satisfies("c27 <= c23", "c27_le_c23") or
+        equivalently .isLessThanOrEqual("c27", "c23").'
+      sources:
+      - start_line: 34
+        end_line: 46
+        file: ''
+      - start_line: 86
+        end_line: 86
+        file: ''
+      uid: 4114f889-a206-4f82-93a6-8b8b1954d97b
+    - text: 'For every record, c25 must be less than or equal to c24 so that pass_rate
+        = c25 / c24 (when c24>0) is within [0,1].
+
+        Suggested Deequ-style constraint: .satisfies("c25 <= c24", "c25_le_c24").'
+      sources:
+      - start_line: 35
+        end_line: 48
+        file: ''
+      - start_line: 87
+        end_line: 87
+        file: ''
+      uid: 4b5f5480-19bb-4d59-aba4-ca932895b911
+    - text: 'For every record, c22 must be less than or equal to c23 so that credit_ratio
+        = c22 / c23 (when c23>0) is in [0,1].
+
+        Suggested Deequ-style constraint: .satisfies("c22 <= c23", "c22_le_c23").'
+      sources:
+      - start_line: 38
+        end_line: 51
+        file: ''
+      - start_line: 88
+        end_line: 88
+        file: ''
+      uid: b944e19d-6b92-4117-a94b-cae258ad1769
+    - text: 'Values in c26 should lie in the interval [0, 20] so that norm1 = c26
+        / 20.0 yields a normalized score in [0,1].
+
+        Suggested Deequ-style constraints: .satisfies("c26 >= 0", "c26_non_negative")
+        and .satisfies("c26 <= 20", "c26_at_most_20").'
+      sources:
+      - start_line: 39
+        end_line: 51
+        file: ''
+      - start_line: 57
+        end_line: 63
+        file: ''
+      uid: 9231f70e-ff30-4ec8-b602-bd8ca5171c0d
+    - text: 'Columns c16, c17 and c21 are used as binary flags (cast to int and compared
+        to 0/1). They must be integer-like, non-null, and only contain values in {0,1}
+        so that mask and scoring logic is correct (tuition_hold, fees_flag, international
+        boost, etc.).
+
+        Suggested Deequ-style constraints: .isComplete(["c16","c17","c21"]) and .satisfies("c16
+        in (0,1)", "c16_binary"), .satisfies("c17 in (0,1)", "c17_binary"), .satisfies("c21
+        in (0,1)", "c21_binary").'
+      sources:
+      - start_line: 31
+        end_line: 43
+        file: ''
+      - start_line: 55
+        end_line: 73
+        file: ''
+      uid: 1c2893ac-1f32-4ad0-9e9b-b0b52b827005
+    - text: 'Denominator columns used for rate computations (c23 and c24) should be
+        numeric and non-negative (preferably >0 for meaningful rates) to avoid invalid
+        divisions and to ensure the conditional np.where checks behave as intended.
+
+        Suggested Deequ-style constraints: .isComplete(["c23","c24"]) and .satisfies("c23
+        >= 0", "c23_non_negative") and .satisfies("c24 >= 0", "c24_non_negative").
+        Optionally assert a low null fraction: .hasCompleteness("c23", 1.0) and .hasCompleteness("c24",
+        1.0) if no nulls are allowed.'
+      sources:
+      - start_line: 44
+        end_line: 50
+        file: ''
+      uid: 7728307a-df83-4214-a559-9dd15fb922c5
+  '["c22","c23"]':
+    code:
+    - suggestion: '.haveCompleteness([''c22'',''c23''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: e48430d8-453d-4ff5-afc1-c83ad2b6b375
+      source_assumptions:
+      - bd4a15e5-3212-4ca6-86a9-43d470f76000
+    - suggestion: '.satisfies(''c23 = 0 OR (c22 >= 0 AND c22 <= c23)'', ''credit_ratio_in_0_1'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: eadf6227-5180-4db7-a66b-510b2d199a6d
+      source_assumptions:
+      - f51affb9-d958-4280-9877-b2e41ce28fa1
+    - suggestion: '.satisfies(''c22 >= 0 AND c23 >= 0'', ''non_negative_credits'',
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 6d5bac8e-76a6-4430-a4fd-bdf191c79cdd
+      source_assumptions:
+      - eacf3d56-fed9-4acf-af57-a2fa73318e0c
+    assumptions:
+    - text: 'For any record where c23 > 0, c22 should be between 0 and c23 (inclusive).
+        This ensures the computed credit_ratio = c22 / c23 lies in [0, 1] and that
+        1.0 - credit_ratio (used in risk calculations) behaves as intended. Example
+        Deequ-style constraint: .satisfies("c23 == 0 OR (c22 >= 0 AND c22 <= c23)",
+        "credit_ratio_in_0_1").'
+      sources:
+      - start_line: 18
+        end_line: 23
+        file: ''
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 34
+        end_line: 50
+        file: ''
+      uid: f51affb9-d958-4280-9877-b2e41ce28fa1
+    - text: 'Both c22 and c23 are expected to be numeric and present (no nulls) so
+        arithmetic (casting to float and division) is valid across rows. Example Deequ
+        constraints: .hasCompleteness(["c22","c23"], 1.0) and .isNumeric(["c22","c23"]).'
+      sources:
+      - start_line: 29
+        end_line: 32
+        file: ''
+      - start_line: 34
+        end_line: 38
+        file: ''
+      uid: bd4a15e5-3212-4ca6-86a9-43d470f76000
+    - text: 'c22 and c23 should both be non-negative across records (c22 >= 0 AND
+        c23 >= 0). The code uses c23 in denominator guarded by c23 > 0 and treats
+        ratio values as proportions; negative values would make these semantics invalid.
+        Example Deequ constraint: .satisfies("c22 >= 0 AND c23 >= 0", "non_negative_credits").'
+      sources:
+      - start_line: 34
+        end_line: 38
+        file: ''
+      - start_line: 44
+        end_line: 61
+        file: ''
+      uid: eacf3d56-fed9-4acf-af57-a2fa73318e0c
+  '["c23","c27"]':
+    code: []
+    assumptions:
+    - text: For each record, c27 should be less than or equal to c23 (c27 <= c23).
+        The code computes val11 = c23 - c27 and then computes rate1 = val11 / c23
+        expecting a value in [0,1], so c27 > c23 would produce negative rates. Representable
+        in Deequ as a row-level predicate, e.g. .satisfies("c27 <= c23", "c27_le_c23").
+      sources:
+      - start_line: 34
+        end_line: 46
+        file: ''
+      - start_line: 57
+        end_line: 63
+        file: ''
+      uid: fde42d42-cc8a-440d-9781-e6074614db50
+    - text: For each record, c25 should be less than or equal to c23 (c25 <= c23).
+        The code computes ratio1 = c25 / c23 and treats it as a proportion (used in
+        risk calculations), therefore c25 > c23 would produce ratio1 > 1. Representable
+        in Deequ as .satisfies("c25 <= c23", "c25_le_c23").
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 48
+        end_line: 50
+        file: ''
+      - start_line: 86
+        end_line: 88
+        file: ''
+      uid: 8b75faf7-1e07-4722-95da-26aa26c60ce9
+    - text: For each record, c25 should be less than or equal to c24 (c25 <= c24).
+        The code computes rate2 = c25 / c24 and uses it as a pass_rate proportion;
+        c25 > c24 would yield pass_rate > 1. Representable in Deequ as .satisfies("c25
+        <= c24", "c25_le_c24").
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 48
+        end_line: 48
+        file: ''
+      - start_line: 86
+        end_line: 87
+        file: ''
+      uid: 8abe2049-318d-42e3-9767-650e96542a09
+    - text: The denominator columns used to compute rates (c23 and c24) should be
+        non-negative across records (c23 >= 0 and c24 >= 0). The code assumes these
+        as denominators for rate computations (and guards only against zero), so negative
+        denominators would yield unexpected signed rates. Representable in Deequ as
+        .satisfies("c23 >= 0 AND c24 >= 0", "denoms_non_negative").
+      sources:
+      - start_line: 29
+        end_line: 36
+        file: ''
+      - start_line: 44
+        end_line: 50
+        file: ''
+      uid: 88b5b5dc-975b-4f76-8a89-cbf6cd61c6fa
+    - text: Columns c16, c17 and c21 are treated as binary indicator flags (expected
+        values 0 or 1). The code casts these to int and evaluates equality against
+        0 or 1 (e.g., (c17 == 0), (c16 == 1), (c21 == 1)) and uses their means and
+        logical combinations, so values outside {0,1} would break semantic expectations.
+        Representable in Deequ as row-level predicates like .satisfies("c16 IN (0,1)
+        AND c17 IN (0,1) AND c21 IN (0,1)", "flags_binary").
+      sources:
+      - start_line: 40
+        end_line: 43
+        file: ''
+      - start_line: 53
+        end_line: 56
+        file: ''
+      - start_line: 72
+        end_line: 75
+        file: ''
+      uid: 157cb648-4238-4173-86b2-bfbc24cc4043
+  '["c24","c25"]':
+    code:
+    - suggestion: '.haveCompleteness([''c24'', ''c25''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 49156ed4-ca88-4135-92a8-c983f130977a
+      source_assumptions:
+      - b341a03d-8be1-4680-b04a-3b2c7e054efe
+    - suggestion: '.satisfies("c24 >= 0 AND c25 >= 0 AND c25 <= c24", "c25_between_0_and_c24",
+        lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 70086b17-26bf-4613-a6a5-2a98a7679c1e
+      source_assumptions:
+      - e0d31356-c5b6-47f9-b5e4-219ab32e7331
+      - 89b76649-1d65-4e16-9a96-c5cecf76fb85
+    - suggestion: '.satisfies("c24 > 0 AND (c25 / c24) >= 0 AND (c25 / c24) <= 1",
+        "pass_rate_in_0_1_when_c24_positive", lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies("c24 > 0 AND (c25 / c24) >= 0 AND
+        (c25 / c24) <= 1", "pass_rate_in_0_1_when_c24_positive", lambda x: x == 1.0)''
+        failed on data sample: Value: 0.9242081447963801 does not meet the constraint
+        requirement!'
+      level: error
+      uid: 8c5dc07b-92a9-4e53-8f18-f8b42dc8a0f8
+      source_assumptions:
+      - 45a66a13-5548-4e74-9ab0-ea5d73b5f080
+    - suggestion: '.satisfies("c24 RLIKE ''^[0-9]+$'' AND c25 RLIKE ''^[0-9]+$''",
+        "c24_c25_integer_format", lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: warning
+      uid: 8ee5cc13-294e-4291-b7c8-7092bb667e63
+      source_assumptions:
+      - e0d31356-c5b6-47f9-b5e4-219ab32e7331
+    assumptions:
+    - text: 'Both columns ''c24'' (val2) and ''c25'' (val4) are numeric and complete
+        (no missing/non-numeric values) so numeric casts and arithmetic (e.g., val2,
+        val4, rate2) do not unexpectedly produce NaNs. In Deequ-like form this can
+        be enforced with checks such as: .hasCompleteness(''c24'', 1.0) and .hasCompleteness(''c25'',
+        1.0) and .isNumeric(''c24'') and .isNumeric(''c25'').'
+      sources:
+      - start_line: 19
+        end_line: 37
+        file: ''
+      uid: b341a03d-8be1-4680-b04a-3b2c7e054efe
+    - text: 'Columns ''c24'' (denominator) and ''c25'' (numerator) represent counts
+        used to compute a pass rate; therefore they should be non-negative integers
+        and ''c25'' should never exceed ''c24'' for any record (i.e., 0 <= c25 <=
+        c24). This can be represented as a multi-column constraint such as: .satisfies(''c25
+        >= 0 AND c24 >= 0 AND c25 <= c24'', ''c25_between_0_and_c24'').'
+      sources:
+      - start_line: 19
+        end_line: 46
+        file: ''
+      uid: e0d31356-c5b6-47f9-b5e4-219ab32e7331
+    - text: "When computing pass_rate = c25 / c24 (applied only when c24 > 0), the\
+        \ resulting rate2 is expected to lie in [0, 1]. Enforce as: for rows where\
+        \ c24 > 0, assert 0.0 <= (c25 / c24) <= 1.0 \u2014 e.g. .satisfies('c24 >\
+        \ 0 AND (c25 / c24) >= 0 AND (c25 / c24) <= 1', 'pass_rate_in_0_1_when_c24_positive')."
+      sources:
+      - start_line: 35
+        end_line: 46
+        file: ''
+      - start_line: 46
+        end_line: 46
+        file: ''
+      uid: 45a66a13-5548-4e74-9ab0-ea5d73b5f080
+    - text: 'Because rate2 (from c25 and c24) is used directly in the weighted risk
+        calculation, unexpected values (>1 or <0) will distort risk. Therefore assert
+        jointly that rate2 is finite and bounded for all records: either c24 > 0 and
+        0 <= c25 <= c24, or if c24 <= 0 then rate2 is treated as 0 (the code does
+        this), so prefer ensuring c24 >= 0. Enforce with: .satisfies(''c24 >= 0 AND
+        c25 >= 0'', ''counts_non_negative'') and .satisfies(''c25 <= c24'', ''numerator_le_denominator'').'
+      sources:
+      - start_line: 46
+        end_line: 63
+        file: ''
+      uid: 89b76649-1d65-4e16-9a96-c5cecf76fb85
+column_data_flow_locations:
+  '["c23","c27"]':
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 18
+    end_line: 20
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 34
+    end_line: 36
+    file: ''
+  - start_line: 44
+    end_line: 46
+    file: ''
+  - start_line: 50
+    end_line: 50
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 67
+    end_line: 70
+    file: ''
+  - start_line: 72
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 100
+    end_line: 106
+    file: ''
+  - start_line: 109
+    end_line: 109
+    file: ''
+  '["c22","c23"]':
+  - start_line: 15
+    end_line: 16
+    file: ''
+  - start_line: 18
+    end_line: 32
+    file: ''
+  - start_line: 34
+    end_line: 51
+    file: ''
+  - start_line: 53
+    end_line: 55
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 67
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 96
+    end_line: 98
+    file: ''
+  - start_line: 100
+    end_line: 109
+    file: ''
+  '["c24","c25"]':
+  - start_line: 15
+    end_line: 16
+    file: ''
+  - start_line: 18
+    end_line: 28
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 34
+    end_line: 43
+    file: ''
+  - start_line: 45
+    end_line: 52
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 67
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 96
+    end_line: 109
+    file: ''
+  - start_line: 112
+    end_line: 113
+    file: ''
+  c26:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 23
+    end_line: 23
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 39
+    end_line: 39
+    file: ''
+  - start_line: 51
+    end_line: 65
+    file: ''
+  - start_line: 70
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 85
+    file: ''
+  '["c16","c17"]':
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 40
+    end_line: 41
+    file: ''
+  - start_line: 53
+    end_line: 55
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 67
+    end_line: 70
+    file: ''
+  - start_line: 72
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 96
+    end_line: 99
+    file: ''
+  - start_line: 100
+    end_line: 107
+    file: ''
+  - start_line: 109
+    end_line: 109
+    file: ''
+  '["c16","c17","c21","c22","c23","c24","c25","c26","c27"]': []
+  c23:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 18
+    end_line: 18
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 34
+    end_line: 34
+    file: ''
+  - start_line: 44
+    end_line: 44
+    file: ''
+  - start_line: 46
+    end_line: 46
+    file: ''
+  - start_line: 50
+    end_line: 50
+    file: ''
+  - start_line: 57
+    end_line: 63
+    file: ''
+  - start_line: 65
+    end_line: 65
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 73
+    end_line: 73
+    file: ''
+  - start_line: 75
+    end_line: 76
+    file: ''
+  - start_line: 80
+    end_line: 80
+    file: ''
+  - start_line: 82
+    end_line: 82
+    file: ''
+  - start_line: 84
+    end_line: 85
+    file: ''
+  - start_line: 86
+    end_line: 86
+    file: ''
+  - start_line: 88
+    end_line: 88
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 102
+    end_line: 102
+    file: ''
+  - start_line: 109
+    end_line: 109
+    file: ''
+  c24:
+  - start_line: 16
+    end_line: 109
+    file: ''
+  c27:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 20
+    end_line: 20
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 36
+    end_line: 36
+    file: ''
+  - start_line: 44
+    end_line: 46
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 73
+    end_line: 73
+    file: ''
+  - start_line: 75
+    end_line: 76
+    file: ''
+  - start_line: 80
+    end_line: 80
+    file: ''
+  - start_line: 82
+    end_line: 82
+    file: ''
+  - start_line: 84
+    end_line: 86
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 102
+    end_line: 102
+    file: ''
+  c25:
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 37
+    end_line: 37
+    file: ''
+  - start_line: 48
+    end_line: 48
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 67
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 102
+    end_line: 102
+    file: ''
+  - start_line: 109
+    end_line: 109
+    file: ''
+  c22:
+  - start_line: 22
+    end_line: 22
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 38
+    end_line: 38
+    file: ''
+  - start_line: 50
+    end_line: 50
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 72
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 100
+    end_line: 107
+    file: ''
+  - start_line: 108
+    end_line: 109
+    file: ''
+  c16:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 24
+    end_line: 24
+    file: ''
+  - start_line: 29
+    end_line: 33
+    file: ''
+  - start_line: 40
+    end_line: 40
+    file: ''
+  - start_line: 57
+    end_line: 65
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 72
+    end_line: 73
+    file: ''
+  - start_line: 75
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  c17:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  - start_line: 29
+    end_line: 33
+    file: ''
+  - start_line: 41
+    end_line: 41
+    file: ''
+  - start_line: 54
+    end_line: 55
+    file: ''
+  - start_line: 67
+    end_line: 68
+    file: ''
+  - start_line: 70
+    end_line: 70
+    file: ''
+  - start_line: 72
+    end_line: 73
+    file: ''
+  - start_line: 75
+    end_line: 76
+    file: ''
+  - start_line: 78
+    end_line: 94
+    file: ''
+  - start_line: 98
+    end_line: 98
+    file: ''
+  - start_line: 103
+    end_line: 104
+    file: ''
+  - start_line: 106
+    end_line: 106
+    file: ''
+  - start_line: 109
+    end_line: 109
+    file: ''
+  c21:
+  - start_line: 16
+    end_line: 16
+    file: ''
+  - start_line: 26
+    end_line: 26
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 42
+    end_line: 42
+    file: ''
+  - start_line: 53
+    end_line: 53
+    file: ''
+  - start_line: 64
+    end_line: 64
+    file: ''
+  - start_line: 92
+    end_line: 92
+    file: ''
+  - start_line: 105
+    end_line: 105
+    file: ''
+  c8:
+  - start_line: 27
+    end_line: 27
+    file: ''
+  - start_line: 29
+    end_line: 32
+    file: ''
+  - start_line: 43
+    end_line: 43
+    file: ''
+  - start_line: 93
+    end_line: 93
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.00119375
+    total_tokens: 8605
+    prompt_tokens: 8247
+    completion_tokens: 358
+  data_flow_inspection:
+    cost: 0.08361660000000001
+    total_tokens: 61904
+    prompt_tokens: 20860
+    completion_tokens: 41044
+  column_correlation_discovery:
+    cost: 0.0062285000000000005
+    total_tokens: 5237
+    prompt_tokens: 2426
+    completion_tokens: 2811
+  multi_column_data_flow_inspection:
+    cost: 0.034842399999999996
+    total_tokens: 29104
+    prompt_tokens: 13072
+    completion_tokens: 16032
+  multi_column_assumption_generation:
+    cost: 0.04613275
+    total_tokens: 36859
+    prompt_tokens: 15763
+    completion_tokens: 21096
+  multi_column_code_generation:
+    cost: 0.0364013
+    total_tokens: 42120
+    prompt_tokens: 25954
+    completion_tokens: 16166
+  single_column_assumption_generation:
+    cost: 0.06336665
+    total_tokens: 61086
+    prompt_tokens: 33241
+    completion_tokens: 27845
+  single_column_code_generation:
+    cost: 0.04242365
+    total_tokens: 77466
+    prompt_tokens: 60637
+    completion_tokens: 16829

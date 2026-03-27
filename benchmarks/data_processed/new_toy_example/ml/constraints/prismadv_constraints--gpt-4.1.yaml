@@ -1,0 +1,155 @@
+constraints:
+  booking_status:
+    code:
+    - suggestion: .isComplete('booking_status')
+      validity: null
+      level: error
+    - suggestion: '.satisfies("booking_status = ''COMPLETED''", ''Must have at least
+        one COMPLETED booking'', lambda x: x > 0)'
+      validity: null
+      level: error
+    - suggestion: .isContainedIn('booking_status', ['COMPLETED', 'IN_PROGRESS', 'CANCELED'])
+      validity: null
+      level: error
+    assumptions:
+    - text: 'The ''booking_status'' column must be present and fully populated (no
+        null values), as it is directly used to generate the target variable ''y''
+        for model training without any missing value handling. This means every row
+        in the input data is expected to have a valid ''booking_status'' value.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''booking_status IS NOT NULL'', ''No nulls in booking_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 11
+        end_line: 12
+        file: ''
+    - text: 'The ''booking_status'' column is expected to contain the value ''COMPLETED''
+        for some rows, as the code constructs a boolean target variable by comparing
+        ''booking_status'' to ''COMPLETED''. Therefore, the input data must include
+        at least some rows where ''booking_status'' == ''COMPLETED''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN booking_status = ''COMPLETED'' THEN 1 ELSE 0 END", ''Must
+        have at least one COMPLETED booking'', lambda x: x > 0)'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 11
+        end_line: 12
+        file: ''
+    - text: 'The ''booking_status'' column is assumed to be categorical and have a
+        limited set of expected values (such as ''COMPLETED'', ''IN_PROGRESS'', and
+        ''CANCELED''), as indicated by the data profile and its use in a binary classification
+        task. Input data should not contain unexpected or unrecognized values in this
+        column.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN booking_status IN (''COMPLETED'', ''IN_PROGRESS'', ''CANCELED'')
+        THEN 1 ELSE 0 END", ''Valid booking_status values'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 10
+        end_line: 10
+        file: ''
+      - start_line: 11
+        end_line: 12
+        file: ''
+  location:
+    code:
+    - suggestion: .isComplete('location')
+      validity: null
+      level: error
+    - suggestion: .isContainedIn('location', ['US', 'EU', 'GER'])
+      validity: null
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''location'', lambda x: x >= 2 and x
+        <= 3)'
+      validity: null
+      level: warning
+    assumptions:
+    - text: 'The ''location'' column should not contain null values, as it is used
+        directly in processing (including transformation and one-hot encoding) without
+        any null handling. The column is expected to be fully complete in the input
+        data. We could represent this assumption as a deequ constraint like this:
+        .isComplete(''location'')'
+      sources:
+      - start_line: 7
+        end_line: 8
+        file: ''
+    - text: 'The ''location'' column should only contain known country or region codes,
+        specifically ''US'', ''EU'', or legacy code ''GER'' (which is mapped to ''EU'').
+        Any other unexpected values may lead to incorrect encoding or model input
+        issues. We could represent this assumption as a deequ constraint like this:
+        .satisfies("location IN (''US'', ''EU'', ''GER'')", ''Valid Location Codes'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 7
+        end_line: 8
+        file: ''
+    - text: 'The ''location'' column is expected to have a low cardinality (i.e.,
+        a small number of unique values), as evidenced by the use of one-hot encoding
+        and the dataset''s approximate two distinct values. We could represent this
+        assumption as a deequ constraint like this: .hasNumberOfDistinctValuesBetween(''location'',
+        2, 3)'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+  revenue:
+    code:
+    - suggestion: .isComplete('revenue')
+      validity: null
+      level: error
+    - suggestion: .hasDataType('revenue', ConstrainableDataTypes.Integral)
+      validity: null
+      level: error
+    - suggestion: '.hasStandardDeviation(''revenue'', lambda x: x > 0)'
+      validity: null
+      level: error
+    assumptions:
+    - text: 'The ''revenue'' column must be complete (i.e., contain no null values)
+        because the code computes the mean and standard deviation of ''revenue'' and
+        then normalizes it without handling any missing values. Null values would
+        cause errors in these operations. We could represent this assumption as a
+        deequ constraint like this: .isComplete(''revenue'')'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: 'The ''revenue'' column must contain only integral (integer) values, as
+        indicated by the dataset metadata and used directly in arithmetic operations.
+        We could represent this assumption as a deequ constraint like this: .hasDataType(''revenue'',
+        ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: 'The ''revenue'' column should have at least some variance (i.e., not
+        all values should be identical), because the code divides by the standard
+        deviation in normalization. If all values were the same, normalization would
+        fail due to division by zero. We could represent this assumption as a deequ
+        constraint like this: .hasStandardDeviation(''revenue'', lambda x: x > 0)'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  revenue:
+  - start_line: 5
+    end_line: 5
+    file: ''
+  location:
+  - start_line: 7
+    end_line: 8
+    file: ''
+  booking_status:
+  - start_line: 10
+    end_line: 10
+    file: ''

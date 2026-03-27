@@ -1,0 +1,344 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('cb_person_cred_hist_length', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''cb_person_cred_hist_length'' column must not contain any null values
+        in the input data, because the code drops all rows with missing values in
+        the selected features before further processing. This means all values must
+        be present for this column wherever it is used. We could represent this assumption
+        as a deequ constraint like this:
+
+        .completeness(''cb_person_cred_hist_length'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''cb_person_cred_hist_length'' column must be of integral (integer)
+        data type, since it is included among numerical features for scaling and PCA.
+        Non-integer or non-numeric values would cause errors in StandardScaler or
+        PCA processing. We could represent this assumption as a deequ constraint like
+        this:
+
+        .hasDataType(''cb_person_cred_hist_length'', ''Integral'')'
+      sources:
+      - start_line: 18
+        end_line: 25
+        file: ''
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_amnt'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: .isPositive('loan_amnt')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column must not contain any null values in the input data,
+        because the code performs a dropna() on all features including 'loan_amnt'
+        before further processing. Any row with a null in 'loan_amnt' will be excluded
+        from downstream analysis, so the intended data flow expects 'loan_amnt' to
+        be complete for all rows used.
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: The 'loan_amnt' column must contain only integral (integer) values, as
+        indicated by its dataType, and the code does not include any type conversion
+        or error handling for non-integer values before passing the column to numerical
+        operations such as standardization and PCA.
+      sources:
+      - start_line: 18
+        end_line: 29
+        file: ''
+    - text: The 'loan_amnt' column should not contain extreme outliers, negative,
+        or non-sensible values (e.g., zero or negative loan amounts), because the
+        column is used as a numerical feature for PCA and machine learning analysis,
+        and such values could distort the results. However, the code does not explicitly
+        check for outliers or negative values, so the assumption is that all values
+        are valid loan amounts.
+      sources:
+      - start_line: 18
+        end_line: 29
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: error
+    - suggestion: '.hasDistinctness([''loan_int_rate''], lambda x: x > 0.01)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_int_rate'' column must not contain any null values in the
+        input data, as the code drops all rows with nulls in any of the selected features
+        (including ''loan_int_rate'') before further processing. If there are nulls
+        in ''loan_int_rate'', those rows will be excluded from the analysis, which
+        could impact downstream results and statistics. We could represent this assumption
+        as a deequ constraint like this: .isComplete(''loan_int_rate'')'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_int_rate'' column is expected to be numeric (specifically,
+        of a fractional/float type), since it is included as a feature for standardization
+        using StandardScaler and as input for PCA. If the column contains non-numeric
+        values or strings, the code will fail during scaling or PCA. We could represent
+        this assumption as a deequ constraint like this: .hasDataType(''loan_int_rate'',
+        Fractional)'
+      sources:
+      - start_line: 18
+        end_line: 25
+        file: ''
+    - text: 'The ''loan_int_rate'' column should have sufficient variability (not
+        be constant or near-constant), as PCA requires features with variance to be
+        meaningful. If all or most values are the same, the PCA results for this feature
+        will be meaningless. We could represent this assumption as a deequ constraint
+        like this: .hasDistinctness(''loan_int_rate'', lambda x: x > 0.01)'
+      sources:
+      - start_line: 18
+        end_line: 29
+        file: ''
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_percent_income', ConstrainableDataTypes.Fractional)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_percent_income'' column must not contain any null values in
+        the input data, because the code drops all rows with any missing values in
+        the selected features (including ''loan_percent_income'') before further processing.
+        If there are any nulls in ''loan_percent_income'', those rows will be excluded
+        from the analysis.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_percent_income` IS NOT NULL THEN 1 ELSE 0 END",
+        "No Nulls in loan_percent_income", lambda x: x == 1)'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_percent_income'' column should contain only numeric (fractional)
+        values, as it is used as an input feature for StandardScaler and PCA, which
+        require numerical input. Any non-numeric values in this column would cause
+        downstream errors.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("loan_percent_income", ConstrainableDataTypes.Fractional)'
+      sources:
+      - start_line: 18
+        end_line: 25
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x == 2)'
+      validity: false
+      level: error
+    - suggestion: '.satisfies(''loan_status IN (0, 1)'', ''Valid Loan Status'', lambda
+        x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_status', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column should not contain any null values in the
+        input data, because the code drops all rows with nulls in any of the selected
+        columns (including ''loan_status'') before further processing. This means
+        that for the downstream processing and visualization to be meaningful and
+        complete, ''loan_status'' should be fully populated in the input data. We
+        could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_status'' column is assumed to be a binary variable with only
+        two distinct integer values, 0 and 1, corresponding to rejected and approved
+        loans respectively. This is inferred from the code that filters and visualizes
+        ''loan_status'' as either 0 or 1, and from the dataset description which shows
+        only two unique values (0 and 1). Any other values would break the logic of
+        the visualization and downstream processing. We could represent this assumption
+        as a deequ constraint like this: .hasDistinctValuesCount(''loan_status'',
+        lambda x: x == 2) and .satisfies(''loan_status IN (0, 1)'', ''Valid Loan Status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 84
+        end_line: 85
+        file: ''
+      - start_line: 21
+        end_line: 21
+        file: ''
+    - text: 'The ''loan_status'' column is expected to be of integer type, since the
+        code and visualization logic compare it directly to integers (0 and 1), and
+        the dataset description specifies an integral data type. We could represent
+        this assumption as a deequ constraint like this: .hasDataType(''loan_status'',
+        ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 84
+        end_line: 85
+        file: ''
+  person_emp_length:
+    code:
+    - suggestion: '.hasCompleteness(''person_emp_length'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .hasDataType('person_emp_length', ConstrainableDataTypes.Fractional)
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''person_emp_length'' column must not contain any null values in
+        the input data, because the code drops all rows with nulls in any of the selected
+        features (including ''person_emp_length'') before proceeding. Otherwise, such
+        rows will be excluded from downstream processing and visualization. We could
+        represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''person_emp_length'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: 'The ''person_emp_length'' column is expected to be numeric (Fractional),
+        as it is included in a set of numerical features that are standardized and
+        used as input to PCA. Non-numeric or non-convertible values would cause errors
+        or be dropped, so all values in ''person_emp_length'' should be valid numbers.
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType(''person_emp_length'', ConstrainableDataTypes.Fractional)'
+      sources:
+      - start_line: 18
+        end_line: 25
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''person_income'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'person_income' column must not contain any null values in the input
+        data, because the code drops all rows with missing values in any of the features
+        (including 'person_income') before further processing. If any value in 'person_income'
+        is null, that row will be excluded from the analysis and the final visualization.
+        This means the intended downstream analysis assumes all input rows to have
+        non-null 'person_income' values.
+      sources:
+      - start_line: 18
+        end_line: 21
+        file: ''
+    - text: The 'person_income' column is expected to contain only integral (integer)
+        values, as indicated by its data type in the data description, and the code
+        treats it as a numerical feature for standardization and PCA. Any non-integer
+        or non-numeric values would likely cause failures or incorrect results during
+        scaling and PCA transformation.
+      sources:
+      - start_line: 18
+        end_line: 25
+        file: ''
+column_data_flow_locations:
+  person_income:
+  - start_line: 18
+    end_line: 19
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  loan_amnt:
+  - start_line: 18
+    end_line: 19
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  person_emp_length:
+  - start_line: 18
+    end_line: 19
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  cb_person_cred_hist_length:
+  - start_line: 18
+    end_line: 19
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  loan_int_rate:
+  - start_line: 18
+    end_line: 19
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  loan_percent_income:
+  - start_line: 18
+    end_line: 19
+    file: ''
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 25
+    end_line: 25
+    file: ''
+  loan_status:
+  - start_line: 20
+    end_line: 21
+    file: ''
+  - start_line: 32
+    end_line: 32
+    file: ''
+  - start_line: 84
+    end_line: 85
+    file: ''

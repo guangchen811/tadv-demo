@@ -1,0 +1,110 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column must not contain any null values.
+        The code filters on this column using an equality check (cb_person_default_on_file
+        = ''N''), which would fail or return incorrect results if nulls are present.
+        The dataset description confirms completeness is 1.0, but this assumption
+        should be enforced for test data as well. This can be represented as a deequ
+        constraint: .isComplete(''cb_person_default_on_file'')'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The ''cb_person_default_on_file'' column should only contain the values
+        ''Y'' and ''N''. The query explicitly filters for ''N'', and the histogram
+        shows only these two values are present. If other values appear in test data,
+        the query may not behave as expected. This can be represented as a deequ constraint:
+        .hasDistinctValues(''cb_person_default_on_file'', [''Y'', ''N''])'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_intent'', lambda x: x <= 6)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_intent'' column should have no null values. The code groups
+        by ''loan_intent'' and counts approved loans for each intent, which requires
+        that all rows have a non-null value in this column for grouping to work as
+        expected.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_intent` IS NOT NULL THEN 1 ELSE 0 END", "Non-null
+        loan_intent", lambda x: x == 1)
+
+        '
+      sources:
+      - start_line: 2
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain one of the following six
+        expected categorical values: EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION,
+        MEDICAL, VENTURE. The downstream code expects to group and rank by these categories,
+        so unexpected values would indicate data quality issues or schema drift.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `loan_intent` IN (''EDUCATION'', ''HOMEIMPROVEMENT'',
+        ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', ''VENTURE'') THEN 1 ELSE
+        0 END", "Valid loan_intent categories", lambda x: x == 1)
+
+        '
+      sources:
+      - start_line: 2
+        end_line: 8
+        file: ''
+    - text: "The 'loan_intent' column should have a cardinality of no more than 6\
+        \ distinct values, matching the known categories used for grouping. If new\
+        \ or unexpected categories appear, the code\u2019s output may be misleading\
+        \ or incomplete.\nWe could represent this assumption as a deequ constraint\
+        \ like this:\n.hasNumberOfDistinctValues(\"loan_intent\", lambda x: x <= 6)\n"
+      sources:
+      - start_line: 2
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 7
+    end_line: 7
+    file: ''

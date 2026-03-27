@@ -1,0 +1,89 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: '.hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column must have no null values, as it is used directly
+        in GROUP BY and SELECT statements without any null handling. Every record
+        in the input data must have a non-null value for ''loan_grade''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 7
+        file: ''
+    - text: 'The ''loan_grade'' column should contain only the expected set of values:
+        ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'', as these are the only observed
+        values in the histogram. Unexpected values could cause misleading aggregations
+        or reporting.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("loan_grade IN (''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'')",
+        ''Valid Loan Grades'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 7
+        file: ''
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column must not contain any null values. The code
+        performs direct equality checks and aggregations on ''loan_status'' without
+        handling nulls, so all values must be present for correct calculations. We
+        could represent this assumption as a deequ constraint like this: .hasCompleteness(''loan_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+    - text: 'The ''loan_status'' column should only contain the values 0 or 1. The
+        code assumes ''loan_status = 1'' indicates default, and any other value is
+        treated as non-default. Unexpected values would distort the default rate calculation.
+        We could represent this assumption as a deequ constraint like this: .satisfies(''loan_status
+        IN (0, 1)'', ''Valid Loan Status'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  loan_status:
+  - start_line: 4
+    end_line: 5
+    file: ''

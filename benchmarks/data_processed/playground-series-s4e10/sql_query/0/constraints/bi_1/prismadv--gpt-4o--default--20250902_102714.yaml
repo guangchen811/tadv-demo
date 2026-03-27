@@ -1,0 +1,76 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'cb_person_default_on_file' column should have complete data, meaning
+        it should not contain null values. This is because the code performs a calculation
+        using this column without any null checks.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: The 'cb_person_default_on_file' column should only contain the values
+        'Y' and 'N'. The code specifically checks for the value 'N' to calculate the
+        approval rate, implying that these are the expected values in the column.
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('person_home_ownership', ['RENT', 'OWN', 'MORTGAGE',
+        'OTHER'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_home_ownership' column should not have null values. The completeness
+        is 1.0, indicating no missing values are expected, and the code does not handle
+        null values, assuming the column is complete.
+      sources:
+      - start_line: 2
+        end_line: 10
+        file: ''
+    - text: 'The ''person_home_ownership'' column should contain only values from
+        the predefined set: RENT, OWN, MORTGAGE, OTHER. This is based on the grouping
+        operation in the code, which assumes these are the only categories present.'
+      sources:
+      - start_line: 2
+        end_line: 10
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 10
+    end_line: 10
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 7
+    end_line: 7
+    file: ''

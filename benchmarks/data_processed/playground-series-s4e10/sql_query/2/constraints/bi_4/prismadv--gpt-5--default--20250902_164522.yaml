@@ -1,0 +1,146 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: '.hasDataType(''cb_person_default_on_file'', ConstrainableDataTypes.String,
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.hasPattern(''cb_person_default_on_file'', ''^(Y|N)$'', lambda
+        x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("cb_person_default_on_file = ''N''", "Non-default presence",
+        lambda x: x > 0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column must exist and be of a string/character
+        type so that comparing it to the literal ''N'' is valid. Its values should
+        be exactly one of {''Y'',''N''} in uppercase with no surrounding whitespace.
+        We could represent this assumption as a deequ constraint like this: .hasPattern(''cb_person_default_on_file'',
+        ''^(Y|N)$'')'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'The ''cb_person_default_on_file'' column should be complete (no NULLs),
+        so rows are not silently excluded by the WHERE filter. We could represent
+        this assumption as a deequ constraint like this: .isComplete(''cb_person_default_on_file'')'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+    - text: 'There should be at least one record with ''cb_person_default_on_file''
+        = ''N'' to ensure the filtered query returns results. We could represent this
+        assumption as a deequ constraint like this: .satisfies("CASE WHEN cb_person_default_on_file
+        = ''N'' THEN 1 ELSE 0 END", ''Non-default presence'', lambda x: x > 0)'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: warning
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION','HOMEIMPROVEMENT','PERSONAL','DEBTCONSOLIDATION','MEDICAL','VENTURE'])
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''loan_intent = UPPER(TRIM(loan_intent))'', ''loan_intent
+        normalized'', lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: 'df.where("cb_person_default_on_file = ''N''")
+
+        .hasNumberOfDistinctValues(''loan_intent'', lambda v: v >= 5)'
+      validity: false
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''loan_intent'', lambda v: v <= 6)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_intent'' column is complete (no NULLs), so grouping and counting
+        are not polluted by a NULL bucket. We could represent this as a Deequ constraint
+        like: .isComplete(''loan_intent'') or .satisfies(''loan_intent IS NOT NULL'',
+        ''loan_intent not null'', lambda x: x == 1.0).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' values are constrained to the known taxonomy: EDUCATION,
+        HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL, VENTURE. This avoids
+        unexpected category drift that would fragment the top-5 results. Deequ example:
+        .isContainedIn(''loan_intent'', [''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE'']).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' values are normalized as uppercase and trimmed (no
+        leading/trailing spaces), so categories are not split by case or whitespace
+        differences. Deequ example: .satisfies(''loan_intent = UPPER(TRIM(loan_intent))'',
+        ''loan_intent normalized'', lambda x: x == 1.0).'
+      sources:
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'In the subset where cb_person_default_on_file = ''N'', there are at least
+        5 distinct ''loan_intent'' categories so ORDER BY ... LIMIT 5 returns 5 groups.
+        Deequ-style check on a filtered dataframe: df.where("cb_person_default_on_file
+        = ''N''").hasApproxCountDistinct(''loan_intent'', lambda v: v >= 5).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+      - start_line: 9
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_intent'' column maintains low cardinality (no more than 6
+        distinct categories) across the dataset, consistent with the known taxonomy.
+        Deequ example: .hasApproxCountDistinct(''loan_intent'', lambda v: v <= 6).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 7
+    end_line: 7
+    file: ''

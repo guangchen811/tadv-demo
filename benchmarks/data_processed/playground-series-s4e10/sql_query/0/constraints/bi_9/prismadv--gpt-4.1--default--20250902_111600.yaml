@@ -1,0 +1,268 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', ConstrainableDataTypes.Integral)
+      validity: false
+      level: error
+    - suggestion: .satisfies('loan_amnt > 0', 'Positive Loan Amounts')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''loan_amnt'' column must be complete (no null values), as the code
+        performs aggregation functions (AVG) and rounding on it without any null-handling
+        logic. Null values in ''loan_amnt'' would cause the SQL AVG function to ignore
+        those rows, potentially leading to misleading results. Therefore, the input
+        data must ensure that all rows have non-null values for ''loan_amnt''.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isComplete(''loan_amnt'')'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''loan_amnt'' column should contain only integral numeric values,
+        as it is used in an AVG aggregation and the column data type is specified
+        as Integral. Non-numeric or non-integral values in ''loan_amnt'' would cause
+        errors or incorrect aggregations.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType(''loan_amnt'', ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''loan_amnt'' column should have a reasonable numeric range (e.g.,
+        greater than zero), as negative or zero loan amounts are likely invalid for
+        the context of loan aggregation and would distort the average loan size. While
+        the code does not explicitly check for this, the business logic of averaging
+        loan amounts implies this assumption.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''loan_amnt > 0'', ''Positive Loan Amounts'', lambda x: x == 1)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+  loan_grade:
+    code:
+    - suggestion: '.hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_grade', 'String')
+      validity: false
+      level: error
+    assumptions:
+    - text: 'The ''loan_grade'' column must be complete (no nulls), as it is directly
+        selected and used for grouping in the SQL query. Any null values would result
+        in those rows being grouped under a null group or potentially excluded, which
+        is likely undesirable for the intent of the aggregation.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+    - text: 'The ''loan_grade'' column should only contain one of the expected 7 string
+        values: ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', or ''G'', as shown in the
+        dataset histogram. This ensures that grouping and aggregation in the SQL query
+        are meaningful and consistent.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN loan_grade IN (''A'', ''B'', ''C'', ''D'', ''E'', ''F'',
+        ''G'') THEN 1 ELSE 0 END", ''Valid loan_grade values'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+    - text: 'The ''loan_grade'' column should be of string (categorical) type, as
+        the SQL query treats it as a category for grouping. Any other type (e.g.,
+        numeric) would likely cause the grouping or downstream logic to fail or return
+        meaningless results.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .isDataType(''loan_grade'', ''String'')'
+      sources:
+      - start_line: 1
+        end_line: 12
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_intent'', ''String'', lambda x: x == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column must be complete (i.e., must not contain any
+        null values) in the input data, because it is directly selected and used as
+        a grouping key in the SQL query. If there are nulls, the GROUP BY and SELECT
+        statements may produce unexpected or misleading results.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'All values in the ''loan_intent'' column should belong to the expected
+        set of categories: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', or ''VENTURE''. The presence of unexpected or new categories
+        may result in misleading groupings or misinterpretation of results.'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: The 'loan_intent' column must be of string (categorical) data type in
+        the input data, as it is used as a categorical grouping key in the SQL query.
+        Non-string types would lead to errors or illogical groupings.
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''CAST(person_income AS BIGINT) = person_income'', ''Person
+        Income Integral'', lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: .isNonNegative('person_income')
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''person_income'' column must not contain any null values, as the
+        code uses it in AVG() aggregation without any null handling. Nulls in this
+        column would cause the average to be calculated over fewer records or potentially
+        cause errors, depending on database settings. Therefore, all records in the
+        input data must have a non-null ''person_income'' value.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''person_income'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 3
+        end_line: 8
+        file: ''
+    - text: 'The ''person_income'' column is expected to contain only integral (whole
+        number) values, as it is used directly in arithmetic operations (AVG and ROUND)
+        and its data type is specified as ''Integral''. Any non-integer values would
+        violate this assumption and could cause errors or incorrect results.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies(''CAST(person_income AS BIGINT) = person_income'', ''Person Income
+        Integral'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 3
+        end_line: 8
+        file: ''
+    - text: 'The ''person_income'' column is used for calculating average income per
+        segment, so it is expected to have a reasonable range of values (e.g., positive
+        values; negative or extremely large values may indicate data issues). While
+        the code does not enforce specific bounds, input data should be checked for
+        outliers or nonsensical values in ''person_income''.
+
+        We could represent this assumption as a deequ constraint like this (example
+        lower bound):
+
+        .satisfies(''person_income >= 0'', ''Non-negative Person Income'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 3
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 1
+    end_line: 1
+    file: ''
+  - start_line: 6
+    end_line: 7
+    file: ''
+  - start_line: 11
+    end_line: 12
+    file: ''
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 12
+    end_line: 12
+    file: ''
+  person_income:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 9
+    end_line: 9
+    file: ''

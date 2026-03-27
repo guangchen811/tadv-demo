@@ -1,0 +1,127 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written to generate a static web page.
+      The code is expected to calculate and collect necessary data and store it in
+      a JSON file. Then, the code will generate html file using the JSON file as input.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_grade'', lambda x: x <= 7)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_grade'' column must not contain any null values, as it is
+        used as a grouping key in the groupby operation and the dataset completeness
+        is 1.0 (i.e., no missing values are expected). Any nulls would result in dropped
+        rows and inconsistent approval rate calculations. We could represent this
+        assumption as a deequ constraint like this:
+
+        .completeness(''loan_grade'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 17
+        file: ''
+    - text: 'The ''loan_grade'' column should only contain the following categories:
+        ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'', as these are the only observed
+        distinct values in the dataset and are used as categories for the approval
+        rate calculation and visualization. Unexpected or novel categories could cause
+        incorrect reporting or visualization errors. We could represent this assumption
+        as a deequ constraint like this:
+
+        .satisfies("CASE WHEN loan_grade IN (''A'', ''B'', ''C'', ''D'', ''E'', ''F'',
+        ''G'') THEN 1 ELSE 0 END", ''Valid Loan Grades'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 14
+        end_line: 19
+        file: ''
+      - start_line: 27
+        end_line: 109
+        file: ''
+    - text: 'The ''loan_grade'' column should have a low cardinality (specifically,
+        no more than 7 unique values), as the downstream visualization expects a manageable
+        number of loan grades for clear bar chart rendering. If novel or unexpected
+        values appear, the resulting chart may become cluttered or misleading. We
+        could represent this assumption as a deequ constraint like this:
+
+        .hasNumberOfDistinctValues(''loan_grade'', lambda x: x <= 7)'
+      sources:
+      - start_line: 14
+        end_line: 19
+        file: ''
+      - start_line: 27
+        end_line: 109
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues(''loan_status'', lambda x: x == 2)'
+      validity: false
+      level: error
+    - suggestion: '.hasMin(''loan_status'', lambda x: x == 0)'
+      validity: true
+      level: error
+    - suggestion: '.hasMax(''loan_status'', lambda x: x == 1)'
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_status' column must be complete (i.e., must not contain any
+        null or missing values), since the code relies on grouping by 'loan_status'
+        and directly referencing values for aggregation without any null handling
+        (such as fillna or dropna). This means every row is expected to have a valid
+        'loan_status' value.
+      sources:
+      - start_line: 14
+        end_line: 18
+        file: ''
+    - text: The 'loan_status' column is expected to contain exactly two distinct integer
+        values, likely 0 and 1, representing approval status categories. The code
+        relies on these two specific values to compute approval rates (using approval_rates[1]
+        and approval_rates[0]), so the column should not contain any other values.
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+    - text: The 'loan_status' column must not be entirely one class (all 0s or all
+        1s), as the approval rate calculation divides by the sum of approval_rates[0]
+        + approval_rates[1]. If either count is always zero, the denominator could
+        be zero, resulting in an error or NaN values.
+      sources:
+      - start_line: 17
+        end_line: 18
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 17
+    end_line: 17
+    file: ''
+  loan_status:
+  - start_line: 14
+    end_line: 14
+    file: ''
+  - start_line: 17
+    end_line: 18
+    file: ''

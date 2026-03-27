@@ -1,0 +1,167 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: '.satisfies("CASE WHEN UPPER(TRIM(`cb_person_default_on_file`))
+        IN (''Y'',''N'') THEN 1 ELSE 0 END", "cb_person_default_on_file only canonical
+        Y/N", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: .isComplete("cb_person_default_on_file")
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("UPPER(TRIM(`cb_person_default_on_file`)) = ''Y''",
+        "Has at least one Y in cb_person_default_on_file", lambda x: x > 0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("UPPER(TRIM(`cb_person_default_on_file`)) = ''N''",
+        "Has at least one N in cb_person_default_on_file", lambda x: x > 0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'cb_person_default_on_file must contain only the canonical values ''Y''
+        or ''N'' (uppercase, no leading/trailing spaces). Any other value would be
+        silently treated as non-default by the CASE expression and bias the default_rate
+        downward. We could represent this as a deequ constraint like: .satisfies("CASE
+        WHEN UPPER(TRIM(`cb_person_default_on_file`)) IN (''Y'',''N'') THEN 1 ELSE
+        0 END", "cb_person_default_on_file valid values", lambda x: x == 1.0)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: 'cb_person_default_on_file should be complete (no NULLs). Nulls would
+        be counted as non-defaults in the CASE expression, distorting total_defaults
+        and default_rate. We could represent this as: .isComplete("cb_person_default_on_file")'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: 'The dataset should contain at least one ''Y'' and at least one ''N''
+        in cb_person_default_on_file so default rates by loan_intent are meaningful
+        and sortable (not all zeros or all ones). We could represent this as two deequ
+        constraints: .satisfies("`cb_person_default_on_file` = ''Y''", "Has at least
+        one Y", lambda x: x > 0) and .satisfies("`cb_person_default_on_file` = ''N''",
+        "Has at least one N", lambda x: x > 0)'
+      sources:
+      - start_line: 4
+        end_line: 6
+        file: ''
+      - start_line: 9
+        end_line: 9
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete("loan_intent")
+      validity: true
+      level: warning
+    - suggestion: '.isContainedIn("loan_intent", ["EDUCATION", "HOMEIMPROVEMENT",
+        "PERSONAL", "DEBTCONSOLIDATION", "MEDICAL", "VENTURE"], lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("loan_intent = UPPER(TRIM(loan_intent))", "Uppercase
+        and trimmed loan_intent", lambda x: x >= 0.99)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("TRIM(loan_intent) <> ''''", "Non-empty loan_intent",
+        lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues("loan_intent", lambda v: v <= 6)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_intent'' column should be complete (no NULLs) so that results
+        do not include a NULL bucket when grouping. We could represent this as a Deequ
+        constraint like: .isComplete("loan_intent").'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' column should be a constrained categorical field
+        with values in {EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION, MEDICAL,
+        VENTURE} for at least 99% of rows to ensure meaningful grouping. We could
+        represent this as a Deequ constraint like: .satisfies("CASE WHEN loan_intent
+        IN (''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE'')
+        THEN 1 ELSE 0 END", "Valid loan_intent domain", lambda x: x >= 0.99).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' values should be normalized (uppercased and trimmed)
+        so that logically identical categories do not split into separate groups;
+        i.e., loan_intent = UPPER(TRIM(loan_intent)) for at least 99% of rows. Deequ
+        example: .satisfies("CASE WHEN loan_intent = UPPER(TRIM(loan_intent)) THEN
+        1 ELSE 0 END", "Uppercase and trimmed loan_intent", lambda x: x >= 0.99).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' column should not contain empty strings after trimming
+        (TRIM(loan_intent) <> '''') for all rows, to avoid empty-category groups.
+        Deequ example: .satisfies("CASE WHEN TRIM(loan_intent) <> '''' THEN 1 ELSE
+        0 END", "Non-empty loan_intent", lambda x: x == 1.0).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' column should have a small, stable cardinality consistent
+        with historical data (no more than 6 distinct categories). Deequ example:
+        .hasApproxCountDistinct("loan_intent", lambda v: v <= 6).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 8
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 9
+    end_line: 9
+    file: ''

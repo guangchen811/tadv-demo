@@ -1,0 +1,126 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_intent' column should not contain null values as it is used
+        in grouping operations in the SQL query. The column is assumed to be 100%
+        complete, which means that there should be no missing values in the input
+        data.
+      sources:
+      - start_line: 2
+        end_line: 3
+        file: ''
+      - start_line: 6
+        end_line: 12
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain values from the predefined
+        set of categories: ''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', and ''VENTURE''. This is based on the histogram data and the
+        assumption that these are the only valid categories for loan intent.'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isContainedIn('loan_status', ['0', '1'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('loan_status')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_status'' column should only contain the values ''0'' and ''1'',
+        as the code calculates the default rate based on these values. The value ''1''
+        is interpreted as a default, and ''0'' as non-default. We could represent
+        this assumption as a deequ constraint like this: .satisfies("CASE WHEN `loan_status`
+        IN (''0'', ''1'') THEN 1 ELSE 0 END", "Valid Loan Status", lambda x: x ==
+        1)'
+      sources:
+      - start_line: 2
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_status'' column should not contain null values. The code does
+        not include any null handling for ''loan_status'', and it is used directly
+        in calculations, indicating that null values are not expected. We could represent
+        this assumption as a deequ constraint like this: .satisfies("CASE WHEN `loan_status`
+        IS NOT NULL THEN 1 ELSE 0 END", "Non-null Loan Status", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 10
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isContainedIn('person_home_ownership', ['OTHER', 'OWN', 'MORTGAGE',
+        'RENT'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('person_home_ownership')
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''person_home_ownership'' column should have one of the expected
+        categories: ''OTHER'', ''OWN'', ''MORTGAGE'', or ''RENT''. This is inferred
+        from the downstream task that groups by ''home_status'', which is derived
+        from ''person_home_ownership''. We could represent this assumption as a deequ
+        constraint like this: .satisfies("CASE WHEN `person_home_ownership` IN (''OTHER'',
+        ''OWN'', ''MORTGAGE'', ''RENT'') THEN 1 ELSE 0 END", "Valid Home Ownership
+        Categories", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 12
+        file: ''
+    - text: 'The ''person_home_ownership'' column should not have null values, as
+        the column is used directly in a group by operation without any null handling
+        in the downstream task. We could represent this assumption as a deequ constraint
+        like this: .satisfies("CASE WHEN `person_home_ownership` IS NOT NULL THEN
+        1 ELSE 0 END", "Non-null Home Ownership", lambda x: x == 1)'
+      sources:
+      - start_line: 2
+        end_line: 12
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 6
+    end_line: 12
+    file: ''
+  loan_intent:
+  - start_line: 2
+    end_line: 4
+    file: ''
+  - start_line: 6
+    end_line: 12
+    file: ''
+  loan_status:
+  - start_line: 2
+    end_line: 5
+    file: ''
+  - start_line: 9
+    end_line: 10
+    file: ''

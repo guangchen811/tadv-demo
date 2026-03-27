@@ -1,0 +1,251 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-5
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: '.satisfies(''length(trim(loan_intent)) > 0'', ''Non-empty loan_intent'',
+        lambda x: x >= 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.isContainedIn(''loan_intent'', [''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE''],
+        lambda x: x >= 0.98)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies(''loan_intent = UPPER(TRIM(loan_intent))'', ''Uppercase
+        and trimmed loan_intent'', lambda x: x >= 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasPattern(''loan_intent'', r''^[A-Z]+$'', lambda x: x >= 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.hasNumberOfDistinctValues(''loan_intent'', lambda x: x <= 10)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'loan_intent must be non-null for all rows so grouping and ordering by
+        purpose do not produce a NULL bucket and results remain meaningful. Deequ
+        example: hasCompleteness("loan_intent", _ >= 1.0). Great Expectations example:
+        expect_column_values_to_not_be_null(column="loan_intent").'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 7
+        end_line: 7
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'loan_intent should not be empty or whitespace-only (no blank strings),
+        to avoid meaningless purpose buckets. Deequ example: satisfies("length(trim(loan_intent))
+        > 0", "Non-empty loan_intent", _ >= 1.0). Great Expectations example: expect_column_values_to_match_regex(column="loan_intent",
+        regex="^\\S+$").'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'loan_intent values should be within the known set of categories observed
+        in training/production: {EDUCATION, HOMEIMPROVEMENT, PERSONAL, DEBTCONSOLIDATION,
+        MEDICAL, VENTURE}. Allow a small tolerance for unseen categories (e.g., at
+        least 98% in-set). Deequ example: satisfies("loan_intent IN (''EDUCATION'',''HOMEIMPROVEMENT'',''PERSONAL'',''DEBTCONSOLIDATION'',''MEDICAL'',''VENTURE'')",
+        "Valid loan_intent", _.compliance >= 0.98). Great Expectations example: expect_column_values_to_be_in_set(column="loan_intent",
+        value_set=["EDUCATION","HOMEIMPROVEMENT","PERSONAL","DEBTCONSOLIDATION","MEDICAL","VENTURE"],
+        mostly=0.98).'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'loan_intent should already be canonicalized to uppercase without leading/trailing
+        whitespace to prevent duplicate groups caused by casing or stray spaces. Deequ
+        example: satisfies("loan_intent = UPPER(TRIM(loan_intent))", "Uppercase and
+        trimmed loan_intent", _ >= 1.0) and satisfies("loan_intent RLIKE ''^[A-Z]+$''",
+        "Only uppercase letters", _ >= 1.0). Great Expectations example: expect_column_values_to_match_regex(column="loan_intent",
+        regex="^[A-Z]+$").'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'loan_intent should have low cardinality consistent with a fixed set of
+        purposes; the number of distinct values should be small (e.g., <= 10). Deequ
+        example: hasNumberOfDistinctValues("loan_intent", _ <= 10). Great Expectations
+        example: expect_column_unique_value_count_to_be_between(column="loan_intent",
+        min_value=1, max_value=10).'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+  loan_status:
+    code:
+    - suggestion: .isComplete("loan_status")
+      validity: true
+      level: error
+    - suggestion: .isContainedIn("loan_status", [0, 1])
+      validity: false
+      level: error
+    - suggestion: '.satisfies("CAST(loan_status AS INT) IN (0,1)", "loan_status castable
+        to INT and binary", lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.hasNumberOfDistinctValues("loan_status", lambda v: v == 2)'
+      validity: false
+      level: warning
+    assumptions:
+    - text: 'The ''loan_status'' column must be complete (no NULLs). NULLs would be
+        treated as non-defaults by the CASE expression (ELSE 0), biasing default_count
+        and default_rate. We could represent this assumption as a Deequ constraint
+        like: .isComplete("loan_status")'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 9
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_status'' column must be a binary indicator with allowed values
+        only in {0, 1}, where 1 denotes default and 0 denotes non-default. This ensures
+        the equality check (= 1) correctly identifies defaults. We could represent
+        this assumption as a Deequ constraint like: .isContainedIn("loan_status",
+        [0, 1])'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 9
+        end_line: 10
+        file: ''
+    - text: 'The ''loan_status'' column should be numeric/integral (or at least castable
+        to INT) so that the comparison to 1 behaves as intended. We could represent
+        this assumption as a Deequ constraint like: .satisfies("CAST(loan_status AS
+        INT) IN (0,1)", "loan_status castable to INT and binary", lambda x: x == 1.0)'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'To keep results meaningful (non-degenerate default rates), both classes
+        should be present in the input data (at least one 0 and one 1). We could represent
+        this assumption as a Deequ constraint like: .hasNumberOfDistinctValues("loan_status",
+        lambda v: v == 2)'
+      sources:
+      - start_line: 9
+        end_line: 10
+        file: ''
+  person_home_ownership:
+    code:
+    - suggestion: .isComplete("person_home_ownership")
+      validity: true
+      level: warning
+    - suggestion: '.isContainedIn("person_home_ownership", ["RENT", "MORTGAGE", "OWN",
+        "OTHER"], lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = TRIM(person_home_ownership)
+        THEN 1 ELSE 0 END", "Trimmed home ownership", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN person_home_ownership = UPPER(person_home_ownership)
+        THEN 1 ELSE 0 END", "Uppercased home ownership", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''person_home_ownership'' column must be non-null for all rows so
+        that grouping and ordering on it produce meaningful categories (no NULL bucket).
+        We could represent this as a deequ constraint: .isComplete("person_home_ownership").'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+      - start_line: 13
+        end_line: 13
+        file: ''
+    - text: 'The ''person_home_ownership'' values should be limited to the known categories:
+        RENT, MORTGAGE, OWN, OTHER, to avoid unexpected fragmentation of groups. We
+        could represent this as a deequ constraint: .isContainedIn("person_home_ownership",
+        Array("RENT", "MORTGAGE", "OWN", "OTHER")).'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'The ''person_home_ownership'' values should not have leading or trailing
+        whitespace to prevent duplicate groups caused by formatting differences. We
+        could represent this as a deequ constraint: .satisfies("CASE WHEN person_home_ownership
+        = TRIM(person_home_ownership) THEN 1 ELSE 0 END", "Trimmed home ownership",
+        lambda x: x == 1).'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+    - text: 'The ''person_home_ownership'' values should be consistently uppercased
+        (e.g., RENT, MORTGAGE, OWN, OTHER) to avoid case-sensitive duplicates in the
+        grouped results. We could represent this as a deequ constraint: .satisfies("CASE
+        WHEN person_home_ownership = UPPER(person_home_ownership) THEN 1 ELSE 0 END",
+        "Uppercased home ownership", lambda x: x == 1).'
+      sources:
+      - start_line: 12
+        end_line: 12
+        file: ''
+column_data_flow_locations:
+  person_home_ownership:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  - start_line: 12
+    end_line: 13
+    file: ''
+  loan_intent:
+  - start_line: 3
+    end_line: 3
+    file: ''
+  - start_line: 7
+    end_line: 7
+    file: ''
+  - start_line: 12
+    end_line: 13
+    file: ''
+  loan_status:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 9
+    end_line: 10
+    file: ''

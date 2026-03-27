@@ -1,0 +1,119 @@
+results:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  cb_person_cred_hist_length:
+    code:
+    - suggestion: .isComplete('cb_person_cred_hist_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_percent_income:
+    code:
+    - suggestion: .isComplete('loan_percent_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isNonNegative('loan_percent_income')
+      status: true
+      reason_if_failed: ''
+      level: warning
+  person_emp_length:
+    code:
+    - suggestion: .isComplete('person_emp_length')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_home_ownership:
+    code:
+    - suggestion: .isContainedIn('person_home_ownership', ['OTHER', 'OWN', 'MORTGAGE',
+        'RENT'])
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isComplete('person_home_ownership')
+      status: true
+      reason_if_failed: ''
+      level: error
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_age:
+    code:
+    - suggestion: .isComplete('person_age')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .satisfies('person_age >= 0 AND person_age <= 120', 'Valid Age Range')
+      status: false
+      reason_if_failed: 'Constraint ''.satisfies(''person_age >= 0 AND person_age
+        <= 120'', ''Valid Age Range'')'' failed on data sample: Value: 0.9999431624417415
+        does not meet the constraint requirement!'
+      level: undefined
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      status: true
+      reason_if_failed: ''
+      level: error
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      status: true
+      reason_if_failed: ''
+      level: error
+  '["cb_person_cred_hist_length","person_age"]':
+    code:
+    - suggestion: '.haveCompleteness([''person_age'', ''cb_person_cred_hist_length''],
+        lambda x: x >= 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+    - suggestion: .isUnique('id')
+      status: true
+      reason_if_failed: ''
+      level: undefined
+  '["loan_amnt","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('loan_amnt IS NOT NULL AND loan_int_rate IS NOT NULL',
+        'Non-null loan_amnt and loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies('CAST(loan_amnt AS INTEGER) IS NOT NULL AND CAST(loan_int_rate
+        AS DOUBLE) IS NOT NULL', 'Correct data types for loan_amnt and loan_int_rate')
+      status: true
+      reason_if_failed: ''
+      level: error

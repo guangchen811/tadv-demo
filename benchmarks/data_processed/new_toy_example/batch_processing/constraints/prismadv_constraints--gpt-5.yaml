@@ -1,0 +1,141 @@
+constraints:
+  booking_status:
+    code:
+    - suggestion: '.satisfies("booking_status IS NOT NULL", "booking_status not null",
+        lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies("booking_status IN (''COMPLETED'', ''IN_PROGRESS'',
+        ''CANCELED'')", "booking_status in known set", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    - suggestion: '.satisfies("booking_status = UPPER(TRIM(booking_status))", "booking_status
+        canonical form", lambda x: x == 1.0)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: 'The ''booking_status'' column must be present and non-null for all input
+        rows, since the code filters on it with a literal equality and does not handle
+        nulls. We could represent this as a Deequ constraint like: .satisfies("CASE
+        WHEN booking_status IS NOT NULL THEN 1 ELSE 0 END", "booking_status not null",
+        lambda x: x == 1.0).'
+      sources:
+      - start_line: 5
+        end_line: 7
+        file: ''
+    - text: 'The ''booking_status'' values should be restricted to the known set of
+        statuses: COMPLETED, IN_PROGRESS, CANCELED (string codes). This ensures no
+        unexpected variants are introduced and that the equality filter matches intended
+        records. We could represent this as a Deequ constraint like: .isContainedIn("booking_status",
+        ["COMPLETED", "IN_PROGRESS", "CANCELED"]).'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: 'The ''booking_status'' values should be already standardized (uppercase
+        and without leading/trailing whitespace) so that the literal equality to ''COMPLETED''
+        matches all intended rows. We could represent this as a Deequ constraint like:
+        .satisfies("CASE WHEN booking_status = UPPER(TRIM(booking_status)) THEN 1
+        ELSE 0 END", "booking_status canonical form", lambda x: x == 1.0).'
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  email:
+    code:
+    - suggestion: '.satisfies("booking_status <> ''COMPLETED'' OR email IS NOT NULL",
+        "Email not null for completed bookings", lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies("booking_status <> ''COMPLETED'' OR length(trim(email))
+        > 0", "Email non-empty for completed bookings", lambda x: x == 1.0)'
+      validity: true
+      level: error
+    - suggestion: '.satisfies("booking_status <> ''COMPLETED'' OR email RLIKE ''^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$''",
+        "Valid email format for completed bookings", lambda x: x == 1.0)'
+      validity: false
+      level: warning
+    - suggestion: '.hasDataType("email", ConstrainableDataTypes.String, lambda x:
+        x == 1.0)'
+      validity: false
+      level: error
+    assumptions:
+    - text: 'For all rows where booking_status == ''COMPLETED'', the email column
+        must be present (non-null and non-empty), because the value is passed directly
+        to send_discount_confirmation_mail without null-handling. We could represent
+        this as Deequ constraints like: .where("booking_status = ''COMPLETED''").isComplete("email")
+        and .where("booking_status = ''COMPLETED''").satisfies("length(trim(email))
+        > 0", "Non-empty email for completed", lambda x: x == 1.0).'
+      sources:
+      - start_line: 5
+        end_line: 7
+        file: ''
+    - text: 'For all rows where booking_status == ''COMPLETED'', the email column
+        should match a basic email format. We could represent this as a Deequ constraint
+        like: .where("booking_status = ''COMPLETED''").hasPattern("email", "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
+        with success fraction == 1.0.'
+      sources:
+      - start_line: 5
+        end_line: 7
+        file: ''
+    - text: 'The email column should contain string values (no numeric/boolean types),
+        since it is used as a text address in send_discount_confirmation_mail. We
+        could represent this as a Deequ constraint like: .hasDataType("email", ConstrainableDataTypes.String).'
+      sources:
+      - start_line: 7
+        end_line: 7
+        file: ''
+  guest_category_idx:
+    code:
+    - suggestion: .isComplete('guest_category_idx')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''guest_category_idx'', ConstrainableDataTypes.Integral,
+        lambda x: x == 1.0)'
+      validity: false
+      level: error
+    - suggestion: '.satisfies("`guest_category_idx` >= 0 AND `guest_category_idx`
+        <= 3", "guest_category_idx within [0, 3]", lambda x: x == 1.0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''guest_category_idx'' column must be complete (no nulls) for all
+        rows, since it is used directly as a positional index into a list without
+        any null handling. This should hold for the entire input batch. Example validation:
+        Deequ .isComplete(''guest_category_idx'') or Great Expectations expect_column_values_to_not_be_null.'
+      sources:
+      - start_line: 3
+        end_line: 4
+        file: ''
+    - text: 'The ''guest_category_idx'' column must contain integer values only (no
+        floats/strings), because Python list indexing requires integers. Example validation:
+        Deequ .hasDataType(''guest_category_idx'', Integral) or Great Expectations
+        expect_column_values_to_be_of_type(''int'')/expect_column_values_to_be_in_type_list([''INTEGER'',''BIGINT'',''INT''])
+        depending on backend.'
+      sources:
+      - start_line: 3
+        end_line: 4
+        file: ''
+    - text: 'The ''guest_category_idx'' values must be within the allowed index range
+        of the discount list: 0 to 3 inclusive (no negatives and no values >= 4).
+        This prevents unintended negative indexing and IndexError. Example validation:
+        Deequ .satisfies(''guest_category_idx >= 0 AND guest_category_idx <= 3'',
+        ''guest_category_idx in [0,3]'', lambda x: x == 1.0) or Great Expectations
+        expect_column_values_to_be_between(min_value=0, max_value=3).'
+      sources:
+      - start_line: 2
+        end_line: 4
+        file: ''
+column_data_flow_locations:
+  guest_category_idx:
+  - start_line: 3
+    end_line: 7
+    file: ''
+  booking_status:
+  - start_line: 5
+    end_line: 7
+    file: ''
+  email:
+  - start_line: 7
+    end_line: 7
+    file: ''

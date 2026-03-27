@@ -1,0 +1,45 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_grade:
+    code:
+    - suggestion: .isContainedIn('loan_grade', ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+      validity: true
+      level: error
+    - suggestion: .isComplete('loan_grade')
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'loan_grade' column should only contain values from the set {'A',
+        'B', 'C', 'D', 'E', 'F', 'G'}. Any values outside this set will result in
+        a NULL value for 'grade_numeric'.
+      sources:
+      - start_line: 3
+        end_line: 11
+        file: ''
+    - text: The 'loan_grade' column should be complete with no null values, as the
+        code does not handle null values explicitly and expects to map all values
+        to numeric grades.
+      sources:
+      - start_line: 3
+        end_line: 11
+        file: ''
+column_data_flow_locations:
+  loan_grade:
+  - start_line: 3
+    end_line: 12
+    file: ''

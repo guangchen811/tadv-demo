@@ -1,0 +1,879 @@
+prismadv_config:
+  model:
+    use_async: true
+    use_dataflow: true
+    correlation_detection: true
+    downstream_task_description: The code is written for ML Inference task. After
+      training a model on the training data, the model would be used to make predictions
+      on the test data. you are asked to generate constraints on the upcoming *test*
+      data to ensure that the code can run without any errors and the predictions
+      are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  cb_person_default_on_file:
+    code:
+    - suggestion: .isComplete('cb_person_default_on_file')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 9bcbdc1d-9cca-4639-b0a9-90016204e692
+      source_assumptions:
+      - 33ea1fe0-ed4d-4442-a37c-789f916e937a
+    - suggestion: .isContainedIn('cb_person_default_on_file', ['Y', 'N'])
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 48be085f-f79f-4a2f-8e6a-a70242a1e903
+      source_assumptions:
+      - f00c23e4-aa98-4c7f-9346-a7f268358b34
+    - suggestion: .hasDataType('cb_person_default_on_file', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''cb_person_default_on_file'',
+        ''String'')'
+      level: error
+      uid: d405ae88-f2f0-4531-9525-dbab864795da
+      source_assumptions:
+      - 4a8ff67b-a5df-4362-98db-bc17696eabba
+    assumptions:
+    - text: 'The ''cb_person_default_on_file'' column must not contain any null values
+        in both the train and test datasets, because the code does not perform any
+        missing value imputation for this column before passing it to the OneHotEncoder,
+        which requires non-null values. Nulls would cause a runtime error during transformation.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `cb_person_default_on_file` IS NOT NULL THEN 1 ELSE
+        0 END", "No Nulls in cb_person_default_on_file", lambda x: x == 1)'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: 33ea1fe0-ed4d-4442-a37c-789f916e937a
+    - text: 'The ''cb_person_default_on_file'' column should only contain the categorical
+        values ''Y'' and ''N'' in both the train and test datasets, as these are the
+        only values observed in the training data and the OneHotEncoder is fit on
+        these values. Introduction of any unseen value in test data would result in
+        an error or unexpected encoding.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN `cb_person_default_on_file` IN (''Y'', ''N'') THEN 1
+        ELSE 0 END", "Valid cb_person_default_on_file Categories", lambda x: x ==
+        1)'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: f00c23e4-aa98-4c7f-9346-a7f268358b34
+    - text: 'The ''cb_person_default_on_file'' column should be of string (object)
+        data type in both train and test datasets, as the OneHotEncoder expects categorical/string
+        inputs and the column is of string type in the training data. Supplying other
+        types may lead to unexpected behavior or errors during transformation.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType("cb_person_default_on_file", "String")'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: 4a8ff67b-a5df-4362-98db-bc17696eabba
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 444ad60f-6b37-4fb7-ad79-e1a7dc286580
+      source_assumptions:
+      - 40f03820-e6a2-47cc-b227-bca786afb050
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_int_rate'',
+        ''Fractional'', lambda x: x == 1)'
+      level: error
+      uid: 320bcafd-fec5-44e5-9844-28c8e7fffdec
+      source_assumptions:
+      - 9209dcf2-6991-48da-937a-068d5ae23ecf
+    - suggestion: '.hasMin(''loan_int_rate'', lambda x: x >= <MIN_TRAIN>)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasMin(''loan_int_rate'',
+        lambda x: x >= <MIN_TRAIN>)'': invalid syntax (<string>, line 1)'
+      level: warning
+      uid: 9e078bdb-1480-4a1e-bc77-0a131d4cbd0e
+      source_assumptions:
+      - de99b103-b1dc-4542-afb9-cef678b76115
+    - suggestion: '.hasMax(''loan_int_rate'', lambda x: x <= <MAX_TRAIN>)'
+      validity: false
+      reason_if_invalid: 'Unable to instantiate constraint ''.hasMax(''loan_int_rate'',
+        lambda x: x <= <MAX_TRAIN>)'': invalid syntax (<string>, line 1)'
+      level: warning
+      uid: 7ff63f3f-38bc-463a-825c-3f6c621df337
+      source_assumptions:
+      - de99b103-b1dc-4542-afb9-cef678b76115
+    assumptions:
+    - text: The 'loan_int_rate' column must be present in the test data and must not
+        contain any null values. This is because the code includes 'loan_int_rate'
+        in the columns passed to the scikit-learn ColumnTransformer for test data
+        transformation, and the StandardScaler expects non-null numeric values. If
+        nulls are present, the transformation will fail.
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: 40f03820-e6a2-47cc-b227-bca786afb050
+    - text: All values in the 'loan_int_rate' column must be numeric (of a type that
+        can be interpreted as a floating-point number), as the StandardScaler transformer
+        requires numeric input and 'loan_int_rate' is specified as a Fractional data
+        type. Any non-numeric values will cause the transformation to fail.
+      sources:
+      - start_line: 25
+        end_line: 29
+        file: ''
+      uid: 9209dcf2-6991-48da-937a-068d5ae23ecf
+    - text: The distribution and range of values in the 'loan_int_rate' column in
+        the test data should be reasonably similar to that in the training data, since
+        StandardScaler is fit on the training set and then applied to the test set.
+        Extreme outliers or values far outside the training range may result in unexpected
+        scaled values and degrade model performance.
+      sources:
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: de99b103-b1dc-4542-afb9-cef678b76115
+  loan_grade:
+    code:
+    - suggestion: '.hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3e766892-96a8-41e3-a384-dfcdb74418c3
+      source_assumptions:
+      - fa532615-399f-4214-879b-f172c3cf17c4
+    - suggestion: .satisfies("loan_grade IN ('A', 'B', 'C', 'D', 'E', 'F', 'G')",
+        'Valid loan_grade categories')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 5ac619e2-f8d3-43e6-90ea-ea8910252709
+      source_assumptions:
+      - 2088e9bd-cee1-43d2-9c78-1677dd0b14f0
+    - suggestion: .hasDataType('loan_grade', 'String')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_grade'',
+        ''String'')'
+      level: error
+      uid: 17c67875-1c63-4b68-9810-be83b5a9611b
+      source_assumptions:
+      - 9d9a7408-b458-43b9-8fd2-dfe4ac021e6b
+    assumptions:
+    - text: 'The ''loan_grade'' column must be present in the input test data, and
+        it must be complete (i.e., contain no null or missing values), because the
+        code applies OneHotEncoder (which does not handle missing values) directly
+        to this column without any missing value handling. This means every row in
+        the test set must have a non-null ''loan_grade'' value.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasCompleteness(''loan_grade'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: fa532615-399f-4214-879b-f172c3cf17c4
+    - text: 'All values in the ''loan_grade'' column in the test data must be one
+        of the known categories observed in the training data: ''A'', ''B'', ''C'',
+        ''D'', ''E'', ''F'', or ''G''. The OneHotEncoder is fit on the training data
+        and then applied to the test data with drop=''first'', so any unseen category
+        in the test data will raise an error. No values outside these categories should
+        appear in the test set.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .satisfies("CASE WHEN loan_grade IN (''A'', ''B'', ''C'', ''D'', ''E'', ''F'',
+        ''G'') THEN 1 ELSE 0 END", ''Valid loan_grade categories'', lambda x: x ==
+        1.0)'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: 2088e9bd-cee1-43d2-9c78-1677dd0b14f0
+    - text: 'The ''loan_grade'' column in the test data should be of string (categorical/text)
+        data type, consistent with the training data, since OneHotEncoder expects
+        categorical/string input and the column is not cast or transformed before
+        encoding.
+
+        We could represent this assumption as a deequ constraint like this:
+
+        .hasDataType(''loan_grade'', ''String'')'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: 9d9a7408-b458-43b9-8fd2-dfe4ac021e6b
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 4c069d09-55c3-45bc-971e-fce46d80ea3f
+      source_assumptions:
+      - 16e6d997-69fe-4acb-8193-f181d0e26e5c
+    - suggestion: '.satisfies(''loan_amnt >= 0'', ''Non-negative loan_amnt'', lambda
+        x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a71df6d0-e9be-4d8f-a8c9-c8510007a428
+      source_assumptions:
+      - 62011ab5-3355-4d72-8672-75444cd4e43e
+    - suggestion: '.satisfies(''loan_amnt = CAST(loan_amnt AS INT)'', ''Integral loan_amnt'',
+        lambda x: x == 1)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 897c06fc-8506-4858-b9c9-07927d75a415
+      source_assumptions:
+      - 8704b6da-1e67-4d67-a171-87647bad47c6
+    assumptions:
+    - text: 'The ''loan_amnt'' column in both train and test data must be complete
+        (contain no null values), as the code directly applies np.log1p to each value
+        without first handling missing values. Null values would cause an error during
+        the log transformation. We could represent this assumption as a deequ constraint
+        like this: .isComplete(''loan_amnt'')'
+      sources:
+      - start_line: 20
+        end_line: 23
+        file: ''
+      uid: 16e6d997-69fe-4acb-8193-f181d0e26e5c
+    - text: 'All values in the ''loan_amnt'' column must be greater than or equal
+        to 0, since np.log1p is applied to each value. Negative values would cause
+        an error or result in NaN/complex values. We could represent this assumption
+        as a deequ constraint like this: .satisfies(''loan_amnt >= 0'', ''Non-negative
+        loan_amnt'', lambda x: x == 1)'
+      sources:
+      - start_line: 23
+        end_line: 23
+        file: ''
+      uid: 62011ab5-3355-4d72-8672-75444cd4e43e
+    - text: 'All values in the ''loan_amnt'' column must be integral (integers), as
+        the dataType is Integral and the code expects this type for downstream ML
+        preprocessing. Non-integer values could cause issues with data consistency
+        or model expectations. We could represent this assumption as a deequ constraint
+        like this: .satisfies(''loan_amnt = CAST(loan_amnt AS INT)'', ''Integral loan_amnt'',
+        lambda x: x == 1)'
+      sources:
+      - start_line: 20
+        end_line: 23
+        file: ''
+      uid: 8704b6da-1e67-4d67-a171-87647bad47c6
+  loan_status:
+    code:
+    - suggestion: '.hasCompleteness(''loan_status'', lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 15ef4b25-0297-4a9a-b1b7-4a661141e5ae
+      source_assumptions:
+      - f9bc981f-8a94-4d14-9291-0ff9cb9832ff
+    - suggestion: .isContainedIn('loan_status', [0, 1])
+      validity: false
+      reason_if_invalid: "Unable to instantiate constraint '.isContainedIn('loan_status',\
+        \ [0, 1])': An error occurred while calling None.None. Trace:\npy4j.Py4JException:\
+        \ Cannot convert java.lang.Integer to java.lang.String\n\tat py4j.commands.ArrayCommand.convertArgument(ArrayCommand.java:166)\n\
+        \tat py4j.commands.ArrayCommand.setArray(ArrayCommand.java:144)\n\tat py4j.commands.ArrayCommand.execute(ArrayCommand.java:97)\n\
+        \tat py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)\n\
+        \tat py4j.ClientServerConnection.run(ClientServerConnection.java:106)\n\t\
+        at java.base/java.lang.Thread.run(Thread.java:840)\n\n"
+      level: error
+      uid: 2d30b4aa-a77d-4f3b-bcc9-5bbca9a01a06
+      source_assumptions:
+      - 42ecf1ee-86bb-4de9-8f8b-1890c1591692
+    - suggestion: .hasDataType('loan_status', 'Integral')
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''loan_status'',
+        ''Integral'')'
+      level: error
+      uid: 2dcfdfce-f8db-4cdf-9105-7c069085f505
+      source_assumptions:
+      - f9cf358c-8d27-4120-846e-6d31e56d009f
+    assumptions:
+    - text: 'The ''loan_status'' column in the test data is not required for inference
+        or prediction, but it must exist in the training data with no missing values.
+        In the training data, ''loan_status'' should be fully complete (no nulls)
+        to allow model training. This is evidenced by the code''s direct use of train[''loan_status'']
+        as the target variable without any null handling. We could represent this
+        assumption as a deequ constraint like this: .hasCompleteness(''loan_status'',
+        lambda x: x == 1.0)'
+      sources:
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 34
+        end_line: 43
+        file: ''
+      uid: f9bc981f-8a94-4d14-9291-0ff9cb9832ff
+    - text: 'The ''loan_status'' column in the training data must be binary, containing
+        only two distinct integer values (0 and 1), as the model is trained using
+        a binary cross-entropy loss (BCELoss) and predicts probabilities for binary
+        classification. Any other values would break the training logic. This can
+        be represented as a deequ constraint: .isContainedIn(''loan_status'', [0,
+        1])'
+      sources:
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 47
+        end_line: 62
+        file: ''
+      uid: 42ecf1ee-86bb-4de9-8f8b-1890c1591692
+    - text: 'The ''loan_status'' column in the training data must be of an integral
+        (integer) data type, as the values are cast to float tensors for PyTorch and
+        used as labels for binary classification. If the column contains non-integer
+        or non-numeric values, the tensor conversion or model training will fail.
+        This can be represented as a deequ constraint: .hasDataType(''loan_status'',
+        ''Integral'')'
+      sources:
+      - start_line: 34
+        end_line: 36
+        file: ''
+      - start_line: 47
+        end_line: 62
+        file: ''
+      uid: f9cf358c-8d27-4120-846e-6d31e56d009f
+  '["cb_person_default_on_file","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''log_loan_amnt'', ''loan_int_rate'', ''loan_grade'',
+        ''cb_person_default_on_file''], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.haveCompleteness([''log_loan_amnt'', ''loan_int_rate'',
+        ''loan_grade'', ''cb_person_default_on_file''], lambda x: x == 1.0)'' failed
+        on data sample: Input data does not include column log_loan_amnt!'
+      level: error
+      uid: eba8b623-1733-4695-bd95-37e4c7d27707
+      source_assumptions:
+      - bdd8a735-caae-443b-8c83-a9b293579afb
+      - 7ef1e1cc-8d40-4502-a249-181b0b295879
+    - suggestion: .satisfies('cb_person_default_on_file IN ("Y", "N")', 'cb_person_default_on_file
+        valid values')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 787d963a-db22-4445-842c-d4ed68a680c7
+      source_assumptions:
+      - e7c0d73f-a4f4-4d0e-a3a2-867057d589a1
+    assumptions:
+    - text: The values in the 'cb_person_default_on_file' column must be present (i.e.,
+        not null) whenever the corresponding record is used for inference, and the
+        column must only contain values 'Y' or 'N'. Additionally, the values in 'cb_person_default_on_file'
+        must be compatible with the one-hot encoding applied with drop='first', so
+        all expected categories ('Y', 'N') should be present in both train and test
+        data to avoid shape mismatches.
+      sources:
+      - start_line: 22
+        end_line: 29
+        file: ''
+      uid: e7c0d73f-a4f4-4d0e-a3a2-867057d589a1
+    - text: The columns 'log_loan_amnt', 'loan_int_rate', 'loan_grade', and 'cb_person_default_on_file'
+        must all be present and non-null in every row of the test data, as the downstream
+        ColumnTransformer expects these columns for transformation and will fail if
+        any are missing or contain nulls.
+      sources:
+      - start_line: 22
+        end_line: 29
+        file: ''
+      uid: bdd8a735-caae-443b-8c83-a9b293579afb
+    - text: The unique combination of values in ['log_loan_amnt', 'loan_int_rate',
+        'loan_grade', 'cb_person_default_on_file'] must exist for every test row,
+        i.e., there should be no rows with missing or undefined combinations, to ensure
+        the feature transformation and model prediction are valid for every test entry.
+      sources:
+      - start_line: 22
+        end_line: 29
+        file: ''
+      uid: 7ef1e1cc-8d40-4502-a249-181b0b295879
+  id:
+    code:
+    - suggestion: .isComplete('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: e9865b1e-096f-4953-8655-23747d007da3
+      source_assumptions:
+      - a8383c2d-f801-4963-b08a-b8b9078edafb
+    - suggestion: '.hasDataType(''id'', ''Integral'', lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Skipping data type constraint: .hasDataType(''id'', ''Integral'',
+        lambda x: x == 1.0)'
+      level: error
+      uid: 06e06724-5f70-4543-bb73-18f7f2859fba
+      source_assumptions:
+      - a8383c2d-f801-4963-b08a-b8b9078edafb
+    - suggestion: .isUnique('id')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: be95d055-133d-4b55-8442-e928f23fa859
+      source_assumptions:
+      - a8383c2d-f801-4963-b08a-b8b9078edafb
+    assumptions:
+    - text: The 'id' column in the test data must be present, completely non-null,
+        and contain unique integer values for every row. This is required since the
+        code directly uses test['id'] to create the submission file, assuming one-to-one
+        correspondence between prediction rows and unique ids. The 'id' column should
+        have exactly as many distinct values as there are rows in the test dataset,
+        and no nulls are allowed.
+      sources:
+      - start_line: 21
+        end_line: 21
+        file: ''
+      - start_line: 67
+        end_line: 67
+        file: ''
+      uid: a8383c2d-f801-4963-b08a-b8b9078edafb
+  '["loan_amnt","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''loan_int_rate''], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 8bb51331-49fd-415e-bcd3-8123198d27a9
+      source_assumptions:
+      - 5cb43028-d53c-4032-b830-e4452d0f5a32
+    - suggestion: .satisfies('loan_amnt >= 0 AND loan_int_rate IS NOT NULL', 'Loan
+        amount must be non-negative and interest rate must not be null')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 47fa22b7-d064-4d18-aa5b-201a665798ef
+      source_assumptions:
+      - 0d105c81-608a-4cb6-a0fe-bf42b4066a5d
+    assumptions:
+    - text: 'Both ''loan_amnt'' and ''loan_int_rate'' columns must be present, complete
+        (no missing values), and of the correct numeric types (Integral for ''loan_amnt'',
+        Fractional for ''loan_int_rate'') in the test data, as they are jointly used
+        as numerical features for ML model inference. This can be represented in Deequ
+        as: .hasCompleteness(''loan_amnt'', 1.0) AND .hasCompleteness(''loan_int_rate'',
+        1.0) AND .hasDataType(''loan_amnt'', ''Integral'') AND .hasDataType(''loan_int_rate'',
+        ''Fractional'')'
+      sources:
+      - start_line: 23
+        end_line: 25
+        file: ''
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: 5cb43028-d53c-4032-b830-e4452d0f5a32
+    - text: 'For all rows, ''loan_amnt'' values must be non-negative and greater than
+        or equal to zero, so that the log1p transformation applied to ''loan_amnt''
+        does not produce NaN or -Inf values. This is essential since both ''log_loan_amnt''
+        and ''loan_int_rate'' are used together as model features. This can be represented
+        in Deequ as: .where(''loan_amnt >= 0'')'
+      sources:
+      - start_line: 23
+        end_line: 25
+        file: ''
+      uid: 0d105c81-608a-4cb6-a0fe-bf42b4066a5d
+    - text: 'The joint distribution of ''loan_amnt'' and ''loan_int_rate'' in the
+        test data should be within the range observed in the training data to avoid
+        inference on out-of-distribution values, as both columns are standardized
+        together. For example, the min and max of each should not exceed those observed
+        in training. This can be represented in Deequ as: .isContainedIn(''loan_amnt'',
+        training_loan_amnt_range) AND .isContainedIn(''loan_int_rate'', training_loan_int_rate_range)'
+      sources:
+      - start_line: 23
+        end_line: 25
+        file: ''
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: 0e15f3ec-16a5-4b46-bcc8-516acce39706
+  '["loan_amnt","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a0e43e38-6cd9-468d-8443-c22c31278923
+      source_assumptions:
+      - 491e45d2-2ad1-40bb-8a2b-93a0d50615f5
+    - suggestion: '.haveCompleteness([''loan_status''], lambda x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: a14e2a97-0116-4a22-9657-2d34961cfd31
+      source_assumptions:
+      - 491e45d2-2ad1-40bb-8a2b-93a0d50615f5
+    - suggestion: .satisfies('loan_status IN (0, 1)', 'Loan status must be binary')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: faedc661-48dd-4458-a21a-a83debddadad
+      source_assumptions:
+      - a1c2905c-222a-4a5b-8e4b-5197c6a72342
+    assumptions:
+    - text: The 'loan_amnt' and 'loan_status' columns must both be present and non-null
+        in the test and train datasets, as they are required for feature engineering,
+        model training, and prediction. Specifically, 'loan_amnt' is transformed and
+        used as input, while 'loan_status' is the target variable in training. In
+        the test set, 'loan_amnt' must be present and non-null; 'loan_status' is not
+        required in the test set but is essential in the train set.
+      sources:
+      - start_line: 20
+        end_line: 23
+        file: ''
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 66
+        end_line: 67
+        file: ''
+      uid: 491e45d2-2ad1-40bb-8a2b-93a0d50615f5
+    - text: The values in the 'loan_status' column must be binary (i.e., only 0 or
+        1), as the downstream model is trained as a binary classifier and inference
+        logic assumes binary labels. This must hold for the train set (the test set
+        does not require 'loan_status').
+      sources:
+      - start_line: 29
+        end_line: 30
+        file: ''
+      - start_line: 51
+        end_line: 62
+        file: ''
+      uid: a1c2905c-222a-4a5b-8e4b-5197c6a72342
+    - text: The distribution of 'loan_amnt' in the test set should be within a similar
+        range as in the train set, since the model is trained on the log-transformed
+        'loan_amnt' feature. Out-of-range or extreme values in 'loan_amnt' in the
+        test set could result in unpredictable model predictions.
+      sources:
+      - start_line: 20
+        end_line: 23
+        file: ''
+      - start_line: 29
+        end_line: 30
+        file: ''
+      uid: 4c995f61-88b5-453d-9039-6a60e2deadcb
+  '["loan_amnt","log_loan_amnt"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_amnt'', ''log_loan_amnt''], lambda x:
+        x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.haveCompleteness([''loan_amnt'', ''log_loan_amnt''],
+        lambda x: x == 1.0)'' failed on data sample: Input data does not include column
+        log_loan_amnt!'
+      level: error
+      uid: 17fa2c56-3980-4446-970a-1fe41d2995d6
+      source_assumptions:
+      - 7ad8b884-2bba-48ee-a318-894a150c31cd
+    - suggestion: .satisfies('log_loan_amnt = LOG(loan_amnt + 1)', 'Log Loan Amount
+        Consistency')
+      validity: false
+      reason_if_invalid: 'Constraint ''.satisfies(''log_loan_amnt = LOG(loan_amnt
+        + 1)'', ''Log Loan Amount Consistency'')'' failed on data sample: org.apache.spark.sql.AnalysisException:
+        [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column or function parameter with name
+        `log_loan_amnt` cannot be resolved. Did you mean one of the following? [`loan_amnt`,
+        `loan_grade`, `loan_intent`, `person_age`, `loan_status`].; line 1 pos 0;
+
+        ''Aggregate [sum(cast((''log_loan_amnt = LOG(E(), cast((loan_amnt#374296L
+        + cast(1 as bigint)) as double))) as int)) AS sum(CAST((log_loan_amnt = LOG((loan_amnt
+        + 1))) AS INT))#903937, count(1) AS count(1)#903938L]
+
+        +- LogicalRDD [id#374289L, person_age#374290L, person_income#374291L, person_home_ownership#374292,
+        person_emp_length#374293, loan_intent#374294, loan_grade#374295, loan_amnt#374296L,
+        loan_int_rate#374297, loan_percent_income#374298, cb_person_default_on_file#374299,
+        cb_person_cred_hist_length#374300L, loan_status#374301L], false
+
+        '
+      level: error
+      uid: 3bfbc4bf-b937-43e6-881e-300af5ed831c
+      source_assumptions:
+      - cfa68c22-a196-4c94-9fd2-7509ed16445c
+    assumptions:
+    - text: The 'log_loan_amnt' column must be the natural logarithm of (1 + loan_amnt)
+        for every record in the dataset. That is, for all rows, log_loan_amnt == np.log1p(loan_amnt).
+        This ensures consistency between the derived and raw columns and prevents
+        feature leakage or transformation errors.
+      sources:
+      - start_line: 23
+        end_line: 23
+        file: ''
+      uid: cfa68c22-a196-4c94-9fd2-7509ed16445c
+    - text: Both 'loan_amnt' and 'log_loan_amnt' must be present and non-null in all
+        records in the test data. This is required since 'log_loan_amnt' is derived
+        from 'loan_amnt' and both are included in the feature set for inference.
+      sources:
+      - start_line: 23
+        end_line: 29
+        file: ''
+      uid: 7ad8b884-2bba-48ee-a318-894a150c31cd
+  '["loan_grade","loan_int_rate"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_grade''], lambda x:
+        x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 07a4cec9-6fbf-495c-9c87-d6a8b44dfda7
+      source_assumptions:
+      - c812e0c1-e03a-4688-bf1f-f61ad210c707
+    - suggestion: .satisfies('loan_grade IN ("A", "B", "C", "D", "E", "F", "G") AND
+        loan_int_rate IS NOT NULL', 'Valid loan_grade and loan_int_rate types')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 81b6b80a-05f3-4aa7-94cc-85eb74e39e56
+      source_assumptions:
+      - 7c4cf148-ea34-45e4-97fe-56d0d8ad1710
+    assumptions:
+    - text: 'For every record in the test dataset, the combination of ''loan_int_rate''
+        (a numeric value) and ''loan_grade'' (a categorical string) must be present
+        and non-null. This ensures that both columns are always available for transformation
+        and downstream inference. This can be represented as a completeness constraint
+        on both columns, and a multi-column completeness constraint such as: .hasCompleteness([''loan_int_rate'',
+        ''loan_grade''], 1.0)'
+      sources:
+      - start_line: 20
+        end_line: 29
+        file: ''
+      uid: c812e0c1-e03a-4688-bf1f-f61ad210c707
+    - text: '''loan_int_rate'' values should be within a reasonable range for each
+        ''loan_grade'' category, consistent with the model''s training data. Extreme
+        or out-of-distribution values for the combination of ''loan_int_rate'' and
+        ''loan_grade'' may cause the model to produce unreliable predictions. This
+        can be represented as a multi-column constraint on the distribution of ''loan_int_rate''
+        conditioned on ''loan_grade'', e.g., .where(''loan_int_rate'').isBetween(<min>,
+        <max>).forEach(''loan_grade'')'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: 903e6873-a880-44db-a4e5-b5375e6f366c
+    - text: '''loan_grade'' should only take values from the set {''A'', ''B'', ''C'',
+        ''D'', ''E'', ''F'', ''G''} and each value of ''loan_int_rate'' should be
+        a valid float; there should be no unseen categories or types in the combination
+        of these columns in test data, otherwise the transformers (StandardScaler,
+        OneHotEncoder) may fail or behave unexpectedly. This can be expressed as a
+        multi-column domain constraint: .isContainedIn(''loan_grade'', [''A'',''B'',''C'',''D'',''E'',''F'',''G''])
+        and .isFractional(''loan_int_rate'')'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: 7c4cf148-ea34-45e4-97fe-56d0d8ad1710
+  '["loan_grade","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_grade'', ''loan_status''], lambda c:
+        c == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: 3cb011f5-256a-42e7-97e8-df074d119f2a
+      source_assumptions:
+      - 6bbcb658-8867-42ae-a78d-67685af8485e
+    - suggestion: .satisfies('loan_status in (0, 1) AND loan_grade in ("A", "B", "C",
+        "D", "E", "F", "G")', 'Loan status and grade are valid')
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: d6b056b7-3603-4dab-8cc5-8e18859432e4
+      source_assumptions:
+      - 7edd764d-377b-48f5-aafe-474ed229d89c
+      - b6e351a6-3242-48de-b101-b8c49fe1cc77
+    assumptions:
+    - text: 'All records in the test set must have non-null values in both ''loan_grade''
+        and ''loan_status'' columns if present, to ensure that feature engineering,
+        encoding, and inference steps can proceed without error. This can be represented
+        as a multi-column completeness constraint: .hasCompleteness([''loan_grade'',
+        ''loan_status''], lambda c: c == 1.0)'
+      sources:
+      - start_line: 21
+        end_line: 29
+        file: ''
+      uid: 6bbcb658-8867-42ae-a78d-67685af8485e
+    - text: 'The set of unique values present in the ''loan_grade'' column in the
+        test set must be a subset of those seen in the training set, and all values
+        must be among [''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G''], so that the
+        one-hot encoder can correctly handle all categories. This can be represented
+        as a multi-column categorical inclusion constraint: .hasDistinctness([''loan_grade'']).isContainedIn([''A'',
+        ''B'', ''C'', ''D'', ''E'', ''F'', ''G''])'
+      sources:
+      - start_line: 23
+        end_line: 29
+        file: ''
+      uid: 7edd764d-377b-48f5-aafe-474ed229d89c
+    - text: 'For each record in the test set, the ''loan_grade'' and ''loan_status''
+        columns must not exhibit any unexpected or mismatched categorical relationships
+        (for example, the ''loan_status'' must remain binary regardless of the ''loan_grade''
+        value), to ensure the model input is consistent with what it saw during training.
+        This can be represented as a multi-column value constraint: .where(''loan_status
+        in (0, 1) and loan_grade in ("A", "B", "C", "D", "E", "F", "G")'')'
+      sources:
+      - start_line: 23
+        end_line: 29
+        file: ''
+      uid: b6e351a6-3242-48de-b101-b8c49fe1cc77
+  '["loan_int_rate","loan_status"]':
+    code:
+    - suggestion: '.haveCompleteness([''loan_int_rate'', ''loan_status''], lambda
+        x: x == 1.0)'
+      validity: true
+      reason_if_invalid: ''
+      level: error
+      uid: dc9e6cf0-6b2c-4fe3-9d0f-519970563a80
+      source_assumptions:
+      - 7c6e7519-76cd-43a7-b170-ad6548cf28f6
+    - suggestion: '.haveCompleteness([''log_loan_amnt'', ''loan_int_rate'', ''loan_grade'',
+        ''cb_person_default_on_file''], lambda x: x == 1.0)'
+      validity: false
+      reason_if_invalid: 'Constraint ''.haveCompleteness([''log_loan_amnt'', ''loan_int_rate'',
+        ''loan_grade'', ''cb_person_default_on_file''], lambda x: x == 1.0)'' failed
+        on data sample: Input data does not include column log_loan_amnt!'
+      level: error
+      uid: fa6186d9-d25c-4d46-95a7-abf0f6e13f3f
+      source_assumptions:
+      - bf2b3639-9b18-48a6-ad15-6977dbb14432
+    assumptions:
+    - text: 'The columns ''loan_int_rate'' and ''loan_status'' must both be complete
+        (no missing values) in the test data, and their data types must match those
+        seen during training (loan_int_rate: numeric/fractional, loan_status: integer/binary).
+        This ensures successful preprocessing, tensor conversion, and model inference.'
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      - start_line: 34
+        end_line: 35
+        file: ''
+      - start_line: 66
+        end_line: 67
+        file: ''
+      uid: 7c6e7519-76cd-43a7-b170-ad6548cf28f6
+    - text: The values in 'loan_int_rate' in the test set must fall within or close
+        to the range observed in the training set to avoid issues with StandardScaler
+        transformation and to provide meaningful predictions. This assumes that the
+        distribution of 'loan_int_rate' is similar between train and test.
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      - start_line: 28
+        end_line: 29
+        file: ''
+      uid: bc819f57-5446-40ed-ac12-bcb0dc42c451
+    - text: "For every row in the test set, all columns used together in the model\
+        \ input\u2014specifically 'log_loan_amnt', 'loan_int_rate', 'loan_grade',\
+        \ and 'cb_person_default_on_file'\u2014must be present and non-null to allow\
+        \ the ColumnTransformer to process the row without errors."
+      sources:
+      - start_line: 24
+        end_line: 29
+        file: ''
+      uid: bf2b3639-9b18-48a6-ad15-6977dbb14432
+column_data_flow_locations:
+  loan_amnt:
+  - start_line: 20
+    end_line: 23
+    file: ''
+  loan_int_rate:
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 28
+    end_line: 30
+    file: ''
+  loan_grade:
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 28
+    end_line: 29
+    file: ''
+  cb_person_default_on_file:
+  - start_line: 24
+    end_line: 25
+    file: ''
+  - start_line: 28
+    end_line: 29
+    file: ''
+  loan_status:
+  - start_line: 29
+    end_line: 30
+    file: ''
+  - start_line: 34
+    end_line: 39
+    file: ''
+  - start_line: 42
+    end_line: 43
+    file: ''
+  - start_line: 51
+    end_line: 62
+    file: ''
+  - start_line: 66
+    end_line: 67
+    file: ''
+  id:
+  - start_line: 21
+    end_line: 21
+    file: ''
+  - start_line: 67
+    end_line: 67
+    file: ''
+cost_summary:
+  column_access_detection:
+    cost: 0.0029360000000000002
+    total_tokens: 3325
+    prompt_tokens: 3304
+    completion_tokens: 21
+  data_flow_inspection:
+    cost: 0.010164
+    total_tokens: 9588
+    prompt_tokens: 9298
+    completion_tokens: 290
+  column_correlation_discovery:
+    cost: 0.0057280000000000005
+    total_tokens: 2099
+    prompt_tokens: 1844
+    completion_tokens: 255
+  multi_column_data_flow_inspection:
+    cost: 0.024825999999999997
+    total_tokens: 12677
+    prompt_tokens: 11709
+    completion_tokens: 968
+  multi_column_assumption_generation:
+    cost: 0.052511999999999996
+    total_tokens: 18240
+    prompt_tokens: 15088
+    completion_tokens: 3152
+  multi_column_code_generation:
+    cost: 0.038558
+    total_tokens: 25690
+    prompt_tokens: 24371
+    completion_tokens: 1319
+  single_column_assumption_generation:
+    cost: 0.046848
+    total_tokens: 16524
+    prompt_tokens: 14224
+    completion_tokens: 2300
+  single_column_code_generation:
+    cost: 0.04188
+    total_tokens: 33165
+    prompt_tokens: 32184
+    completion_tokens: 981

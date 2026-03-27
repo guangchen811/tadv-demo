@@ -1,0 +1,145 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4o
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_amnt:
+    code:
+    - suggestion: .isComplete('loan_amnt')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_amnt', 'Integral')
+      validity: false
+      level: error
+    assumptions:
+    - text: The 'loan_amnt' column must not contain null values because the code performs
+        AVG and SUM operations on it. These operations assume that all values are
+        non-null in order to correctly compute averages and sums.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'loan_amnt' column should contain only integral values as it is used
+        in mathematical operations like AVG and SUM, which implies numerical processing.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+      - start_line: 6
+        end_line: 6
+        file: ''
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: .hasDataType('loan_int_rate', 'Fractional')
+      validity: false
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column should not contain null values because the
+        code calculates the average interest rate using the AVG function, which ignores
+        nulls. Since the completeness is 1.0, this assumption is already met.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column should contain fractional values because the
+        dataType is specified as Fractional, and the average interest rate is calculated
+        with rounding to two decimal places.
+      sources:
+      - start_line: 5
+        end_line: 5
+        file: ''
+  loan_intent:
+    code:
+    - suggestion: .isComplete('loan_intent')
+      validity: true
+      level: error
+    - suggestion: .isContainedIn('loan_intent', ['EDUCATION', 'HOMEIMPROVEMENT', 'PERSONAL',
+        'DEBTCONSOLIDATION', 'MEDICAL', 'VENTURE'])
+      validity: true
+      level: error
+    assumptions:
+    - text: 'The ''loan_intent'' column should not contain null values because the
+        SQL query groups by this column, which requires non-null values to function
+        correctly. Given the column''s completeness is already 1.0, it is expected
+        that the column will continue to have no null values in the test data. We
+        could represent this assumption as a deequ constraint like this: .isComplete(''loan_intent'')'
+      sources:
+      - start_line: 2
+        end_line: 8
+        file: ''
+    - text: 'The ''loan_intent'' column should only contain the distinct values: ''EDUCATION'',
+        ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'', ''MEDICAL'', and
+        ''VENTURE''. This is inferred from the histogram of the target column in the
+        dataset, which suggests these are the only valid categories. We could represent
+        this assumption as a deequ constraint like this: .satisfies("CASE WHEN `loan_intent`
+        IN (''EDUCATION'', ''HOMEIMPROVEMENT'', ''PERSONAL'', ''DEBTCONSOLIDATION'',
+        ''MEDICAL'', ''VENTURE'') THEN 1 ELSE 0 END", "Valid Loan Intent Values")'
+      sources:
+      - start_line: 2
+        end_line: 8
+        file: ''
+  person_income:
+    code:
+    - suggestion: .isComplete('person_income')
+      validity: true
+      level: error
+    - suggestion: '.hasMin(''person_income'', lambda x: x > 0)'
+      validity: true
+      level: error
+    assumptions:
+    - text: The 'person_income' column should not contain null values as the code
+        performs arithmetic operations that require non-null values for accurate calculations.
+        Since the completeness of 'person_income' is 1.0, it is expected that there
+        are no null values in the column.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+    - text: The 'person_income' column should have a minimum value greater than zero
+        to avoid division by zero in the calculation of the average loan-to-income
+        ratio.
+      sources:
+      - start_line: 6
+        end_line: 6
+        file: ''
+column_data_flow_locations:
+  loan_intent:
+  - start_line: 2
+    end_line: 2
+    file: ''
+  - start_line: 8
+    end_line: 8
+    file: ''
+  loan_amnt:
+  - start_line: 4
+    end_line: 4
+    file: ''
+  - start_line: 6
+    end_line: 6
+    file: ''
+  loan_int_rate:
+  - start_line: 5
+    end_line: 5
+    file: ''
+  person_income:
+  - start_line: 6
+    end_line: 6
+    file: ''

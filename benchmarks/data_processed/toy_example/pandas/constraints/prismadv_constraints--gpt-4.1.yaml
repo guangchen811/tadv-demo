@@ -1,0 +1,257 @@
+constraints:
+  admission_day:
+    code:
+    - suggestion: '.satisfies(''`admission_day` IS NOT NULL'', ''At least some non-null
+        admission_day values'', lambda x: x > 0)'
+      validity: null
+      level: error
+    - suggestion: .hasDataType('admission_day', ConstrainableDataTypes.Integral)
+      validity: null
+      level: error
+    - suggestion: '.satisfies(''CASE WHEN `admission_day` IN (10, 17, 20) THEN 1 ELSE
+        0 END'', ''Expected admission_day values'', lambda x: x >= 0.95)'
+      validity: null
+      level: warning
+    assumptions:
+    - text: 'The ''admission_day'' column may contain null values in the input data,
+        as the code attempts to fill missing values with ''discharge_day''. However,
+        not all values can be null, because at least some non-null values are required
+        for meaningful imputation and downstream calculations. We could represent
+        this assumption as a deequ constraint like this: .satisfies(''CASE WHEN `admission_day`
+        IS NOT NULL THEN 1 ELSE 0 END'', ''Non-null admission_day values'', lambda
+        x: x > 0)'
+      sources:
+      - start_line: 3
+        end_line: 3
+        file: ''
+    - text: 'The ''admission_day'' column should contain only integer values, as it
+        is used in arithmetic operations with ''discharge_day'' (e.g., subtraction
+        to compute ''duration''). Non-integer or non-numeric values would cause errors
+        in these downstream calculations. We could represent this assumption as a
+        deequ constraint like this: .hasDataType(''admission_day'', ConstrainableDataTypes.Integral)'
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+    - text: 'The distribution and possible values of ''admission_day'' are expected
+        to be similar to the training set, where only three distinct integer values
+        (10, 17, 20) were observed. If the test data contains unexpected or implausible
+        values (e.g., negative days or days far outside this range), results may be
+        unreliable. We could represent this assumption as a deequ constraint like
+        this: .satisfies(''CASE WHEN `admission_day` IN (10, 17, 20) THEN 1 ELSE 0
+        END'', ''Expected admission_day values'', lambda x: x >= 0.95)'
+      sources:
+      - start_line: 1
+        end_line: 1
+        file: ''
+  complications:
+    code:
+    - suggestion: '.hasCompleteness(''complications'', lambda x: x == 1.0)'
+      validity: null
+      level: error
+    - suggestion: '.satisfies("CASE WHEN complications IN (''Y'', ''N'') THEN 1 ELSE
+        0 END", ''Valid Complications Values'', lambda x: x == 1.0)'
+      validity: null
+      level: error
+    - suggestion: .hasDataType('complications', ConstrainableDataTypes.String)
+      validity: null
+      level: error
+    assumptions:
+    - text: 'The ''complications'' column must be present and have no missing (null)
+        values in the input data, as the code applies label_binarize directly without
+        any fillna or missing value handling. The dataset summary confirms 100% completeness
+        (no nulls). We could represent this assumption as a deequ constraint like
+        this: .hasCompleteness(''complications'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''complications'' column must contain only the values ''Y'' and ''N'',
+        and all values in the test data should be among these classes, since label_binarize
+        is called with classes=[''Y'', ''N'']. The dataset histogram shows only ''N''
+        is present, but for the model to work as intended, test data should not contain
+        any values outside of ''Y'' and ''N''. We could represent this assumption
+        as a deequ constraint like this: .satisfies("CASE WHEN complications IN (''Y'',
+        ''N'') THEN 1 ELSE 0 END", ''Valid Complications Values'', lambda x: x ==
+        1.0)'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+    - text: 'The ''complications'' column is expected to be of string type, as the
+        code uses label_binarize and all current values are strings according to the
+        data description. We could represent this assumption as a deequ constraint
+        like this: .hasDataType(''complications'', ConstrainableDataTypes.String)'
+      sources:
+      - start_line: 9
+        end_line: 9
+        file: ''
+  cost:
+    code:
+    - suggestion: '.hasCompleteness(''cost'', lambda x: x == 1.0)'
+      validity: null
+      level: error
+    - suggestion: '.satisfies(''cost > 0'', ''Positive cost values'', lambda x: x
+        == 1.0)'
+      validity: null
+      level: error
+    - suggestion: '.hasDataType(''cost'', ''Integral'', lambda x: x == 1.0)'
+      validity: null
+      level: warning
+    assumptions:
+    - text: 'The ''cost'' column must not contain any null values in the input data,
+        because the code applies np.log to ''cost'' without any fillna or null handling.
+        If there are any nulls, np.log(df[''cost'']) would fail with a ValueError
+        or produce NaN values, breaking downstream steps. We could represent this
+        assumption as a deequ constraint like this: .hasCompleteness(''cost'', lambda
+        x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: 'All values in the ''cost'' column must be strictly greater than zero,
+        since np.log is undefined for zero or negative values. If a zero or negative
+        value is present, np.log(df[''cost'']) would result in -inf or NaN, which
+        would break downstream processing or model training. We could represent this
+        assumption as a deequ constraint like this: .satisfies(''cost > 0'', ''Positive
+        cost values'', lambda x: x == 1.0)'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+    - text: 'The ''cost'' column should contain only integer values, as indicated
+        by the dataType being ''Integral'' and the code does not perform any type
+        conversion before applying np.log. Any non-integer values may cause unexpected
+        behavior or errors if the downstream code expects only integers. We could
+        represent this assumption as a deequ constraint like this: .isIntegral(''cost'')'
+      sources:
+      - start_line: 2
+        end_line: 2
+        file: ''
+  diagnosis:
+    code:
+    - suggestion: '.hasDataType(''diagnosis'', ''String'', lambda x: x == 1.0)'
+      validity: null
+      level: error
+    - suggestion: .isComplete('diagnosis')
+      validity: null
+      level: error
+    - suggestion: .isContainedIn('diagnosis', ['cancer', 'cough', 'fraction'])
+      validity: null
+      level: warning
+    assumptions:
+    - text: The 'diagnosis' column must be present in the input data and must be of
+        string type, since it is selected as a categorical column for pd.get_dummies
+        and later used as a feature in model training. The code assumes all values
+        are strings and will fail if other types are present.
+      sources:
+      - start_line: 5
+        end_line: 8
+        file: ''
+    - text: The 'diagnosis' column should not contain any null values, as the downstream
+        code applies pd.get_dummies with dummy_na=True, which will create an additional
+        column for nulls, but meaningful modeling relies on actual categories being
+        present. The input data should minimize nulls to ensure valid category encoding.
+      sources:
+      - start_line: 5
+        end_line: 8
+        file: ''
+    - text: 'The ''diagnosis'' column should have a limited number of distinct categories
+        (ideally three: ''cancer'', ''cough'', ''fraction''), as inferred from the
+        provided histogram. Unexpected new categories may impact the model''s feature
+        space and prediction quality.'
+      sources:
+      - start_line: 1
+        end_line: 1
+        file: ''
+      - start_line: 5
+        end_line: 8
+        file: ''
+  discharge_day:
+    code:
+    - suggestion: .isComplete('discharge_day')
+      validity: null
+      level: error
+    - suggestion: .hasDataType('discharge_day', 'Integral')
+      validity: null
+      level: error
+    assumptions:
+    - text: The 'discharge_day' column must have no null values in the input data.
+        This is because it is directly used to fill missing values in 'admission_day'
+        and is also used in arithmetic operations to compute the 'duration'. If any
+        value in 'discharge_day' is null, these operations will result in errors or
+        propagate nulls.
+      sources:
+      - start_line: 3
+        end_line: 4
+        file: ''
+    - text: The 'discharge_day' column must contain integer values, as it is used
+        in arithmetic subtraction with 'admission_day' to compute 'duration'. Non-integer
+        or non-numeric values would cause errors during this operation.
+      sources:
+      - start_line: 4
+        end_line: 4
+        file: ''
+  insurance:
+    code:
+    - suggestion: .isComplete('insurance')
+      validity: null
+      level: error
+    - suggestion: '.hasDataType(''insurance'', ''String'', lambda x: x == 1.0)'
+      validity: null
+      level: error
+    - suggestion: '.hasApproxCountDistinct(''insurance'', lambda x: x <= 10)'
+      validity: null
+      level: warning
+    assumptions:
+    - text: The 'insurance' column must have no null values in the input data, as
+        the column's completeness is 1.0 and the code does not perform any missing
+        value handling for 'insurance' before encoding with pd.get_dummies. If null
+        values are present, get_dummies will create a separate category for them,
+        which may not be expected given all observed values are non-null.
+      sources:
+      - start_line: 1
+        end_line: 8
+        file: ''
+    - text: 'All values in the ''insurance'' column must be strings, as indicated
+        by the dataType metadata and the downstream use of pd.get_dummies (which requires
+        hashable, consistent-type values). The presence of only String type values
+        in typeCounts and isDataTypeInferred: false supports this assumption.'
+      sources:
+      - start_line: 1
+        end_line: 8
+        file: ''
+    - text: The 'insurance' column should contain only a small number of distinct
+        categories, consistent with approximately 3 unique values seen in the data
+        (e.g., 'CG', 'UHG', 'KP'). Input data with a dramatically higher number of
+        distinct values may indicate data quality issues or unseen categories that
+        could affect model performance.
+      sources:
+      - start_line: 1
+        end_line: 8
+        file: ''
+column_data_flow_locations:
+  cost:
+  - start_line: 1
+    end_line: 2
+    file: ''
+  admission_day:
+  - start_line: 3
+    end_line: 4
+    file: ''
+  discharge_day:
+  - start_line: 3
+    end_line: 4
+    file: ''
+  diagnosis:
+  - start_line: 5
+    end_line: 8
+    file: ''
+  insurance:
+  - start_line: 5
+    end_line: 8
+    file: ''
+  complications:
+  - start_line: 9
+    end_line: 9
+    file: ''

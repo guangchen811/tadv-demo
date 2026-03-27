@@ -1,0 +1,332 @@
+results:
+  c20:
+    code:
+    - suggestion: '.satisfies("CAST(`c20` AS DOUBLE) IS NOT NULL", "c20_is_numeric",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isComplete("c20")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c20` >= 0 AND `c20` <= 120 THEN 1 ELSE 0
+        END", "c20_reasonable_range", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c20` = floor(`c20`) THEN 1 ELSE 0 END",
+        "c20_is_integer", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c13:
+    code:
+    - suggestion: '.satisfies("CASE WHEN cast(`c13` AS DOUBLE) IS NOT NULL THEN 1
+        ELSE 0 END", "c13_is_numeric", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c13` IS NOT NULL THEN 1 ELSE 0 END", "c13_not_null",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c13` IS NOT NULL AND `c13` >= 0 THEN 1 ELSE
+        0 END", "c13_non_negative", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c13` <= 400 THEN 1 ELSE 0 END", "c13_upper_bound",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c31:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `c31` IS NOT NULL THEN 1 ELSE 0 END", "c31_non_null",
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c31` IS NOT NULL AND floor(`c31`) = `c31`
+        THEN 1 ELSE 0 END", "c31_integer_parseable", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c29` > 0 THEN CASE WHEN `c31` >= 0 AND `c31`
+        <= `c29` THEN 1 ELSE 0 END ELSE 1 END", "c31_in_[0,c29]_when_c29_pos", lambda
+        x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c16:
+    code:
+    - suggestion: .isComplete("c16")
+      status: false
+      reason_if_failed: 'Constraint ''isComplete("c16")'' failed on data sample: Value:
+        0.9502262443438914 does not meet the constraint requirement!'
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c16` IN (0,1) THEN 1 ELSE 0 END", "c16_is_binary",
+        lambda x: x == 1)'
+      status: false
+      reason_if_failed: 'Constraint ''satisfies("CASE WHEN `c16` IN (0,1) THEN 1 ELSE
+        0 END", "c16_is_binary", lambda x: x == 1)'' failed on data sample: Value:
+        0.9502262443438914 does not meet the constraint requirement!'
+      level: error
+  c17:
+    code:
+    - suggestion: .isComplete('c17')
+      status: false
+      reason_if_failed: 'Constraint ''isComplete(''c17'')'' failed on data sample:
+        Value: 0.9700226244343891 does not meet the constraint requirement!'
+      level: error
+  c22:
+    code:
+    - suggestion: .isComplete("c22")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN c22 >= 0 THEN 1 ELSE 0 END", "c22_non_negative",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN c23 = 0 THEN CASE WHEN c22 = 0 THEN 1 ELSE
+        0 END ELSE CASE WHEN c22 <= c23 THEN 1 ELSE 0 END END", "c22_le_c23_when_applicable",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN c23 IS NULL OR c23 = 0 THEN 1 WHEN (c22 /
+        CAST(c23 AS DOUBLE)) BETWEEN 0 AND 1 THEN 1 ELSE 0 END", "ratio_in_0_1", lambda
+        x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c23:
+    code:
+    - suggestion: '.satisfies("CASE WHEN CAST(`c23` AS DOUBLE) IS NOT NULL THEN 1
+        ELSE 0 END", "c23_is_numeric", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: .isComplete("c23")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c23` >= 0 THEN 1 ELSE 0 END", "c23_non_negative",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c23` != 0 THEN 1 ELSE 0 END", "c23_non_zero_fraction",
+        lambda x: x >= 0.8)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c32:
+    code:
+    - suggestion: '.satisfies("CASE WHEN CAST(`c32` AS DOUBLE) IS NOT NULL THEN 1
+        ELSE 0 END", "c32_parseable_as_numeric", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c32` IS NOT NULL THEN 1 ELSE 0 END", "c32_not_null",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c32` >= 0 AND `c32` <= 20 THEN 1 ELSE 0
+        END", "c32_in_0_20", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c25:
+    code:
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c25` AS DOUBLE) IS NOT NULL THEN
+        1 ELSE 0 END", "c25_is_numeric", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN `c23` > 0 AND `c25` IS NOT NULL THEN CASE
+        WHEN `c25` >= 0 AND `c25` <= `c23` THEN 1 ELSE 0 END ELSE 1 END", "c25_within_denominator",
+        lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c25` IS NOT NULL THEN 1 ELSE 0 END", "c25_not_null",
+        lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c26:
+    code:
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c26` AS DOUBLE) IS NOT NULL THEN
+        1 ELSE 0 END", "c26_is_numeric", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isComplete("c26")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c26` AS DOUBLE) IS NOT NULL AND
+        TRY_CAST(`c26` AS DOUBLE) >= 0 AND TRY_CAST(`c26` AS DOUBLE) <= 20 THEN 1
+        ELSE 0 END", "c26_in_0_20", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c27:
+    code:
+    - suggestion: .isComplete('c27')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CASE WHEN `c23` = 0 THEN 1 WHEN `c23` > 0 AND `c27`
+        >= 0 AND `c27` <= `c23` THEN 1 ELSE 0 END'', ''c27_between_0_and_c23_when_c23_positive'',
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''CASE WHEN `c27` = 0 THEN 1 ELSE 0 END'', ''c27_zero_fraction'',
+        lambda x: x >= 0.9)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c28:
+    code:
+    - suggestion: '.satisfies("CASE WHEN try_cast(`c28` AS DOUBLE) IS NOT NULL THEN
+        1 ELSE 0 END", "c28 parseable as numeric", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN try_cast(`c28` AS DOUBLE) IS NOT NULL AND
+        try_cast(`c28` AS DOUBLE) >= 0 THEN 1 ELSE 0 END", "c28 non-negative", lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN try_cast(`c29` AS DOUBLE) > 0 AND try_cast(`c28`
+        AS DOUBLE) IS NOT NULL AND try_cast(`c29` AS DOUBLE) IS NOT NULL AND (try_cast(`c28`
+        AS DOUBLE) / try_cast(`c29` AS DOUBLE)) BETWEEN 0 AND 1 THEN 1 ELSE 0 END",
+        "c28/c29 in [0,1] when c29>0", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c29:
+    code:
+    - suggestion: '.isNonNegative(''c29'', lambda x: x >= 0.999)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies(''c29 > 0'', ''positive_denominator_fraction'', lambda
+        x: x >= 0.01)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies(''(c31 IS NULL OR c31 <= c29) AND (c33 IS NULL OR c33
+        <= c29) AND (c28 IS NULL OR c28 <= c29)'', ''numerator_le_denominator'', lambda
+        x: x >= 0.999)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c33:
+    code:
+    - suggestion: '.satisfies("CASE WHEN `c33` IS NOT NULL AND CAST(`c33` AS DOUBLE)
+        IS NOT NULL THEN 1 ELSE 0 END", "c33_is_numeric", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .isComplete("c33")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.isNonNegative("c33", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c29` IS NULL OR `c29` = 0 THEN 1 WHEN `c33`
+        <= `c29` THEN 1 ELSE 0 END", "c33_le_c29_when_denominator_positive", lambda
+        x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c33` IN (0,1,2,3,4,5,6,7,8) THEN 1 ELSE
+        0 END", "c33_in_expected_set", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c37:
+    code:
+    - suggestion: .isComplete('c37')
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c37` IN (''Graduate'',''Enrolled'',''Dropout'')
+        THEN 1 ELSE 0 END", "Valid c37 categories", lambda x: x == 1)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+    - suggestion: '.satisfies("CASE WHEN lower(trim(`c37`)) = ''graduate'' AND `c37`
+        <> ''Graduate'' THEN 1 ELSE 0 END", "No case/whitespace variants of ''Graduate''",
+        lambda x: x == 0)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  c5:
+    code:
+    - suggestion: '.satisfies("CASE WHEN cast(`c5` AS double) IS NOT NULL THEN 1 ELSE
+        0 END", "c5_is_numeric", lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c5` IN (0,1) THEN 1 ELSE 0 END", "c5_binary",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c5` IS NOT NULL THEN 1 ELSE 0 END", "c5_non_null_fraction",
+        lambda x: x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error
+  c7:
+    code:
+    - suggestion: '.satisfies("CASE WHEN TRY_CAST(`c7` AS DOUBLE) IS NOT NULL THEN
+        1 ELSE 0 END", "c7_is_numeric", lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.hasCompleteness(''c7'', lambda x: x >= 0.99)'
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.satisfies("CASE WHEN `c7` >= 0 AND `c7` <= 200 THEN 1 ELSE 0 END",
+        "c7_in_expected_range", lambda x: x >= 0.95)'
+      status: true
+      reason_if_failed: ''
+      level: warning
+  '["c28","c29","c31","c33"]':
+    code:
+    - suggestion: .satisfies("c29 = 0 OR (c31 >= 0 AND c31 <= c29)", "c31_in_0_to_c29")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies("c29 = 0 OR (c33 >= 0 AND c33 <= c29)", "c33_in_0_to_c29")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies("c29 = 0 OR (c28 >= 0 AND c28 <= c29)", "c28_in_0_to_c29")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: .satisfies("c29 != 0 OR (c31 = 0 AND c33 = 0 AND c28 = 0)", "zeros_consistent_with_denominator")
+      status: true
+      reason_if_failed: ''
+      level: error
+    - suggestion: '.haveCompleteness([''c29'',''c31'',''c28'',''c33''], lambda x:
+        x == 1.0)'
+      status: true
+      reason_if_failed: ''
+      level: error

@@ -1,0 +1,62 @@
+prismadv_config:
+  model:
+    variant: default
+    use_async: true
+    use_dataflow: true
+    downstream_task_description: The code is written for SQL Query task. The code
+      is expected to run on a database and return the results. you are asked to generate
+      constraints on the upcoming *test* data to ensure that the code can run without
+      any errors and the results are meaningful.
+  llm:
+    model_name: gpt-4.1
+    temperature: 0.6
+    max_tokens: null
+    seed: null
+  io:
+    overwrite: false
+constraints:
+  loan_int_rate:
+    code:
+    - suggestion: .isComplete('loan_int_rate')
+      validity: true
+      level: error
+    - suggestion: '.hasDataType(''loan_int_rate'', ''Fractional'', lambda x: x ==
+        1.0)'
+      validity: false
+      level: error
+    - suggestion: .isNonNegative('loan_int_rate')
+      validity: true
+      level: warning
+    - suggestion: '.hasMax(''loan_int_rate'', lambda x: x <= 100)'
+      validity: true
+      level: warning
+    assumptions:
+    - text: The 'loan_int_rate' column must not contain null values, as it is directly
+        used in CASE expressions that perform numeric comparisons. Null values in
+        'loan_int_rate' could cause SQL errors or result in rows not being assigned
+        to any interest rate tier.
+      sources:
+      - start_line: 2
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column must contain only numeric (Fractional) values,
+        as it is compared numerically (< 10, BETWEEN 10 AND 20) in the CASE statement.
+        Non-numeric values would cause SQL errors or incorrect tier assignments.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+    - text: The 'loan_int_rate' column values are expected to be within a reasonable
+        range for loan interest rates (e.g., non-negative and not unreasonably high),
+        as extreme outliers could lead to meaningless 'High Rate' assignments or indicate
+        data quality issues. While the CASE statement categorizes any value >= 20
+        as 'High Rate', extremely large or negative values may not be meaningful.
+      sources:
+      - start_line: 3
+        end_line: 5
+        file: ''
+column_data_flow_locations:
+  loan_int_rate:
+  - start_line: 2
+    end_line: 5
+    file: ''
